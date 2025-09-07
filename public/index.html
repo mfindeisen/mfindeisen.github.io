@@ -44,6 +44,22 @@
             height: 600vh; /* Make page more scrollable to reach 100% */
             pointer-events: none;
         }
+        
+        /* Mobile-specific improvements */
+        @media (max-width: 768px) {
+            .content {
+                height: 650vh; /* Extra height on mobile to ensure full scroll */
+                /* Improve mobile scrolling behavior */
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: none;
+            }
+            
+            body {
+                /* Prevent bounce scrolling on iOS */
+                overscroll-behavior: none;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
 
 
         .info {

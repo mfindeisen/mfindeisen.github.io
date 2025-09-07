@@ -26,7 +26,21 @@ export class ScrollController {
         }
         
         const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-        const progress = Math.min(Math.max(currentScroll / this.maxScroll, 0), 1);
+        let progress = Math.min(Math.max(currentScroll / this.maxScroll, 0), 1);
+        
+        // Mobile-specific adjustments
+        const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
+        if (isMobile) {
+            // Account for mobile browser behavior where full scroll might not be achievable
+            // If we're within 50px of the bottom, consider it 100%
+            const remainingScroll = this.maxScroll - currentScroll;
+            if (remainingScroll <= 50 && progress > 0.85) {
+                progress = 1.0;
+            }
+            
+            // Also boost progress slightly on mobile to compensate for UI bars
+            progress = Math.min(progress * 1.05, 1.0);
+        }
         
         return progress;
     }

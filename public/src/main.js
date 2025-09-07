@@ -160,8 +160,13 @@ class App {
             this.googleEarthContainer.style.zIndex = '0';
             this.googleEarthContainer.style.opacity = 0;
             
-            if (progress > 0.95) {
-                const fadeProgress = (progress - 0.95) / 0.05; // 0 to 1 over last 5%
+            // Lower threshold for mobile compatibility (90% instead of 95%)
+            const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
+            const activationThreshold = isMobile ? 0.90 : 0.95;
+            const fadeRange = isMobile ? 0.10 : 0.05; // Longer fade on mobile
+            
+            if (progress > activationThreshold) {
+                const fadeProgress = Math.min((progress - activationThreshold) / fadeRange, 1.0);
                 
                 // Start cross-fade: bring MapTiler to front and make it visible
                 this.googleEarthContainer.style.zIndex = '2'; // Bring to front
@@ -179,7 +184,7 @@ class App {
                     this.hasZoomedToErbil = true;
                 }
                 
-                console.log('Cross-fade progress:', fadeProgress, 'MapTiler opacity:', fadeProgress, '3D Earth opacity:', 1 - fadeProgress);
+                console.log('Cross-fade progress:', fadeProgress, 'MapTiler opacity:', fadeProgress, 'Threshold:', activationThreshold);
             }
         } else {
             // Keep MapTiler completely hidden in early stages
