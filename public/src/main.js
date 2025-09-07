@@ -179,12 +179,15 @@ class App {
                 }
                 
                 // When fade is complete, zoom to Erbil
-                if (fadeProgress >= 1.0 && !this.hasZoomedToErbil) {
+                // Use a slightly lower threshold on mobile to ensure animation triggers
+                const animationThreshold = isMobile ? 0.95 : 1.0;
+                if (fadeProgress >= animationThreshold && !this.hasZoomedToErbil) {
+                    console.log('Triggering Erbil animation - fadeProgress:', fadeProgress, 'threshold:', animationThreshold, 'isMobile:', isMobile);
                     this.zoomToErbil();
                     this.hasZoomedToErbil = true;
                 }
                 
-                console.log('Cross-fade progress:', fadeProgress, 'MapTiler opacity:', fadeProgress, 'Threshold:', activationThreshold);
+                console.log('Cross-fade progress:', fadeProgress, 'MapTiler opacity:', fadeProgress, 'Threshold:', activationThreshold, 'isMobile:', isMobile);
             }
         } else {
             // Keep MapTiler completely hidden in early stages

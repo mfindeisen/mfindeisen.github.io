@@ -31,15 +31,17 @@ export class ScrollController {
         // Mobile-specific adjustments
         const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
         if (isMobile) {
-            // Account for mobile browser behavior where full scroll might not be achievable
-            // If we're within 50px of the bottom, consider it 100%
-            const remainingScroll = this.maxScroll - currentScroll;
-            if (remainingScroll <= 50 && progress > 0.85) {
-                progress = 1.0;
-            }
+            // Boost progress slightly on mobile to compensate for UI bars
+            progress = Math.min(progress * 1.08, 1.0);
             
-            // Also boost progress slightly on mobile to compensate for UI bars
-            progress = Math.min(progress * 1.05, 1.0);
+            // Account for mobile browser behavior where full scroll might not be achievable
+            // But ensure gradual increase for fade animations to work properly
+            const remainingScroll = this.maxScroll - currentScroll;
+            if (remainingScroll <= 30 && progress > 0.88) {
+                // Gradually approach 1.0 instead of jumping to it
+                const nearBottomProgress = 1.0 - (remainingScroll / 30) * 0.12;
+                progress = Math.max(progress, nearBottomProgress);
+            }
         }
         
         return progress;
