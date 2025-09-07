@@ -149,11 +149,13 @@ export class EarthScene {
         // Load texture
         const textureLoader = new THREE.TextureLoader();
         
-        // Create material
+        // Create material with transparency for fading
         const material = new THREE.MeshBasicMaterial({
             color: 0xffffff,
             morphTargets: true,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 1.0
         });
         
         textureLoader.load('/textures/world.topo.bathy.200407.3x5400x2700.jpg',
@@ -174,6 +176,9 @@ export class EarthScene {
         // Create meshes for both halves
         this.earthLeft = new THREE.Mesh(leftGeom, material);
         this.earthRight = new THREE.Mesh(rightGeom, material);
+        
+        // Store reference to material for opacity control
+        this.earthMaterial = material;
         
         // Start in sphere mode
         this.earthLeft.morphTargetInfluences[0] = 1;
@@ -321,8 +326,28 @@ export class EarthScene {
         // Keep same scale
         this.earth.scale.set(1, 1, 1);
         
-        // Move camera back to see the full unwrapped plane
-        const cameraZ = 5 + progress * 3; // start farther back and move farther
+        // Move camera back to see the full unwrapped plane, then zoom in slowly at the end
+        let cameraZ;
+        if (progress < 0.85) {
+            // Normal camera movement during morphing and rotation (0-85%)
+            cameraZ = 5 + progress * 3; // start farther back and move farther
+            this.earthMaterial.opacity = 1.0; // Fully visible
+        } else {
+            // Final zoom: move camera close to fill screen with map (85-100%)
+            const zoomProgress = (progress - 0.85) / 0.15; // 0 to 1 over last 15%
+            const startZ = 5 + (0.85 * 3); // Position at 85% progress
+            const endZ = 2; // Close zoom to fill screen
+            cameraZ = startZ + (endZ - startZ) * this.easeInOutCubic(zoomProgress);
+            
+            // Fade out 3D Earth during final zoom phase
+            if (progress > 0.95) {
+                const fadeProgress = (progress - 0.95) / 0.05; // Fade in last 5%
+                this.earthMaterial.opacity = 1.0 - fadeProgress;
+            } else {
+                this.earthMaterial.opacity = 1.0;
+            }
+        }
+        
         this.camera.position.set(0, 0, cameraZ);
         this.camera.rotation.set(0, 0, 0);
     }
