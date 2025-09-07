@@ -29,65 +29,98 @@ export class EarthScene {
         this.setupRealisticLights();
         
         // Create sun
-        this.createSun();
+        //this.createSun();
         
         // Create earth
         this.createEarth();
+        
+        // Create atmosphere
+        //this.createAtmosphere();
         
         console.log('Earth scene initialized');
     }
 
     setupRealisticLights() {
         // Strong ambient light to ensure Earth is always visible
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.8);
-        this.scene.add(ambientLight);
+        
 
         // Main sun light from front-right
-        this.sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        this.sunLight = new THREE.DirectionalLight(0xffffff, 0.001);
         this.sunLight.position.set(3, 2, 8);
         this.sunLight.target.position.set(0, 0, 0);
-        this.scene.add(this.sunLight);
-        this.scene.add(this.sunLight.target);
+        //this.scene.add(this.sunLight);
+        //this.scene.add(this.sunLight.target);
         
         // Fill light from opposite side to ensure shadow side is visible
         const fillLight = new THREE.DirectionalLight(0x6699ff, 0.6);
         fillLight.position.set(-3, -1, -4);
-        this.scene.add(fillLight);
+        //this.scene.add(fillLight);
         
         // Additional side lighting for better coverage
         const sideLight = new THREE.DirectionalLight(0xffffaa, 0.4);
         sideLight.position.set(0, 5, 0);
-        this.scene.add(sideLight);
+        //this.scene.add(sideLight);
         
         // Store fixed sun position for visual sun object
-        this.sunPosition = new THREE.Vector3(3, 2, 8);
+        //this.sunPosition = new THREE.Vector3(3, 2, 8);
         
         console.log('Lighting setup complete');
     }
 
     createStarfield() {
-        // Create thousands of stars in the background
+        // Create thousands of stars in the background with varying brightness
         const starGeometry = new THREE.BufferGeometry();
-        const starCount = 10000;
+        const starCount = 15000;
         const positions = new Float32Array(starCount * 3);
+        const colors = new Float32Array(starCount * 3);
+        const sizes = new Float32Array(starCount);
         
-        for (let i = 0; i < starCount * 3; i += 3) {
+        for (let i = 0; i < starCount; i++) {
             // Generate stars in a large sphere around the scene
-            const radius = 400;
+            const radius = 500;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(Math.random() * 2 - 1);
             
-            positions[i] = radius * Math.sin(phi) * Math.cos(theta);
-            positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
-            positions[i + 2] = radius * Math.cos(phi);
+            const i3 = i * 3;
+            positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+            positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+            positions[i3 + 2] = radius * Math.cos(phi);
+            
+            // Vary star colors (white to slightly blue/yellow)
+            const starBrightness = 0.5 + Math.random() * 0.5;
+            const colorVariation = Math.random();
+            
+            if (colorVariation < 0.7) {
+                // Most stars are white
+                colors[i3] = starBrightness;
+                colors[i3 + 1] = starBrightness;
+                colors[i3 + 2] = starBrightness;
+            } else if (colorVariation < 0.85) {
+                // Some stars are slightly blue
+                colors[i3] = starBrightness * 0.8;
+                colors[i3 + 1] = starBrightness * 0.9;
+                colors[i3 + 2] = starBrightness;
+            } else {
+                // Some stars are slightly yellow
+                colors[i3] = starBrightness;
+                colors[i3 + 1] = starBrightness * 0.95;
+                colors[i3 + 2] = starBrightness * 0.8;
+            }
+            
+            // Vary star sizes for realistic depth
+            sizes[i] = Math.random() * 2.5 + 0.5;
         }
         
         starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        starGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
         
         const starMaterial = new THREE.PointsMaterial({
-            color: 0xffffff,
-            size: 1,
-            sizeAttenuation: false
+            vertexColors: true,
+            size: 1.5,
+            sizeAttenuation: false,
+            transparent: true,
+            opacity: 0.9
         });
         
         this.stars = new THREE.Points(starGeometry, starMaterial);
@@ -125,6 +158,51 @@ export class EarthScene {
     createEarth() {
         // Create two separate halves for natural orange-peel unwrapping
         this.createEarthHalves();
+    }
+
+    createAtmosphere() {
+        // Create atmosphere geometry - slightly larger than Earth
+        const atmosphereGeometry = new THREE.SphereGeometry(1.05, 64, 64);
+        
+        // Create atmosphere material with shader-like effect
+        const atmosphereMaterial = new THREE.ShaderMaterial({
+            transparent: true,
+            side: THREE.BackSide, // Render from inside
+            uniforms: {
+                c: { value: 1.0 },
+                p: { value: 1.4 },
+                glowColor: { value: new THREE.Color(0x00aaff) },
+                viewVector: { value: new THREE.Vector3() }
+            },
+            vertexShader: `
+                uniform vec3 viewVector;
+                varying float intensity;
+                void main() {
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    vec3 actual_normal = vec3(modelMatrix * vec4(normal, 0.0));
+                    intensity = pow(0.8 - dot(normalize(viewVector), actual_normal), 2.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 glowColor;
+                varying float intensity;
+                void main() {
+                    vec3 glow = glowColor * intensity;
+                    gl_FragColor = vec4(glow, intensity * 0.8);
+                }
+            `
+        });
+
+        // Create atmosphere mesh
+        this.atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+        
+        // Apply same transformations as Earth
+        this.atmosphere.rotation.y = Math.PI;
+        this.atmosphere.rotation.z = 0.41; // Same tilt as Earth
+        
+        this.scene.add(this.atmosphere);
+        
+        console.log('Atmosphere created');
     }
 
     createEarthHalves() {
@@ -184,9 +262,13 @@ export class EarthScene {
         this.earthLeft.morphTargetInfluences[0] = 1;
         this.earthRight.morphTargetInfluences[0] = 1;
         
-        // Rotate so cut is on back
+        // Rotate so cut is on back and add realistic 23.5° axial tilt
         this.earthLeft.rotation.y = Math.PI;
         this.earthRight.rotation.y = Math.PI;
+        
+        // Add Earth's axial tilt (23.5 degrees = 0.41 radians)
+        //this.earthLeft.rotation.z = 0.41;
+        //this.earthRight.rotation.z = 0.41;
         
         this.scene.add(this.earthLeft);
         this.scene.add(this.earthRight);
@@ -282,6 +364,23 @@ export class EarthScene {
         this.earthLeft.morphTargetInfluences[0] = morphValue;
         this.earthRight.morphTargetInfluences[0] = morphValue;
         
+        // Fade atmosphere before morphing starts
+        if (this.atmosphere) {
+            if (progress < 0.15) {
+                // Full atmosphere when not scrolling (progress 0-15%)
+                this.atmosphere.material.opacity = 0.8;
+                this.atmosphere.visible = true;
+            } else if (progress < 0.25) {
+                // Quick fade out between 15-25% progress, before morphing begins
+                const fadeProgress = (progress - 0.15) / 0.1; // 0 to 1 over 10% range
+                this.atmosphere.material.opacity = 0.8 * (1 - fadeProgress);
+                this.atmosphere.visible = true;
+            } else {
+                // Completely hidden during morphing (25%+ progress)
+                this.atmosphere.visible = false;
+            }
+        }
+        
         // Update camera position
         this.updateTransform(easedProgress);
     }
@@ -369,6 +468,16 @@ export class EarthScene {
         if (this.sunLight) {
             this.sunLight.position.set(3, 2, 8);
             this.sunLight.target.position.set(0, 0, 0);
+        }
+        
+        // Update atmosphere rotation to match Earth
+        if (this.atmosphere && this.earthLeft && this.earthRight) {
+            this.atmosphere.rotation.y = this.earthLeft.rotation.y;
+        }
+        
+        // Update atmosphere view vector for glow effect
+        if (this.atmosphere && this.camera) {
+            this.atmosphere.material.uniforms.viewVector.value = this.camera.position.clone().normalize();
         }
         
         // Subtle starfield rotation

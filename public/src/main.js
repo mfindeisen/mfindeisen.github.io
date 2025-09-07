@@ -11,7 +11,9 @@ class App {
         this.portfolioOverlay = document.getElementById('portfolio-overlay');
         this.skipButton = document.getElementById('skip-button');
         this.reopenPortfolioBtn = document.getElementById('reopen-portfolio-btn');
+        this.footer = document.getElementById('footer');
         this.hasZoomedToErbil = false;
+        this.hasCompletedMapJourney = false;
         this.mapTilerMap = null;
         this.isAutoScrolling = false;
         this.autoScrollAnimation = null;
@@ -127,10 +129,17 @@ class App {
         console.log('Scroll event triggered, progress:', scrollProgress);
         this.scrollProgress.textContent = `Progress: ${Math.round(scrollProgress * 100)}%`;
         
-        // Hide scroll indicator and skip button when user starts manual scrolling (unless auto-scrolling is active)
-        if (!this.isAutoScrolling && window.pageYOffset > 50) {
-            this.scrollIndicator.classList.add('hidden');
-            this.skipButton.classList.add('hidden');
+        // Handle scroll indicator and skip button visibility
+        if (!this.isAutoScrolling) {
+            if (window.pageYOffset > 50) {
+                // Hide when scrolling down
+                this.scrollIndicator.classList.add('hidden');
+                this.skipButton.classList.add('hidden');
+            } else if (window.pageYOffset <= 10 && !this.hasCompletedMapJourney) {
+                // Show again when scrolling back to top (only if haven't completed map journey)
+                this.scrollIndicator.classList.remove('hidden');
+                this.skipButton.classList.remove('hidden');
+            }
         }
         
         // Test with a simple progress value
@@ -159,6 +168,11 @@ class App {
                 this.googleEarthContainer.style.opacity = fadeProgress;
                 this.googleEarthContainer.classList.add('visible');
                 
+                // Add margin to footer when map becomes visible
+                if (fadeProgress >= 0.5) {
+                    this.footer.style.marginBottom = '20px';
+                }
+                
                 // When fade is complete, zoom to Erbil
                 if (fadeProgress >= 1.0 && !this.hasZoomedToErbil) {
                     this.zoomToErbil();
@@ -172,6 +186,10 @@ class App {
             this.googleEarthContainer.style.zIndex = '0';
             this.googleEarthContainer.style.opacity = 0;
             this.googleEarthContainer.classList.remove('visible');
+            
+            // Remove footer margin when not showing map
+            this.footer.style.marginBottom = '';
+            
             // Reset zoom flag when going back
             this.hasZoomedToErbil = false;
         }
@@ -244,6 +262,9 @@ class App {
         // Hide reopen button when portfolio is shown
         this.reopenPortfolioBtn.classList.remove('visible');
         
+        // Hide footer when portfolio is open
+        this.footer.classList.add('hidden');
+        
         // Prevent background scrolling
         this.lockScroll();
     }
@@ -255,10 +276,23 @@ class App {
         // Restore background scrolling
         this.unlockScroll();
         
-        // Show reopen portfolio button after a brief delay
-        setTimeout(() => {
-            this.reopenPortfolioBtn.classList.add('visible');
-        }, 300); // Small delay for smooth transition
+        // Show footer again when portfolio is closed
+        this.footer.classList.remove('hidden');
+        
+        // Only show reopen portfolio button if we've completed the map journey
+        if (this.hasCompletedMapJourney) {
+            setTimeout(() => {
+                this.reopenPortfolioBtn.classList.add('visible');
+            }, 300); // Small delay for smooth transition
+        } else {
+            // If we haven't completed the map journey and we're at the top, show the initial buttons
+            if (window.pageYOffset <= 10) {
+                setTimeout(() => {
+                    this.scrollIndicator.classList.remove('hidden');
+                    this.skipButton.classList.remove('hidden');
+                }, 300); // Small delay for smooth transition
+            }
+        }
     }
     
     skipToPortfolio() {
@@ -344,6 +378,9 @@ class App {
             // Enable map interactions after animation completes
             this.enableMapInteractions(true);
             console.log('Zoom to Erbil completed at coordinates:', targetLat, targetLng, 'zoom:', targetZoom);
+            
+            // Mark that we've completed the full map journey
+            this.hasCompletedMapJourney = true;
             
             // Show portfolio overlay after a brief delay
             setTimeout(() => {
