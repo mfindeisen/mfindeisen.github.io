@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth Unwrap - Three.js</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            height: 600vh; /* Make page more scrollable to reach 100% */
+            pointer-events: none;
+        }
+
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            z-index: 3;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <div>Scroll to unwrap the Earth</div>
+        <div id="scroll-progress">Progress: 0%</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="content">
+        <!-- Empty scrollable content - no overlay text -->
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
