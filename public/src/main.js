@@ -14,6 +14,11 @@ class App {
         this.footer = document.getElementById('footer');
         this.hasZoomedToErbil = false;
         this.hasCompletedMapJourney = false;
+        this.portfolioHasBeenShown = false; // Track if portfolio was shown automatically
+        this.portfolioManuallyDismissed = false; // Track if user manually closed it
+        this.flyToAnimationCompleted = false; // Track if flyTo animation has completed
+        this.isAtBeginning = false; // Track if user is at the beginning
+        this.beginningTimer = null; // Timer for sustained beginning detection
         this.mapTilerMap = null;
         this.isAutoScrolling = false;
         this.autoScrollAnimation = null;
@@ -198,8 +203,43 @@ class App {
             // Remove footer margin when not showing map
             this.footer.style.marginBottom = '';
             
+            // When scrolling back up, just reset flags but keep map position
+            if (this.hasZoomedToErbil) {
+                console.log('User scrolled back up - resetting flags but keeping map position');
+                
+                // Reset completion status so animation can run again
+                this.hasCompletedMapJourney = false;
+                
+                // Reset portfolio flags so it can show again if user goes through the full journey
+                this.portfolioHasBeenShown = false;
+                this.portfolioManuallyDismissed = false;
+                // Don't reset flyToAnimationCompleted here - only reset when actually starting new animation
+                
+                console.log('Flags reset, map position maintained');
+            }
+            
             // Reset zoom flag when going back
             this.hasZoomedToErbil = false;
+            
+            // Only reset flyTo flag when user stays at the very beginning for an extended period
+            // This indicates they want a completely fresh start
+            if (progress < 0.005) {
+                if (!this.isAtBeginning) {
+                    this.isAtBeginning = true;
+                    this.beginningTimer = setTimeout(() => {
+                        if (this.isAtBeginning && progress < 0.005) {
+                            this.flyToAnimationCompleted = false;
+                            console.log('Reset flyTo completion flag - user wants fresh start');
+                        }
+                    }, 3000); // 3 second delay for intentional reset
+                }
+            } else if (progress >= 0.01) {
+                this.isAtBeginning = false;
+                if (this.beginningTimer) {
+                    clearTimeout(this.beginningTimer);
+                    this.beginningTimer = null;
+                }
+            }
         }
     }
 
@@ -279,7 +319,13 @@ class App {
     
     hidePortfolio() {
         console.log('Hiding portfolio overlay');
+        console.log('FlyTo animation completed flag:', this.flyToAnimationCompleted);
+        console.log('Has zoomed to Erbil:', this.hasZoomedToErbil);
+        
         this.portfolioOverlay.classList.remove('visible');
+        
+        // Mark that user manually dismissed the portfolio
+        this.portfolioManuallyDismissed = true;
         
         // Restore background scrolling
         this.unlockScroll();
@@ -301,6 +347,8 @@ class App {
                 }, 300); // Small delay for smooth transition
             }
         }
+        
+        console.log('Portfolio hidden, flags - flyToCompleted:', this.flyToAnimationCompleted, 'hasZoomed:', this.hasZoomedToErbil);
     }
     
     skipToPortfolio() {
@@ -366,12 +414,21 @@ class App {
             return;
         }
 
+        // If animation already completed, don't start again
+        if (this.flyToAnimationCompleted) {
+            console.log('FlyTo animation already completed, skipping');
+            return;
+        }
+
         console.log('Starting smooth flyTo animation to Erbil, Iraq');
         
         // Target coordinates (Erbil, Iraq)
         const targetLng = 44.0259;
         const targetLat = 36.1982;
         const targetZoom = 13;
+        
+        // Set animation start time to prevent duplicate triggers
+        this.flyToStartTime = Date.now();
         
         // Use MapTiler SDK's native flyTo method for smooth animation
         this.mapTilerMap.flyTo({
@@ -381,20 +438,28 @@ class App {
             essential: true // Animation cannot be interrupted
         });
 
-        // Add event listener for when animation completes
-        this.mapTilerMap.once('moveend', () => {
-            // Enable map interactions after animation completes
-            this.enableMapInteractions(true);
-            console.log('Zoom to Erbil completed at coordinates:', targetLat, targetLng, 'zoom:', targetZoom);
-            
-            // Mark that we've completed the full map journey
-            this.hasCompletedMapJourney = true;
-            
-            // Show portfolio overlay after a brief delay
-            setTimeout(() => {
-                this.showPortfolio();
-            }, 2000); // 2 second delay to let user appreciate the map
-        });
+        // Use timeout instead of moveend event to avoid duplicate triggers
+        setTimeout(() => {
+            // Only run this logic if the flyTo animation hasn't completed yet
+            if (!this.flyToAnimationCompleted) {
+                this.flyToAnimationCompleted = true; // Mark animation as completed
+                
+                // Enable map interactions after animation completes
+                this.enableMapInteractions(true);
+                console.log('Zoom to Erbil completed at coordinates:', targetLat, targetLng, 'zoom:', targetZoom);
+                
+                // Mark that we've completed the full map journey
+                this.hasCompletedMapJourney = true;
+                
+                // Show portfolio overlay after a brief delay (only if not shown before and not manually dismissed)
+                if (!this.portfolioHasBeenShown && !this.portfolioManuallyDismissed) {
+                    setTimeout(() => {
+                        this.showPortfolio();
+                        this.portfolioHasBeenShown = true; // Mark as shown
+                    }, 2000); // 2 second delay to let user appreciate the map
+                }
+            }
+        }, 8500); // Wait for animation to complete (8s + 500ms buffer)
     }
     
     enableMapInteractions(enable) {
