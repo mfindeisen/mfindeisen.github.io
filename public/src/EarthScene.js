@@ -206,8 +206,8 @@ function animate() {
      const shouldRotate = !isScrolling && (!hasStartedMorphing || scrollProgress === 1);
      if (shouldRotate) {
        // Earth rotates 360° in 24 hours = 15°/hour = 0.25°/minute = ~0.004°/second
-       // Speed it up for visual effect: 0.5° per second
-       spherePlane.rotation.y += THREE.MathUtils.degToRad(0.5);
+       // Slower rotation for more peaceful viewing: 0.1° per second
+       spherePlane.rotation.y += THREE.MathUtils.degToRad(0.1);
      } else if (isScrolling) {
        // When scrolling, increase ambient lights to keep plane visible
        // As it flattens (scrollProgress decreases), increase ambient light significantly
@@ -915,7 +915,7 @@ export class EarthScene {
     
     this.shootingStars = [];
     this.lastShootingStarTime = 0;
-    this.shootingStarCooldown = 15000; // 15 seconds between shooting stars
+    this.shootingStarCooldown = 15000; // 15git sta seconds between shooting stars
     
     // Shooting star material
     this.shootingStarMaterial = new THREE.MeshBasicMaterial({
@@ -1316,8 +1316,8 @@ export class EarthScene {
     const shouldRotate = !this.isScrolling && (!this.hasStartedMorphing || this.scrollProgress === 1);
     
     if (shouldRotate) {
-      // Natural rotation when not morphing
-      this.currentRotationY += THREE.MathUtils.degToRad(0.5);
+      // Natural rotation when not morphing - slower for peaceful viewing
+      this.currentRotationY += THREE.MathUtils.degToRad(0.1);
       this.targetRotationY = this.currentRotationY; // Keep target synced
       this.spherePlane.rotation.y = this.currentRotationY;
     } else if (this.hasStartedMorphing) {
