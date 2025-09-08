@@ -11,7 +11,9 @@ class App {
         this.portfolioOverlay = document.getElementById('portfolio-overlay');
         this.skipButton = document.getElementById('skip-button');
         this.reopenPortfolioBtn = document.getElementById('reopen-portfolio-btn');
+        this.backToBeginningBtn = document.getElementById('back-to-beginning-btn');
         this.footer = document.getElementById('footer');
+        
         this.hasZoomedToErbil = false;
         this.hasCompletedMapJourney = false;
         this.portfolioHasBeenShown = false; // Track if portfolio was shown automatically
@@ -118,6 +120,353 @@ class App {
         
         // Handle reopen portfolio button
         this.reopenPortfolioBtn.addEventListener('click', this.showPortfolio.bind(this));
+        
+        // Handle back to beginning button
+        this.backToBeginningBtn.addEventListener('click', this.backToBeginning.bind(this));
+        
+        // Add fun easter egg interactions
+        this.setupEasterEggControls();
+    }
+
+    setupEasterEggControls() {
+        // Keyboard shortcuts for fun features
+        document.addEventListener('keydown', (e) => {
+            // Only trigger if not typing in an input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch(e.code) {
+                case 'KeyA':
+                    // 'A' for Astronaut speed boost
+                    if (this.earthScene.astronaut) {
+                        this.earthScene.astronautOrbitSpeed *= 2;
+                        this.showTooltip('🚀 Astronaut speed boost!', 2000);
+                        setTimeout(() => {
+                            this.earthScene.astronautOrbitSpeed /= 2; // Reset after 5 seconds
+                        }, 5000);
+                    }
+                    break;
+                    
+                case 'KeyS':
+                    // 'S' for Shooting star shower
+                    this.triggerShootingStarShower();
+                    break;
+                    
+                case 'KeyT':
+                    // 'T' for Time warp (speed up everything)
+                    this.toggleTimeWarp();
+                    break;
+                    
+                case 'KeyC':
+                    // 'C' for Color mode
+                    this.toggleColorMode();
+                    break;
+                    
+                case 'KeyF':
+                    // 'F' for Fireworks
+                    this.triggerFireworks();
+                    break;
+                    
+                case 'KeyH':
+                    // 'H' for Help/shortcuts
+                    this.showShortcutsHelp();
+                    break;
+            }
+        });
+        
+        // Click interactions on the canvas
+        this.renderer.domElement.addEventListener('click', (e) => {
+            this.onCanvasClick(e);
+        });
+        
+        // Initialize easter egg state
+        this.timeWarpActive = false;
+        this.colorModeIndex = 0;
+        this.colorModes = [
+            { name: 'Normal', filter: '' },
+            { name: 'Retro', filter: 'sepia(0.8) saturate(1.5) hue-rotate(20deg)' },
+            { name: 'Cyberpunk', filter: 'hue-rotate(200deg) saturate(2) contrast(1.2)' },
+            { name: 'Matrix', filter: 'hue-rotate(90deg) saturate(2) brightness(0.8)' },
+            { name: 'Warm', filter: 'hue-rotate(-20deg) saturate(1.3) brightness(1.1)' }
+        ];
+    }
+
+    onCanvasClick(e) {
+        // Get click position in normalized coordinates
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        // Create a ripple effect at click position
+        this.createClickRipple(x, y);
+        
+        // Random chance for special effects on click
+        if (Math.random() < 0.1) { // 10% chance
+            const effects = ['sparkles', 'colorBurst', 'miniStar'];
+            const effect = effects[Math.floor(Math.random() * effects.length)];
+            this.triggerClickEffect(effect, x, y);
+        }
+    }
+
+    createClickRipple(x, y) {
+        // Create a visual ripple effect at the click location
+        const ripple = document.createElement('div');
+        ripple.style.position = 'fixed';
+        ripple.style.left = `${(x + 1) * 50}%`;
+        ripple.style.top = `${(-y + 1) * 50}%`;
+        ripple.style.width = '10px';
+        ripple.style.height = '10px';
+        ripple.style.borderRadius = '50%';
+        ripple.style.border = '2px solid rgba(255, 255, 255, 0.8)';
+        ripple.style.transform = 'translate(-50%, -50%)';
+        ripple.style.pointerEvents = 'none';
+        ripple.style.zIndex = '1000';
+        ripple.style.animation = 'rippleEffect 1s ease-out forwards';
+        
+        // Add CSS animation if not already added
+        if (!document.querySelector('#ripple-styles')) {
+            const style = document.createElement('style');
+            style.id = 'ripple-styles';
+            style.textContent = `
+                @keyframes rippleEffect {
+                    0% {
+                        transform: translate(-50%, -50%) scale(1);
+                        opacity: 0.8;
+                    }
+                    100% {
+                        transform: translate(-50%, -50%) scale(8);
+                        opacity: 0;
+                    }
+                }
+                
+                @keyframes sparkleEffect {
+                    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                    50% { transform: scale(1) rotate(180deg); opacity: 1; }
+                    100% { transform: scale(0) rotate(360deg); opacity: 0; }
+                }
+                
+                .tooltip {
+                    position: fixed;
+                    top: 50px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 20px;
+                    font-size: 16px;
+                    z-index: 1001;
+                    animation: fadeInOut 3s ease forwards;
+                }
+                
+                @keyframes fadeInOut {
+                    0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                    20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                    80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 1000);
+    }
+
+    triggerClickEffect(effect, x, y) {
+        switch(effect) {
+            case 'sparkles':
+                this.createSparkles(x, y);
+                break;
+            case 'colorBurst':
+                this.createColorBurst(x, y);
+                break;
+            case 'miniStar':
+                this.createMiniStar(x, y);
+                break;
+        }
+    }
+
+    createSparkles(x, y) {
+        for (let i = 0; i < 5; i++) {
+            const sparkle = document.createElement('div');
+            sparkle.style.position = 'fixed';
+            sparkle.style.left = `${(x + 1) * 50 + (Math.random() - 0.5) * 20}%`;
+            sparkle.style.top = `${(-y + 1) * 50 + (Math.random() - 0.5) * 20}%`;
+            sparkle.style.width = '6px';
+            sparkle.style.height = '6px';
+            sparkle.style.background = `hsl(${Math.random() * 360}, 100%, 70%)`;
+            sparkle.style.borderRadius = '50%';
+            sparkle.style.transform = 'translate(-50%, -50%)';
+            sparkle.style.pointerEvents = 'none';
+            sparkle.style.zIndex = '1000';
+            sparkle.style.animation = 'sparkleEffect 1.5s ease-out forwards';
+            
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 1500);
+        }
+        this.showTooltip('✨ Sparkles!', 1500);
+    }
+
+    createColorBurst(x, y) {
+        // Change the whole scene color temporarily
+        const canvas = this.renderer.domElement;
+        const originalFilter = canvas.style.filter;
+        canvas.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(2)`;
+        
+        setTimeout(() => {
+            canvas.style.filter = originalFilter;
+        }, 500);
+        
+        this.showTooltip('🌈 Color burst!', 1500);
+    }
+
+    createMiniStar(x, y) {
+        // Add a temporary star to the 3D scene at the click location
+        if (this.earthScene.shootingStars) {
+            this.earthScene.createShootingStar();
+            this.showTooltip('⭐ Mini shooting star!', 2000);
+        }
+    }
+
+    triggerShootingStarShower() {
+        if (this.earthScene.shootingStars) {
+            // Create multiple shooting stars rapidly
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    this.earthScene.createShootingStar();
+                }, i * 200);
+            }
+            this.showTooltip('🌠 Shooting star shower!', 3000);
+        }
+    }
+
+    toggleTimeWarp() {
+        this.timeWarpActive = !this.timeWarpActive;
+        
+        if (this.timeWarpActive) {
+            // Speed up all animations
+            if (this.earthScene.astronaut) {
+                this.originalAstronautSpeed = this.earthScene.astronautOrbitSpeed;
+                this.earthScene.astronautOrbitSpeed *= 3;
+            }
+            if (this.earthScene.satellites) {
+                this.originalSatelliteSpeeds = this.earthScene.satellites.map(sat => sat.orbitSpeed);
+                this.earthScene.satellites.forEach(sat => sat.orbitSpeed *= 3);
+            }
+            this.showTooltip('⚡ Time warp activated!', 2000);
+        } else {
+            // Reset speeds
+            if (this.earthScene.astronaut && this.originalAstronautSpeed) {
+                this.earthScene.astronautOrbitSpeed = this.originalAstronautSpeed;
+            }
+            if (this.earthScene.satellites && this.originalSatelliteSpeeds) {
+                this.earthScene.satellites.forEach((sat, i) => {
+                    sat.orbitSpeed = this.originalSatelliteSpeeds[i];
+                });
+            }
+            this.showTooltip('🕒 Time warp deactivated', 2000);
+        }
+    }
+
+    toggleColorMode() {
+        this.colorModeIndex = (this.colorModeIndex + 1) % this.colorModes.length;
+        const mode = this.colorModes[this.colorModeIndex];
+        
+        const canvas = this.renderer.domElement;
+        canvas.style.filter = mode.filter;
+        
+        this.showTooltip(`🎨 Color mode: ${mode.name}`, 2000);
+    }
+
+    triggerFireworks() {
+        // Create a fireworks effect using particles
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                const x = (Math.random() - 0.5) * 2;
+                const y = (Math.random() - 0.5) * 2;
+                this.createFirework(x, y);
+            }, i * 500);
+        }
+        this.showTooltip('🎆 Fireworks!', 3000);
+    }
+
+    createFirework(x, y) {
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+        
+        for (let i = 0; i < 12; i++) {
+            const particle = document.createElement('div');
+            const angle = (i / 12) * Math.PI * 2;
+            const velocity = 3 + Math.random() * 2;
+            
+            particle.style.position = 'fixed';
+            particle.style.left = `${(x + 1) * 50}%`;
+            particle.style.top = `${(-y + 1) * 50}%`;
+            particle.style.width = '4px';
+            particle.style.height = '4px';
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.borderRadius = '50%';
+            particle.style.transform = 'translate(-50%, -50%)';
+            particle.style.pointerEvents = 'none';
+            particle.style.zIndex = '1000';
+            
+            const endX = Math.cos(angle) * velocity * 50;
+            const endY = Math.sin(angle) * velocity * 50;
+            
+            particle.style.transition = 'all 1s ease-out';
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.style.transform = `translate(calc(-50% + ${endX}px), calc(-50% + ${endY}px))`;
+                particle.style.opacity = '0';
+            }, 10);
+            
+            setTimeout(() => particle.remove(), 1000);
+        }
+    }
+
+    showShortcutsHelp() {
+        const helpText = `
+🎮 Easter Egg Controls:
+A - Astronaut speed boost 🚀
+S - Shooting star shower 🌠
+T - Toggle time warp ⚡
+C - Change color mode 🎨
+F - Fireworks show 🎆
+H - Show this help 💡
+Click anywhere for surprises! ✨
+        `;
+        
+        const helpDiv = document.createElement('div');
+        helpDiv.style.position = 'fixed';
+        helpDiv.style.top = '50%';
+        helpDiv.style.left = '50%';
+        helpDiv.style.transform = 'translate(-50%, -50%)';
+        helpDiv.style.background = 'rgba(0, 0, 0, 0.9)';
+        helpDiv.style.color = 'white';
+        helpDiv.style.padding = '30px';
+        helpDiv.style.borderRadius = '15px';
+        helpDiv.style.zIndex = '1002';
+        helpDiv.style.fontSize = '16px';
+        helpDiv.style.lineHeight = '1.6';
+        helpDiv.style.textAlign = 'center';
+        helpDiv.style.whiteSpace = 'pre-line';
+        helpDiv.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5)';
+        helpDiv.textContent = helpText;
+        
+        // Close on click
+        helpDiv.addEventListener('click', () => helpDiv.remove());
+        
+        document.body.appendChild(helpDiv);
+        setTimeout(() => helpDiv.remove(), 8000);
+    }
+
+    showTooltip(message, duration = 2000) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = message;
+        document.body.appendChild(tooltip);
+        
+        setTimeout(() => tooltip.remove(), duration);
     }
 
     onWindowResize() {
@@ -145,8 +494,21 @@ class App {
                 // Show again when scrolling back to top (only if haven't completed map journey)
                 this.scrollIndicator.classList.remove('hidden');
                 this.skipButton.classList.remove('hidden');
+                // Hide back to beginning button when at the top
+                this.backToBeginningBtn.classList.add('hidden');
             }
         }
+        
+        // Show back to beginning button when at the end and have completed the journey
+        // Temporarily using 0.85 instead of 0.95 for easier testing
+        if (scrollProgress > 0.85 && this.hasCompletedMapJourney && !this.portfolioOverlay.classList.contains('visible') && this.backToBeginningBtn) {
+            console.log('Should show back to beginning button - progress:', scrollProgress);
+            this.backToBeginningBtn.classList.remove('hidden'); // Show by removing hidden class
+        } else if (scrollProgress <= 0.85 && this.hasCompletedMapJourney && this.backToBeginningBtn) {
+            // Hide the button when not at the end (but only if journey completed)
+            this.backToBeginningBtn.classList.add('hidden');
+        }
+        
         
         // Test with a simple progress value
         const testProgress = Math.min(window.pageYOffset / 1000, 1); // Simple test
@@ -311,6 +673,9 @@ class App {
         // Hide reopen button when portfolio is shown
         this.reopenPortfolioBtn.classList.remove('visible');
         
+        // Hide back to beginning button when portfolio is shown
+        this.backToBeginningBtn.classList.add('hidden');
+        
         // Hide footer when portfolio is open
         this.footer.classList.add('hidden');
         
@@ -338,6 +703,14 @@ class App {
         if (this.hasCompletedMapJourney) {
             setTimeout(() => {
                 this.reopenPortfolioBtn.classList.add('visible');
+                // Also show back to beginning button if we're at the end
+                const scrollProgress = this.scrollController.getScrollProgress();
+                console.log('Portfolio closed - scroll progress:', scrollProgress, 'hasCompleted:', this.hasCompletedMapJourney);
+                if (scrollProgress > 0.85 && this.backToBeginningBtn) {
+                    console.log('Showing back to beginning button after portfolio close');
+                    this.backToBeginningBtn.classList.remove('hidden'); // Show by removing hidden class
+                    console.log('Button classes after show:', this.backToBeginningBtn.className);
+                }
             }, 300); // Small delay for smooth transition
         } else {
             // If we haven't completed the map journey and we're at the top, show the initial buttons
@@ -361,6 +734,32 @@ class App {
         
         // Show portfolio overlay immediately
         this.showPortfolio();
+    }
+    
+    backToBeginning() {
+        console.log('Scrolling back to beginning');
+        
+        // Hide the back to beginning button immediately
+        this.backToBeginningBtn.classList.add('hidden');
+        
+        // Smooth scroll to top
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+        
+        // Reset all journey flags for a fresh start
+        this.hasZoomedToErbil = false;
+        this.hasCompletedMapJourney = false;
+        this.portfolioHasBeenShown = false;
+        this.portfolioManuallyDismissed = false;
+        this.flyToAnimationCompleted = false;
+        
+        // Show the initial UI elements after a delay
+        setTimeout(() => {
+            this.scrollIndicator.classList.remove('hidden');
+            this.skipButton.classList.remove('hidden');
+        }, 1000); // Give time for scroll animation to complete
     }
     
     lockScroll() {
