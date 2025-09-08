@@ -74,13 +74,14 @@ class App {
         console.log('Three.js App initialized');
     }
 
+    // 4.11/-6.74/-4.05
     initMapTiler() {
         // Initialize MapTiler map with global view
         this.mapTilerMap = new maplibregl.Map({
             container: 'maptiler-map',
             style: 'https://api.maptiler.com/maps/0199257a-01d6-7358-b3cb-99a4e119c9cb/style.json?key=6xZpq7YqiHrgv1PNVwTM',
-            center: [-0.54, 4.78], // Starting coordinates [lng, lat]
-            zoom: 2.06, // Starting zoom level
+            center: [-6.58, -4.05], // Starting coordinates [lng, lat]
+            zoom: 4.11, // Starting zoom level
             interactive: false // Start with interactions disabled
         });
 
