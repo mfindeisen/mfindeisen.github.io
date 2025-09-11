@@ -58,6 +58,25 @@
                 /* Prevent bounce scrolling on iOS */
                 overscroll-behavior: none;
                 -webkit-overflow-scrolling: touch;
+                /* Prevent overscroll that shows black space */
+                overscroll-behavior-y: none;
+                /* Ensure no background shows through */
+                background: #000;
+                min-height: 100vh;
+                height: auto;
+            }
+            
+            html {
+                /* Prevent overscroll on the html element */
+                overscroll-behavior: none;
+                overscroll-behavior-y: none;
+                /* Ensure black background */
+                background: #000;
+            }
+            
+            /* Prevent any potential black space from showing */
+            * {
+                overscroll-behavior: none;
             }
         }
 
