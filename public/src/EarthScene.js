@@ -1563,19 +1563,47 @@ export class EarthScene {
         const cloudScale = (2.5 * earthScale * 1.02) / 2.52;
         this.cloudLayer.scale.setScalar(cloudScale);
         
-        // Ensure cloud layer is always positioned in front during transformation
-        this.cloudLayer.position.z = 0.02 + (progress * 0.01); // Dynamic forward offset
+        // Enhanced cloud positioning for flythrough effect
+        let cloudZOffset = 0.02 + (progress * 0.01); // Base dynamic forward offset
+        
+        // Start flythrough effect much later - just before fullscreen (progress > 0.9)
+        if (progress > 0.9) {
+          const flythroughProgress = (progress - 0.9) / 0.1; // 0 to 1 in last 10%
+          const flythroughMultiplier = 1 + (flythroughProgress * 25); // Up to 26x faster movement
+          cloudZOffset += (flythroughProgress * flythroughMultiplier * 2.5); // Much more dramatic forward movement
+          
+          // Make clouds appear much larger during flythrough (closer to camera effect)
+          const flythroughScale = 1 + (flythroughProgress * 1.2); // Up to 120% larger
+          const enhancedCloudScale = cloudScale * flythroughScale;
+          this.cloudLayer.scale.setScalar(enhancedCloudScale);
+          
+          // Fade out clouds as they move too far forward (flythrough effect)
+          const fadeStart = 0.4; // Start fading at 40% of flythrough phase (earlier fade)
+          if (progress > 0.9 + (fadeStart * 0.1)) {
+            const fadeProgress = (progress - (0.9 + fadeStart * 0.1)) / (0.1 * (1 - fadeStart));
+            const fadeOpacity = Math.max(0, 0.6 * (1 - fadeProgress));
+            this.cloudLayer.material.opacity = fadeOpacity;
+          } else {
+            this.cloudLayer.material.opacity = 0.6; // Reset to normal opacity
+          }
+        } else {
+          this.cloudLayer.material.opacity = 0.6; // Normal opacity for first 90%
+        }
+        
+        this.cloudLayer.position.z = cloudZOffset;
         
         // Debug logging during transformation
         if (Math.random() < 0.01) { // Log occasionally to avoid spam
           console.log('CLASS TRANSFORMATION DEBUG:');
           console.log('  Progress:', progress.toFixed(3));
           console.log('  Earth scale:', earthScale.toFixed(3));
-          console.log('  Cloud scale:', cloudScale.toFixed(3));
-          console.log('  Earth effective radius:', (2.5 * earthScale).toFixed(3));
-          console.log('  Cloud effective radius:', (2.52 * cloudScale).toFixed(3));
-          console.log('  Earth morph influence:', this.spherePlane.morphTargetInfluences[0].toFixed(3));
-          console.log('  Cloud morph influence:', this.cloudLayer.morphTargetInfluences[0].toFixed(3));
+          console.log('  Cloud scale:', this.cloudLayer.scale.x.toFixed(3));
+          console.log('  Cloud Z offset:', cloudZOffset.toFixed(3));
+          console.log('  Cloud opacity:', this.cloudLayer.material.opacity.toFixed(3));
+          if (progress > 0.9) {
+            const flythroughProgress = (progress - 0.9) / 0.1;
+            console.log('  🌤️ FLYTHROUGH MODE! Final approach progress:', flythroughProgress.toFixed(3));
+          }
         }
       } else {
         // When sphere, use normal scale (2.52 radius)
