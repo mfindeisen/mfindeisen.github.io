@@ -476,6 +476,9 @@ function onMouseDown(e) {
 function onMouseMove(e) {
   if (!isMouseDown) return;
   
+  // Disable mouse rotation when scrolling has started (scrollProgress < 1)
+  if (scrollProgress < 1) return;
+  
   const deltaX = e.clientX - mouseX;
   
   // Only rotate around Y-axis (Earth's natural rotation axis)
@@ -1412,6 +1415,9 @@ export class EarthScene {
     
     this.onMouseMove = (e) => {
       if (!this.isMouseDown) return;
+      
+      // Disable mouse rotation when scrolling has started (scrollProgress < 1)
+      if (this.scrollProgress < 1) return;
       
       const deltaX = e.clientX - this.mouseX;
       

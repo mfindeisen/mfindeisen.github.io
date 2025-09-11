@@ -76,22 +76,252 @@ class App {
         console.log('Three.js App initialized');
     }
 
-    // 4.11/-6.74/-4.05
+    // Calculate the center point of the 3D Earth model for perfect alignment
+    calculateEarthCenter() {
+        // The 3D Earth model uses equirectangular projection
+        // When morphed to flat plane, it covers a specific geographic area
+        
+        // Based on the morphing geometry, the plane covers:
+        // Width: Math.PI * 5 (approximately 15.71 units)
+        // Height: Math.PI * 2.5 (approximately 7.85 units)
+        
+        // For equirectangular projection:
+        // - Width covers 360° of longitude
+        // - Height covers 180° of latitude (from -90° to +90°)
+        
+        // The center of the plane corresponds to:
+        // Longitude: 0° (Greenwich meridian)
+        // Latitude: 0° (Equator)
+        
+        // However, we need to account for any offset in the 3D model
+        // Let's use the center of the visible Earth texture as reference
+        
+        // For better alignment, we'll use coordinates that center on a visible landmass
+        // These coordinates can be fine-tuned for perfect alignment
+        
+        // Default center (can be adjusted)
+        const defaultCenter = [0, 0]; // [longitude, latitude]
+        
+        // You can fine-tune these coordinates for perfect alignment
+        // Positive longitude = East, Negative = West
+        // Positive latitude = North, Negative = South
+        
+        // For example, to center on Africa (good visible landmass):
+        // return [20, 0]; // 20°E, 0°N (Central Africa)
+        
+        // For Europe:
+        // return [15, 50]; // 15°E, 50°N (Central Europe)
+        
+        // For global view with equal land/ocean distribution:
+        return defaultCenter;
+    }
+
+    // Method to update center calculation with custom coordinates
+    updateEarthCenter(lng, lat) {
+        // Store the custom center for future use
+        this.customEarthCenter = [lng, lat];
+        
+        // Update the map if it exists
+        if (this.mapTilerMap) {
+            this.mapTilerMap.setCenter([lng, lat]);
+            console.log(`Earth center updated to: [${lng}, ${lat}]`);
+        }
+    }
+
+    // Method to get the current center (custom or calculated)
+    getCurrentEarthCenter() {
+        return this.customEarthCenter || this.calculateEarthCenter();
+    }
+
+    // Dynamic center calculation for perfect alignment
     initMapTiler() {
-        // Initialize MapTiler map with global view
+        // Calculate the center point of the 3D Earth model
+        const earthCenter = this.calculateEarthCenter();
+        
+        // Initialize MapTiler map with calculated center
         this.mapTilerMap = new maplibregl.Map({
             container: 'maptiler-map',
             style: 'https://api.maptiler.com/maps/0199257a-01d6-7358-b3cb-99a4e119c9cb/style.json?key=6xZpq7YqiHrgv1PNVwTM',
-            center: [-6.58, -4.05], // Starting coordinates [lng, lat]
+            center: earthCenter, // Calculated coordinates [lng, lat]
             zoom: 4.11, // Starting zoom level
             interactive: false // Start with interactions disabled
         });
 
         this.mapTilerMap.on('load', () => {
-            console.log('MapTiler map loaded');
+            console.log('MapTiler map loaded with center:', earthCenter);
             // Start with interactions disabled
             this.enableMapInteractions(false);
+            
+            // Add alignment tool for fine-tuning
+            this.setupAlignmentTool();
         });
+    }
+
+    // Setup alignment tool for fine-tuning map positioning
+    setupAlignmentTool() {
+        // Create alignment controls
+        this.alignmentTool = document.createElement('div');
+        this.alignmentTool.id = 'alignment-tool';
+        this.alignmentTool.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 15px;
+                border-radius: 10px;
+                font-family: monospace;
+                font-size: 12px;
+                z-index: 1000;
+                display: none;
+            ">
+                <h4 style="margin: 0 0 10px 0; color: #00ff00;">🎯 Map Alignment Tool</h4>
+                <div style="margin-bottom: 5px;">
+                    <label>Longitude: <input type="range" id="lng-slider" min="-180" max="180" step="0.01" value="0" style="width: 100px;"></label>
+                    <span id="lng-value">0.00°</span>
+                </div>
+                <div style="margin-bottom: 5px;">
+                    <label>Latitude: <input type="range" id="lat-slider" min="-90" max="90" step="0.01" value="0" style="width: 100px;"></label>
+                    <span id="lat-value">0.00°</span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label>Zoom: <input type="range" id="zoom-slider" min="1" max="10" step="0.01" value="4.11" style="width: 100px;"></label>
+                    <span id="zoom-value">4.11</span>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button id="reset-alignment" style="padding: 5px 10px; background: #333; color: white; border: 1px solid #555; border-radius: 3px; cursor: pointer;">Reset</button>
+                    <button id="copy-coords" style="padding: 5px 10px; background: #333; color: white; border: 1px solid #555; border-radius: 3px; cursor: pointer;">Copy</button>
+                    <button id="hide-tool" style="padding: 5px 10px; background: #333; color: white; border: 1px solid #555; border-radius: 3px; cursor: pointer;">Hide</button>
+                </div>
+                <div style="margin-top: 10px; font-size: 10px; color: #888;">
+                    Press 'M' to toggle this tool
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(this.alignmentTool);
+        
+        // Setup event listeners for the alignment tool
+        const lngSlider = document.getElementById('lng-slider');
+        const latSlider = document.getElementById('lat-slider');
+        const zoomSlider = document.getElementById('zoom-slider');
+        const lngValue = document.getElementById('lng-value');
+        const latValue = document.getElementById('lat-value');
+        const zoomValue = document.getElementById('zoom-value');
+        const resetBtn = document.getElementById('reset-alignment');
+        const copyBtn = document.getElementById('copy-coords');
+        const hideBtn = document.getElementById('hide-tool');
+        
+        // Update map when sliders change
+        const updateMap = () => {
+            if (!this.mapTilerMap) return;
+            
+            const lng = parseFloat(lngSlider.value);
+            const lat = parseFloat(latSlider.value);
+            const zoom = parseFloat(zoomSlider.value);
+            
+            // Update display values
+            lngValue.textContent = `${lng.toFixed(2)}°`;
+            latValue.textContent = `${lat.toFixed(2)}°`;
+            zoomValue.textContent = zoom.toFixed(2);
+            
+            // Update map center and zoom
+            this.mapTilerMap.setCenter([lng, lat]);
+            this.mapTilerMap.setZoom(zoom);
+            
+            console.log(`Map alignment updated: [${lng.toFixed(2)}, ${lat.toFixed(2)}], zoom: ${zoom.toFixed(2)}`);
+        };
+        
+        lngSlider.addEventListener('input', updateMap);
+        latSlider.addEventListener('input', updateMap);
+        zoomSlider.addEventListener('input', updateMap);
+        
+        // Reset to original values
+        resetBtn.addEventListener('click', () => {
+            lngSlider.value = 0;
+            latSlider.value = 0;
+            zoomSlider.value = 4.11;
+            updateMap();
+        });
+        
+        // Copy coordinates to clipboard
+        copyBtn.addEventListener('click', () => {
+            const coords = `center: [${parseFloat(lngSlider.value).toFixed(2)}, ${parseFloat(latSlider.value).toFixed(2)}], zoom: ${parseFloat(zoomSlider.value).toFixed(2)}`;
+            navigator.clipboard.writeText(coords).then(() => {
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => copyBtn.textContent = 'Copy', 2000);
+                
+                // Also save to localStorage for persistence
+                this.saveAlignmentSettings({
+                    lng: parseFloat(lngSlider.value),
+                    lat: parseFloat(latSlider.value),
+                    zoom: parseFloat(zoomSlider.value)
+                });
+            });
+        });
+        
+        // Hide tool
+        hideBtn.addEventListener('click', () => {
+            this.alignmentTool.style.display = 'none';
+        });
+        
+        // Add keyboard shortcut to toggle tool
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyM' && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+                const isVisible = this.alignmentTool.style.display !== 'none';
+                this.alignmentTool.style.display = isVisible ? 'none' : 'block';
+                e.preventDefault();
+            }
+        });
+        
+        // Load saved alignment settings
+        this.loadAlignmentSettings();
+        
+        console.log('Alignment tool setup complete. Press M to toggle.');
+    }
+
+    // Save alignment settings to localStorage
+    saveAlignmentSettings(settings) {
+        try {
+            localStorage.setItem('earthMapAlignment', JSON.stringify(settings));
+            console.log('Alignment settings saved:', settings);
+        } catch (e) {
+            console.warn('Could not save alignment settings:', e);
+        }
+    }
+
+    // Load alignment settings from localStorage
+    loadAlignmentSettings() {
+        try {
+            const saved = localStorage.getItem('earthMapAlignment');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                console.log('Loading saved alignment settings:', settings);
+                
+                // Apply saved settings to sliders
+                const lngSlider = document.getElementById('lng-slider');
+                const latSlider = document.getElementById('lat-slider');
+                const zoomSlider = document.getElementById('zoom-slider');
+                
+                if (lngSlider && latSlider && zoomSlider) {
+                    lngSlider.value = settings.lng || 0;
+                    latSlider.value = settings.lat || 0;
+                    zoomSlider.value = settings.zoom || 4.11;
+                    
+                    // Update map with saved settings
+                    if (this.mapTilerMap) {
+                        this.mapTilerMap.setCenter([settings.lng || 0, settings.lat || 0]);
+                        this.mapTilerMap.setZoom(settings.zoom || 4.11);
+                    }
+                }
+                
+                return settings;
+            }
+        } catch (e) {
+            console.warn('Could not load alignment settings:', e);
+        }
+        return null;
     }
 
     setupEventListeners() {
@@ -426,15 +656,15 @@ class App {
 
     showShortcutsHelp() {
         const helpText = `
-🎮 Easter Egg Controls:
-A - Astronaut speed boost 🚀
-S - Shooting star shower 🌠
-T - Toggle time warp ⚡
-C - Change color mode 🎨
-F - Fireworks show 🎆
-H - Show this help 💡
-Click anywhere for surprises! ✨
-        `;
+            🎮 Easter Egg Controls:
+            A - Astronaut speed boost 🚀
+            S - Shooting star shower 🌠
+            T - Toggle time warp ⚡
+            C - Change color mode 🎨
+            F - Fireworks show 🎆
+            H - Show this help 💡
+            Click anywhere for surprises! ✨
+                    `;
         
         const helpDiv = document.createElement('div');
         helpDiv.style.position = 'fixed';
@@ -499,13 +729,33 @@ Click anywhere for surprises! ✨
             }
         }
         
+        // Check if maptile map is visible
+        const isMapTileVisible = this.googleEarthContainer && 
+                                 this.googleEarthContainer.classList.contains('visible') && 
+                                 parseFloat(this.googleEarthContainer.style.opacity) > 0;
+        
+        // Show reopen portfolio button when maptile map is visible AND portfolio was auto-shown and dismissed
+        if (isMapTileVisible && this.reopenPortfolioBtn && this.portfolioHasBeenShown && this.portfolioManuallyDismissed) {
+            this.reopenPortfolioBtn.classList.add('visible');
+            console.log('✅ onScroll: Showing reopen portfolio button - all conditions met');
+        } else if (this.reopenPortfolioBtn) {
+            // Hide the button if conditions are not met
+            this.reopenPortfolioBtn.classList.remove('visible');
+            if (isMapTileVisible) {
+                console.log('❌ onScroll: Hiding reopen portfolio button - conditions not met:', {
+                    hasBeenShown: this.portfolioHasBeenShown,
+                    manuallyDismissed: this.portfolioManuallyDismissed
+                });
+            }
+        }
+        
         // Show back to beginning button when at the end and have completed the journey
-        // Temporarily using 0.85 instead of 0.95 for easier testing
-        if (scrollProgress > 0.85 && this.hasCompletedMapJourney && !this.portfolioOverlay.classList.contains('visible') && this.backToBeginningBtn) {
+        // Temporarily using 0.95 instead of 0.95 for easier testing
+        if (scrollProgress > 0.95 && this.hasCompletedMapJourney && !this.portfolioOverlay.classList.contains('visible') && this.backToBeginningBtn) {
             console.log('Should show back to beginning button - progress:', scrollProgress);
             this.backToBeginningBtn.classList.remove('hidden'); // Show by removing hidden class
-        } else if (scrollProgress <= 0.85 && this.hasCompletedMapJourney && this.backToBeginningBtn) {
-            // Hide the button when not at the end (but only if journey completed)
+        } else if (scrollProgress <= 0.95 && this.hasCompletedMapJourney && this.backToBeginningBtn && !isMapTileVisible) {
+            // Hide the button when not at the end (but only if journey completed) AND maptile map is not visible
             this.backToBeginningBtn.classList.add('hidden');
         }
         
@@ -528,10 +778,10 @@ Click anywhere for surprises! ✨
             this.googleEarthContainer.style.zIndex = '0';
             this.googleEarthContainer.style.opacity = 0;
             
-            // Lower threshold for mobile compatibility (90% instead of 95%)
+            // Use the perfect alignment point discovered: cross-fade at 0.37 opacity (progress 0.968)
             const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
-            const activationThreshold = isMobile ? 0.90 : 0.95;
-            const fadeRange = isMobile ? 0.10 : 0.05; // Longer fade on mobile
+            const activationThreshold = isMobile ? 0.90 : 0.968; // Use the perfect alignment point
+            const fadeRange = isMobile ? 0.10 : 0.032; // Shorter fade range to maintain perfect alignment
             
             if (progress > activationThreshold) {
                 const fadeProgress = Math.min((progress - activationThreshold) / fadeRange, 1.0);
@@ -541,14 +791,17 @@ Click anywhere for surprises! ✨
                 this.googleEarthContainer.style.opacity = fadeProgress;
                 this.googleEarthContainer.classList.add('visible');
                 
+                // Hide all background elements as soon as maptile map becomes visible
+                this.hideBackgroundElements(fadeProgress);
+                
                 // Add margin to footer when map becomes visible
                 if (fadeProgress >= 0.5) {
                     this.footer.style.marginBottom = '20px';
                 }
                 
                 // When fade is complete, zoom to Erbil
-                // Use a slightly lower threshold on mobile to ensure animation triggers
-                const animationThreshold = isMobile ? 0.95 : 1.0;
+                // Use the perfect alignment threshold to trigger zoom at the right moment
+                const animationThreshold = isMobile ? 0.95 : 1.0; // Keep at 1.0 to trigger after perfect cross-fade
                 if (fadeProgress >= animationThreshold && !this.hasZoomedToErbil) {
                     console.log('Triggering Erbil animation - fadeProgress:', fadeProgress, 'threshold:', animationThreshold, 'isMobile:', isMobile);
                     this.zoomToErbil();
@@ -562,6 +815,9 @@ Click anywhere for surprises! ✨
             this.googleEarthContainer.style.zIndex = '0';
             this.googleEarthContainer.style.opacity = 0;
             this.googleEarthContainer.classList.remove('visible');
+            
+            // Show all background elements when maptile map is not visible
+            this.showBackgroundElements();
             
             // Remove footer margin when not showing map
             this.footer.style.marginBottom = '';
@@ -604,6 +860,67 @@ Click anywhere for surprises! ✨
                 }
             }
         }
+    }
+
+    hideBackgroundElements(fadeProgress) {
+        // Hide the 3D Earth scene (canvas container) as soon as maptile map becomes visible
+        if (this.container) {
+            this.container.style.opacity = Math.max(0, 1 - fadeProgress * 2); // Fade out quickly
+            this.container.style.pointerEvents = 'none'; // Disable interactions
+        }
+        
+        // Hide scroll indicator
+        if (this.scrollIndicator) {
+            this.scrollIndicator.classList.add('hidden');
+        }
+        
+        // Hide skip button
+        if (this.skipButton) {
+            this.skipButton.classList.add('hidden');
+        }
+        
+        // Show reopen portfolio button only if portfolio was auto-shown and dismissed
+        if (this.reopenPortfolioBtn && this.portfolioHasBeenShown && this.portfolioManuallyDismissed) {
+            this.reopenPortfolioBtn.classList.add('visible');
+            console.log('✅ hideBackgroundElements: Showing reopen portfolio button - all conditions met');
+        } else if (this.reopenPortfolioBtn) {
+            this.reopenPortfolioBtn.classList.remove('visible');
+            console.log('❌ hideBackgroundElements: Hiding reopen portfolio button - conditions not met:', {
+                hasBeenShown: this.portfolioHasBeenShown,
+                manuallyDismissed: this.portfolioManuallyDismissed
+            });
+        }
+        
+        if (this.backToBeginningBtn) {
+            this.backToBeginningBtn.classList.remove('hidden');
+        }
+        
+        // Hide info panel (scroll progress)
+        const infoPanel = document.querySelector('.info');
+        if (infoPanel) {
+            infoPanel.style.opacity = Math.max(0, 1 - fadeProgress * 2);
+        }
+        
+        console.log('Background elements hidden - fadeProgress:', fadeProgress);
+    }
+
+    showBackgroundElements() {
+        // Show the 3D Earth scene (canvas container)
+        if (this.container) {
+            this.container.style.opacity = '1';
+            this.container.style.pointerEvents = 'auto';
+        }
+        
+        // Show info panel (scroll progress)
+        const infoPanel = document.querySelector('.info');
+        if (infoPanel) {
+            infoPanel.style.opacity = '1';
+        }
+        
+        // Note: Other elements (scroll indicator, buttons, footer) are controlled by other logic
+        // and will be shown/hidden based on scroll position and other conditions
+        
+        console.log('Background elements shown');
     }
 
     startAutoScroll() {
@@ -676,8 +993,15 @@ Click anywhere for surprises! ✨
         // Hide back to beginning button when portfolio is shown
         this.backToBeginningBtn.classList.add('hidden');
         
-        // Hide footer when portfolio is open
-        this.footer.classList.add('hidden');
+        // Keep footer visible when portfolio is open
+        // (removed footer hiding)
+        
+        // Ensure maptile map is hidden when portfolio is shown
+        if (this.googleEarthContainer) {
+            this.googleEarthContainer.style.opacity = '0';
+            this.googleEarthContainer.style.zIndex = '0';
+            this.googleEarthContainer.classList.remove('visible');
+        }
         
         // Prevent background scrolling
         this.lockScroll();
@@ -696,17 +1020,34 @@ Click anywhere for surprises! ✨
         // Restore background scrolling
         this.unlockScroll();
         
-        // Show footer again when portfolio is closed
-        this.footer.classList.remove('hidden');
+        // Footer remains visible (no need to restore)
         
-        // Only show reopen portfolio button if we've completed the map journey
-        if (this.hasCompletedMapJourney) {
+        // Restore maptile map visibility if we're at the right scroll position
+        const scrollProgress = this.scrollController.getScrollProgress();
+        if (scrollProgress > 0.5) {
+            // Re-trigger the visibility logic to restore maptile map if appropriate
+            this.updateGoogleEarthVisibility(scrollProgress);
+        }
+        
+        // Only show reopen portfolio button if we've completed the map journey AND portfolio was auto-shown
+        if (this.hasCompletedMapJourney && this.portfolioHasBeenShown) {
             setTimeout(() => {
-                this.reopenPortfolioBtn.classList.add('visible');
+                // Check if maptile map is visible before showing the button
+                const isMapTileVisible = this.googleEarthContainer && 
+                                         this.googleEarthContainer.classList.contains('visible') && 
+                                         parseFloat(this.googleEarthContainer.style.opacity) > 0;
+                
+                console.log('Portfolio closed - scroll progress:', scrollProgress, 'hasCompleted:', this.hasCompletedMapJourney, 'wasAutoShown:', this.portfolioHasBeenShown, 'isMapTileVisible:', isMapTileVisible);
+                
+                if (isMapTileVisible) {
+                    this.reopenPortfolioBtn.classList.add('visible');
+                    console.log('✅ Showing reopen portfolio button - all conditions met');
+                } else {
+                    console.log('❌ Not showing reopen portfolio button - maptile map not visible');
+                }
+                
                 // Also show back to beginning button if we're at the end
-                const scrollProgress = this.scrollController.getScrollProgress();
-                console.log('Portfolio closed - scroll progress:', scrollProgress, 'hasCompleted:', this.hasCompletedMapJourney);
-                if (scrollProgress > 0.85 && this.backToBeginningBtn) {
+                if (scrollProgress > 0.95 && this.backToBeginningBtn) {
                     console.log('Showing back to beginning button after portfolio close');
                     this.backToBeginningBtn.classList.remove('hidden'); // Show by removing hidden class
                     console.log('Button classes after show:', this.backToBeginningBtn.className);
