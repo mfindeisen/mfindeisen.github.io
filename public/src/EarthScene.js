@@ -77,7 +77,7 @@ function createAtmosphere() {
   `;
 
   // Create atmosphere geometry - thin atmospheric layer
-  const atmosphereGeom = new THREE.SphereGeometry(2.6, 32, 32); // Thin atmosphere, just slightly larger than Earth
+  const atmosphereGeom = new THREE.SphereGeometry(2.8, 32, 32); // Thin atmosphere, just slightly larger than Earth
   
   console.log('Atmosphere geometry created:', atmosphereGeom);
   console.log('Atmosphere geometry vertices:', atmosphereGeom.attributes.position.count);
@@ -193,8 +193,12 @@ function animate() {
      
      // Update atmosphere visibility based on scroll progress
      if (window.atmosphere) {
-       // For shader material, we control opacity through uniforms
-       // The shader naturally creates the atmospheric effect
+       // Hide atmosphere when scrolling begins (scrollProgress < 1), show when back to full sphere (scrollProgress === 1)
+       if (scrollProgress < 1) {
+         window.atmosphere.visible = false;
+       } else {
+         window.atmosphere.visible = true;
+       }
        
        // Sync atmosphere rotation with Earth
        window.atmosphere.rotation.y = spherePlane.rotation.y;
@@ -461,7 +465,7 @@ export class EarthScene {
     `;
 
     // Create atmosphere geometry - thin atmospheric layer
-    const atmosphereGeom = new THREE.SphereGeometry(2.6, 32, 32); // Thin atmosphere, just slightly larger than Earth
+    const atmosphereGeom = new THREE.SphereGeometry(2.8, 32, 32); // Thin atmosphere, just slightly larger than Earth
     
     console.log('EarthScene atmosphere geometry created:', atmosphereGeom);
     console.log('EarthScene atmosphere geometry vertices:', atmosphereGeom.attributes.position.count);
@@ -1227,8 +1231,12 @@ export class EarthScene {
     
     // Update atmosphere visibility and rotation
     if (this.atmosphere) {
-      // For shader material, the atmospheric effect is built into the shader
-      // The shader naturally creates the proper blue glow effect
+      // Hide atmosphere when scrolling begins (progress > 0), show when back to 0
+      if (progress > 0) {
+        this.atmosphere.visible = false;
+      } else {
+        this.atmosphere.visible = true;
+      }
       
       // Sync atmosphere rotation with Earth
       this.atmosphere.rotation.y = this.currentRotationY;
