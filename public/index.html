@@ -560,6 +560,28 @@
             pointer-events: auto;
         }
 
+        /* Mobile-specific styling for back to beginning button */
+        @media (max-width: 768px) {
+            #back-to-beginning-btn {
+                padding: 12px;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                font-size: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                bottom: 20px;
+            }
+
+            #back-to-beginning-btn::before {
+                content: '↑';
+                font-size: 20px;
+                font-weight: bold;
+                line-height: 1;
+            }
+        }
+
         #back-to-beginning-btn.hidden {
             opacity: 0;
             pointer-events: none;
@@ -575,6 +597,17 @@
 
         #back-to-beginning-btn:active {
             transform: translateX(-50%);
+        }
+
+        /* Mobile hover and active states */
+        @media (max-width: 768px) {
+            #back-to-beginning-btn:hover {
+                transform: translateX(-50%) translateY(-2px) scale(1.1);
+            }
+
+            #back-to-beginning-btn:active {
+                transform: translateX(-50%) scale(0.95);
+            }
         }
 
         /* Custom scrollbar for portfolio content */
