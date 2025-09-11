@@ -7,6 +7,13 @@ let scrollProgress = 1; // 1 = sphere, 0 = flat
 let isScrolling = false;
 let scrollTimeout;
 let hasStartedMorphing = false; // Track if user has ever started morphing
+let cloudRotationY = 0; // Independent cloud rotation
+
+// Mouse controls
+let mouseX = 0, mouseY = 0;
+let isMouseDown = false;
+let worldRotationY = 0;
+let targetWorldRotationY = 0;
 
 function init() {
   scene = new THREE.Scene();
@@ -112,6 +119,81 @@ function createAtmosphere() {
   console.log('Atmosphere in scene:', scene.children.includes(window.atmosphere));
 }
 
+// Cloud layer function with morphing
+function createCloudLayer() {
+  // Create morphing cloud geometry similar to Earth
+  const segW = 128, segH = 64;
+  const cloudPlaneGeom = new THREE.PlaneGeometry(Math.PI * 5, Math.PI * 2.5, segW, segH);
+
+  cloudPlaneGeom.morphAttributes.position = [];
+  cloudPlaneGeom.morphAttributes.normal = [];
+
+  const cloudSphereFormation = [];
+  const cloudSphereNormals = [];
+
+  const uvs = cloudPlaneGeom.attributes.uv;
+  const uv = new THREE.Vector2();
+  const t = new THREE.Vector3();
+
+  for (let i = 0; i < uvs.count; i++) {
+    uv.fromBufferAttribute(uvs, i);
+
+    // equirectangular sphere from UVs - slightly larger than Earth
+    t.setFromSphericalCoords(
+      2.52,                                  // radius (slightly larger than Earth's 2.5)
+      Math.PI * (1 - uv.y),                  // polar
+      Math.PI * (uv.x - 0.5) * 2             // azimuth
+    );
+
+    cloudSphereFormation.push(t.x, t.y, t.z);
+
+    // normal = normalized position on perfect sphere
+    const len = Math.hypot(t.x, t.y, t.z) || 1;
+    cloudSphereNormals.push(t.x / len, t.y / len, t.z / len);
+  }
+
+  cloudPlaneGeom.morphAttributes.position[0] = new THREE.Float32BufferAttribute(cloudSphereFormation, 3);
+  cloudPlaneGeom.morphAttributes.normal[0]   = new THREE.Float32BufferAttribute(cloudSphereNormals, 3);
+  
+  // Load cloud texture
+  const loader = new THREE.TextureLoader();
+  const cloudTexture = loader.load(
+    '/textures/Clouds.png',
+    () => console.log('Cloud texture loaded'),
+    undefined,
+    (e) => console.error('Cloud texture load error', e)
+  );
+  cloudTexture.colorSpace = THREE.SRGBColorSpace;
+  cloudTexture.minFilter = THREE.LinearMipmapLinearFilter;
+  cloudTexture.magFilter = THREE.LinearFilter;
+  cloudTexture.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy?.() || 8);
+  
+  // Create cloud material with transparency
+  const cloudMaterial = new THREE.MeshStandardMaterial({
+    map: cloudTexture,
+    transparent: true,
+    opacity: 0.6, // Semi-transparent clouds
+    side: THREE.DoubleSide,
+    metalness: 0,
+    roughness: 1.0,
+    alphaTest: 0.1 // Helps with transparency sorting
+  });
+  
+  // Create cloud mesh with morphing
+  window.cloudLayer = new THREE.Mesh(cloudPlaneGeom, cloudMaterial);
+  window.cloudLayer.rotation.z = THREE.MathUtils.degToRad(23.5); // Same tilt as Earth
+  window.cloudLayer.position.set(0, 0, 0);
+  
+  // Start as globe
+  window.cloudLayer.morphTargetInfluences[0] = 1;
+  
+  scene.add(window.cloudLayer);
+  
+  console.log('Cloud layer created with morphing and added to scene');
+  console.log('Cloud layer opacity:', cloudMaterial.opacity);
+  console.log('Cloud layer visible:', window.cloudLayer.visible);
+}
+
 // Geometry + morph targets
 function createMorphingGeometry() {
   // more segments => smoother normals/lighting on the sphere
@@ -182,14 +264,53 @@ function createMorphingGeometry() {
    spherePlane.morphTargetInfluences[0] = 1;
    scene.add(spherePlane);
 
-   // Create realistic atmosphere
-   createAtmosphere();
+  // Create realistic atmosphere
+  createAtmosphere();
+  
+  // Create cloud layer
+  createCloudLayer();
 }
 
 // Render loop
 function animate() {
+  // Smooth world rotation interpolation
+  const rotationSpeed = 0.1;
+  worldRotationY += (targetWorldRotationY - worldRotationY) * rotationSpeed;
+  
   if (spherePlane?.morphTargetInfluences) {
      spherePlane.morphTargetInfluences[0] = scrollProgress;
+     
+     // Update cloud layer morphing
+     if (window.cloudLayer?.morphTargetInfluences) {
+       window.cloudLayer.morphTargetInfluences[0] = scrollProgress;
+       
+       // Dynamic cloud layer scaling: adapt to transformation state
+       const progress = 1 - scrollProgress; // Convert to progress (0-1 where 1 is fully morphed)
+       const earthScale = spherePlane.scale.x; // Get current Earth scale
+       
+       if (progress > 0) {
+         // During transformation, scale cloud layer to match Earth radius but stay slightly in front
+         // Cloud base radius (2.52) needs to be scaled to match Earth effective radius (2.5 * earthScale)
+         // Then add 0.8% to keep it in front: (2.5 * earthScale * 1.008) / 2.52
+         const cloudScale = (2.5 * earthScale * 1.008) / 2.52;
+         window.cloudLayer.scale.setScalar(cloudScale);
+         
+         // Debug logging during transformation
+         if (Math.random() < 0.01) { // Log occasionally to avoid spam
+           console.log('TRANSFORMATION DEBUG:');
+           console.log('  Progress:', progress.toFixed(3));
+           console.log('  Earth scale:', earthScale.toFixed(3));
+           console.log('  Cloud scale:', cloudScale.toFixed(3));
+           console.log('  Earth effective radius:', (2.5 * earthScale).toFixed(3));
+           console.log('  Cloud effective radius:', (2.52 * cloudScale).toFixed(3));
+           console.log('  Earth morph influence:', spherePlane.morphTargetInfluences[0].toFixed(3));
+           console.log('  Cloud morph influence:', window.cloudLayer.morphTargetInfluences[0].toFixed(3));
+         }
+       } else {
+         // When sphere, use normal scale (2.52 radius)
+         window.cloudLayer.scale.setScalar(earthScale);
+       }
+     }
      
      // Update atmosphere visibility based on scroll progress
      if (window.atmosphere) {
@@ -208,11 +329,55 @@ function animate() {
      // Natural Earth rotation: west to east (positive Y rotation)
      // Rotate when: not scrolling AND (never morphed OR back to full globe)
      const shouldRotate = !isScrolling && (!hasStartedMorphing || scrollProgress === 1);
+     
+     // Update cloud layer rotation independently (faster than Earth)
+     if (window.cloudLayer && shouldRotate) {
+       // Clouds rotate independently at a faster speed
+       cloudRotationY += THREE.MathUtils.degToRad(0.1); // Faster than Earth's 0.05°/sec
+     }
      if (shouldRotate) {
        // Earth rotates 360° in 24 hours = 15°/hour = 0.25°/minute = ~0.004°/second
-       // Slower rotation for more peaceful viewing: 0.1° per second
-       spherePlane.rotation.y += THREE.MathUtils.degToRad(0.1);
-     } else if (isScrolling) {
+       // Slower rotation for more peaceful viewing: 0.05° per second
+       spherePlane.rotation.y += THREE.MathUtils.degToRad(0.05);
+     }
+     
+     // Apply world rotation to all objects (only Y-axis)
+     spherePlane.rotation.y += worldRotationY;
+     
+     if (window.atmosphere) {
+       window.atmosphere.rotation.y += worldRotationY;
+     }
+     
+     if (window.cloudLayer) {
+       // During transformation, sync cloud rotation with Earth rotation
+       if (isScrolling || hasStartedMorphing) {
+         // During transformation, sync with Earth
+         window.cloudLayer.rotation.y = spherePlane.rotation.y;
+       } else {
+         // When not transforming, use independent rotation
+         window.cloudLayer.rotation.y = cloudRotationY + worldRotationY;
+       }
+     }
+     
+     // Handle scaling during final zoom phase (standalone version)
+     const progress = 1 - scrollProgress; // Convert to progress (0-1 where 1 is fully morphed)
+     if (progress > 0.85) {
+       // Final zoom phase with scaling for full-screen effect
+       const finalProgress = (progress - 0.85) / 0.15;
+       const smoothFinal = finalProgress < 0.5 ? 2 * finalProgress * finalProgress : 1 - Math.pow(-2 * finalProgress + 2, 2) / 2;
+       
+       // Scale up the plane to fill the screen
+       const scaleMultiplier = 1 + smoothFinal * 2.5; // Scale up to 3.5x
+       spherePlane.scale.setScalar(scaleMultiplier);
+       
+       // Cloud layer scaling is now handled dynamically in the morphing logic above
+     } else {
+       // Reset scale during normal morphing
+       spherePlane.scale.setScalar(1.0);
+       // Cloud layer scaling is now handled dynamically in the morphing logic above
+     }
+     
+     if (isScrolling) {
        // When scrolling, increase ambient lights to keep plane visible
        // As it flattens (scrollProgress decreases), increase ambient light significantly
        if (window.hemiLight && window.ambientLight) {
@@ -230,6 +395,11 @@ function animate() {
        // scrollProgress: 1 = globe (keep tilt), 0 = flat (no tilt)
        const targetTilt = scrollProgress * THREE.MathUtils.degToRad(23.5);
        spherePlane.rotation.z = targetTilt;
+       
+       // Apply same tilt to cloud layer
+       if (window.cloudLayer) {
+         window.cloudLayer.rotation.z = targetTilt;
+       }
      }
   }
   renderer.render(scene, camera);
@@ -242,6 +412,12 @@ function setupEventListeners() {
   window.addEventListener('wheel', onScroll, { passive: false });
   window.addEventListener('scroll', onPageScroll, { passive: true });
   window.addEventListener('keydown', onKeyDown);
+  
+  // Mouse controls
+  window.addEventListener('mousedown', onMouseDown);
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+  window.addEventListener('mouseleave', onMouseUp);
 }
 
 function onWindowResize() {
@@ -258,6 +434,9 @@ function onWindowResize() {
    
    // Set scrolling flag to pause rotation
    isScrolling = true;
+   
+   // Reset mouse rotation when starting to scroll to prevent wild rotation
+   targetWorldRotationY = 0;
    
    // Clear existing timeout
    clearTimeout(scrollTimeout);
@@ -286,6 +465,30 @@ function onWindowResize() {
  }
 
 function onPageScroll(_) {}
+
+// Mouse controls
+function onMouseDown(e) {
+  isMouseDown = true;
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+}
+
+function onMouseMove(e) {
+  if (!isMouseDown) return;
+  
+  const deltaX = e.clientX - mouseX;
+  
+  // Only rotate around Y-axis (Earth's natural rotation axis)
+  targetWorldRotationY += deltaX * 0.01;
+  
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+}
+
+function onMouseUp() {
+  isMouseDown = false;
+}
+
 function onKeyDown(e) {
   switch (e.code) {
     case 'KeyR':
@@ -339,9 +542,11 @@ export class EarthScene {
     this.createMorphingGeometry();
     this.createLighting();
     this.createAtmosphere();
+    this.createCloudLayer();
     this.createAstronaut();
     this.createShootingStars();
     this.createSatellites();
+    this.setupMouseControls();
     
     this.isInitialized = true;
     console.log('EarthScene initialized for external use');
@@ -497,6 +702,88 @@ export class EarthScene {
     console.log('EarthScene atmosphere in scene:', this.scene.children.includes(this.atmosphere));
 
     console.log('EarthScene atmosphere created');
+  }
+
+  createCloudLayer() {
+    // Create morphing cloud geometry similar to Earth
+    const segW = 128, segH = 64;
+    const cloudPlaneGeom = new THREE.PlaneGeometry(Math.PI * 5, Math.PI * 2.5, segW, segH);
+
+    cloudPlaneGeom.morphAttributes.position = [];
+    cloudPlaneGeom.morphAttributes.normal = [];
+
+    const cloudSphereFormation = [];
+    const cloudSphereNormals = [];
+
+    const uvs = cloudPlaneGeom.attributes.uv;
+    const uv = new THREE.Vector2();
+    const t = new THREE.Vector3();
+
+    for (let i = 0; i < uvs.count; i++) {
+      uv.fromBufferAttribute(uvs, i);
+
+      // equirectangular sphere from UVs - slightly larger than Earth
+      t.setFromSphericalCoords(
+        2.52,                                  // radius (slightly larger than Earth's 2.5)
+        Math.PI * (1 - uv.y),                  // polar
+        Math.PI * (uv.x - 0.5) * 2             // azimuth
+      );
+
+      cloudSphereFormation.push(t.x, t.y, t.z);
+
+      // normal = normalized position on perfect sphere
+      const len = Math.hypot(t.x, t.y, t.z) || 1;
+      cloudSphereNormals.push(t.x / len, t.y / len, t.z / len);
+    }
+
+    cloudPlaneGeom.morphAttributes.position[0] = new THREE.Float32BufferAttribute(cloudSphereFormation, 3);
+    cloudPlaneGeom.morphAttributes.normal[0]   = new THREE.Float32BufferAttribute(cloudSphereNormals, 3);
+    
+    // Load cloud texture
+    const loader = new THREE.TextureLoader();
+    const cloudTexture = loader.load(
+      '/textures/Clouds.png',
+      () => console.log('EarthScene cloud texture loaded'),
+      undefined,
+      (e) => console.error('EarthScene cloud texture load error', e)
+    );
+    cloudTexture.colorSpace = THREE.SRGBColorSpace;
+    cloudTexture.minFilter = THREE.LinearMipmapLinearFilter;
+    cloudTexture.magFilter = THREE.LinearFilter;
+    cloudTexture.anisotropy = Math.min(16, 16); // Use a reasonable default
+    
+    // Create cloud material with transparency
+    const cloudMaterial = new THREE.MeshStandardMaterial({
+      map: cloudTexture,
+      transparent: true,
+      opacity: 0.6, // Semi-transparent clouds
+      side: THREE.DoubleSide,
+      metalness: 0,
+      roughness: 1.0,
+      alphaTest: 0.05, // Lower threshold for better edge handling
+      depthWrite: false, // Prevent depth writing issues
+      depthTest: true, // Still test depth but don't write
+      polygonOffset: true, // Enable polygon offset
+      polygonOffsetFactor: -1, // Negative factor to push forward
+      polygonOffsetUnits: -1 // Additional offset units
+    });
+    
+    // Create cloud mesh with morphing
+    this.cloudLayer = new THREE.Mesh(cloudPlaneGeom, cloudMaterial);
+    this.cloudLayer.rotation.z = THREE.MathUtils.degToRad(23.5); // Same tilt as Earth
+    this.cloudLayer.position.set(0, 0, 0.02); // Increased forward offset to prevent z-fighting
+    
+    // Set render order to ensure clouds render after Earth
+    this.cloudLayer.renderOrder = 1;
+    
+    // Start as globe
+    this.cloudLayer.morphTargetInfluences[0] = 1;
+    
+    this.scene.add(this.cloudLayer);
+    
+    console.log('EarthScene cloud layer created with morphing and added to scene');
+    console.log('EarthScene cloud layer opacity:', cloudMaterial.opacity);
+    console.log('EarthScene cloud layer visible:', this.cloudLayer.visible);
   }
 
   createAstronaut() {
@@ -1115,6 +1402,37 @@ export class EarthScene {
     console.log('Satellites created:', this.satellites.length);
   }
   
+  setupMouseControls() {
+    // Mouse controls
+    this.onMouseDown = (e) => {
+      this.isMouseDown = true;
+      this.mouseX = e.clientX;
+      this.mouseY = e.clientY;
+    };
+    
+    this.onMouseMove = (e) => {
+      if (!this.isMouseDown) return;
+      
+      const deltaX = e.clientX - this.mouseX;
+      
+      // Only rotate around Y-axis (Earth's natural rotation axis)
+      this.targetWorldRotationY += deltaX * 0.01;
+      
+      this.mouseX = e.clientX;
+      this.mouseY = e.clientY;
+    };
+    
+    this.onMouseUp = () => {
+      this.isMouseDown = false;
+    };
+    
+    // Add event listeners
+    window.addEventListener('mousedown', this.onMouseDown);
+    window.addEventListener('mousemove', this.onMouseMove);
+    window.addEventListener('mouseup', this.onMouseUp);
+    window.addEventListener('mouseleave', this.onMouseUp);
+  }
+  
   updateSatellites() {
     if (!this.satellites) return;
     
@@ -1196,6 +1514,10 @@ export class EarthScene {
     this.spherePlane.receiveShadow = false;
     this.spherePlane.rotation.z = THREE.MathUtils.degToRad(23.5);
     this.spherePlane.morphTargetInfluences[0] = 1;
+    
+    // Set render order to ensure Earth renders before clouds
+    this.spherePlane.renderOrder = 0;
+    
     this.scene.add(this.spherePlane);
     
     // Track morph state
@@ -1205,14 +1527,63 @@ export class EarthScene {
     this.currentRotationY = 0; // Track current Y rotation for smooth animation
     this.targetRotationY = 0; // Target Y rotation
     this.rotationSpeed = 0.05; // Speed of rotation animation
+    this.cloudRotationY = 0; // Independent cloud rotation
+    
+    // Mouse controls
+    this.mouseX = 0;
+    this.mouseY = 0;
+    this.isMouseDown = false;
+    this.worldRotationY = 0;
+    this.targetWorldRotationY = 0;
     }
 
   updateTransformation(progress) {
     if (!this.spherePlane) return;
     
+    // Reset mouse rotation when starting to scroll to prevent wild rotation
+    if (progress > 0 && this.targetWorldRotationY !== 0) {
+      this.targetWorldRotationY = 0;
+    }
+    
     // Convert progress (0-1 where 1 is fully morphed) to scrollProgress (1-0 where 1 is sphere)
     this.scrollProgress = 1 - progress;
     this.spherePlane.morphTargetInfluences[0] = this.scrollProgress;
+    
+    // Update cloud layer morphing
+    if (this.cloudLayer?.morphTargetInfluences) {
+      this.cloudLayer.morphTargetInfluences[0] = this.scrollProgress;
+      
+      // Dynamic cloud layer scaling: adapt to transformation state
+      const earthScale = this.spherePlane.scale.x; // Get current Earth scale
+      
+      if (progress > 0) {
+        // During transformation, scale cloud layer to match Earth radius but stay slightly in front
+        // Cloud base radius (2.52) needs to be scaled to match Earth effective radius (2.5 * earthScale)
+        // Add more separation (2%) to prevent z-fighting: (2.5 * earthScale * 1.02) / 2.52
+        const cloudScale = (2.5 * earthScale * 1.02) / 2.52;
+        this.cloudLayer.scale.setScalar(cloudScale);
+        
+        // Ensure cloud layer is always positioned in front during transformation
+        this.cloudLayer.position.z = 0.02 + (progress * 0.01); // Dynamic forward offset
+        
+        // Debug logging during transformation
+        if (Math.random() < 0.01) { // Log occasionally to avoid spam
+          console.log('CLASS TRANSFORMATION DEBUG:');
+          console.log('  Progress:', progress.toFixed(3));
+          console.log('  Earth scale:', earthScale.toFixed(3));
+          console.log('  Cloud scale:', cloudScale.toFixed(3));
+          console.log('  Earth effective radius:', (2.5 * earthScale).toFixed(3));
+          console.log('  Cloud effective radius:', (2.52 * cloudScale).toFixed(3));
+          console.log('  Earth morph influence:', this.spherePlane.morphTargetInfluences[0].toFixed(3));
+          console.log('  Cloud morph influence:', this.cloudLayer.morphTargetInfluences[0].toFixed(3));
+        }
+      } else {
+        // When sphere, use normal scale (2.52 radius)
+        this.cloudLayer.scale.setScalar(earthScale);
+        // Reset position to base offset
+        this.cloudLayer.position.z = 0.02;
+      }
+    }
     
     // Track if user has started morphing
     if (progress > 0) {
@@ -1242,6 +1613,20 @@ export class EarthScene {
       this.atmosphere.rotation.y = this.currentRotationY;
     }
     
+    // Update cloud layer rotation (keep visible during transformation)
+    if (this.cloudLayer) {
+      // During transformation, sync cloud rotation with Earth rotation
+      // Only use independent rotation when not transforming
+      if (progress > 0) {
+        // During transformation, sync with Earth
+        this.cloudLayer.rotation.y = this.currentRotationY;
+      } else {
+        // When not transforming, use independent rotation
+        this.cloudRotationY += THREE.MathUtils.degToRad(0.1); // Faster than Earth's 0.05°/sec
+        this.cloudLayer.rotation.y = this.cloudRotationY;
+      }
+    }
+    
     // Gradually reduce tilt when morphing - completely flat when fully morphed
     // scrollProgress: 1 = sphere (keep tilt), 0 = flat (no tilt)
     let targetTilt = this.scrollProgress * THREE.MathUtils.degToRad(23.5);
@@ -1260,6 +1645,11 @@ export class EarthScene {
       this.atmosphere.rotation.z = targetTilt;
     }
     
+    // Sync cloud layer tilt with Earth
+    if (this.cloudLayer) {
+      this.cloudLayer.rotation.z = targetTilt;
+    }
+    
     // NATURAL FULL-SCREEN ANIMATION LOGIC
         const easedProgress = this.easeInOutCubic(progress);
     
@@ -1270,6 +1660,8 @@ export class EarthScene {
       // Gradual zoom in during morphing
       cameraZ = 15 - progress * 8; // Zoom from 15 to 7
       this.spherePlane.scale.setScalar(1.0);
+      
+      // Cloud layer scaling is now handled dynamically in the morphing logic above
     } else {
       // Final zoom phase with scaling for full-screen effect
       const finalProgress = (progress - 0.85) / 0.15;
@@ -1280,33 +1672,12 @@ export class EarthScene {
       // Scale up the plane to fill the screen
       const scaleMultiplier = 1 + smoothFinal * 2.5; // Scale up to 3.5x
       this.spherePlane.scale.setScalar(scaleMultiplier);
+      
+      // Cloud layer scaling is now handled dynamically in the morphing logic above
     }
     
-    // For flat plane viewing, we want NO rotation at all when fully morphed
-    // The Earth should appear as a standard flat map
-    if (progress < 0.8) {
-      // During morphing, gradually stop any rotation and orient for flat viewing
-      const rotationReduction = progress / 0.8; // 0 to 1 over first 80%
-      // Gradually reduce any current rotation to zero for perfect flat view
-      this.targetRotationY = this.currentRotationY * (1 - rotationReduction);
-    } else {
-      // Final 20%: Lock to perfect flat orientation (no rotation)
-      this.targetRotationY = 0;
-    }
-    
-    // Smoothly interpolate current rotation towards target rotation
-    let rotationDiff = this.targetRotationY - this.currentRotationY;
-    
-    // Normalize rotation difference to always take the shortest path
-    while (rotationDiff > Math.PI) rotationDiff -= 2 * Math.PI;
-    while (rotationDiff < -Math.PI) rotationDiff += 2 * Math.PI;
-    
-    // Apply smooth rotation interpolation with higher speed during morphing
-    const morphingSpeed = progress > 0 ? 0.08 : this.rotationSpeed; // Faster during morphing
-    this.currentRotationY += rotationDiff * morphingSpeed;
-    
-    // Apply the smoothly animated rotation
-    this.spherePlane.rotation.y = this.currentRotationY;
+    // During transformation, don't try to control rotation - let mouse rotation persist
+    // The mouse rotation will be applied on top of the base rotation in the update method
     
     // Apply camera position - only zoom, no lateral movement or rotation
         this.camera.position.set(0, 0, cameraZ);
@@ -1320,17 +1691,41 @@ export class EarthScene {
     update() {
     if (!this.spherePlane) return;
     
+    // Smooth world rotation interpolation
+    const rotationSpeed = 0.1;
+    this.worldRotationY += (this.targetWorldRotationY - this.worldRotationY) * rotationSpeed;
+    
     // Handle natural Earth rotation vs morphing animation
     const shouldRotate = !this.isScrolling && (!this.hasStartedMorphing || this.scrollProgress === 1);
     
     if (shouldRotate) {
       // Natural rotation when not morphing - slower for peaceful viewing
-      this.currentRotationY += THREE.MathUtils.degToRad(0.1);
+      this.currentRotationY += THREE.MathUtils.degToRad(0.05);
       this.targetRotationY = this.currentRotationY; // Keep target synced
-      this.spherePlane.rotation.y = this.currentRotationY;
-    } else if (this.hasStartedMorphing) {
-      // During morphing, rotation is controlled by updateTransformation
-      // The smooth interpolation happens there, so we don't modify rotation here
+      
+      // Update cloud rotation independently (faster than Earth)
+      if (this.cloudLayer) {
+        this.cloudRotationY += THREE.MathUtils.degToRad(0.1); // Faster than Earth's 0.05°/sec
+      }
+    }
+    
+    // Apply base rotation + mouse rotation to all objects (only Y-axis)
+    const totalRotationY = this.currentRotationY + this.worldRotationY;
+    this.spherePlane.rotation.y = totalRotationY;
+    
+    if (this.atmosphere) {
+      this.atmosphere.rotation.y = totalRotationY;
+    }
+    
+    if (this.cloudLayer) {
+      // During transformation, sync cloud rotation with Earth rotation
+      if (this.isScrolling || this.hasStartedMorphing) {
+        // During transformation, sync with Earth
+        this.cloudLayer.rotation.y = this.currentRotationY + this.worldRotationY;
+      } else {
+        // When not transforming, use independent rotation
+        this.cloudLayer.rotation.y = this.cloudRotationY + this.worldRotationY;
+      }
     }
     
     // Animate starfield with subtle rotation
