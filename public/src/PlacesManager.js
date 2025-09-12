@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { Viewer } from '@photo-sphere-viewer/core';
 
 /**
  * PlacesManager - Handles all travel location markers and information
@@ -275,7 +274,14 @@ export class PlacesManager {
         console.log('Photosphere modal added to DOM:', modal);
         
         // Initialize the photosphere viewer
-        this.initPhotosphereViewer(photoSrc, placeName);
+        this.initPhotosphereViewer(photoSrc, placeName).catch(error => {
+            console.error('Error initializing photosphere viewer:', error);
+            const loading = container.parentElement.querySelector('.photosphere-loading');
+            if (loading) {
+                loading.textContent = 'Error loading 360° viewer';
+                loading.style.color = '#ff4444';
+            }
+        });
         
         // Define closeModal function for use in all event listeners
         const closeModal = () => {
@@ -719,7 +725,7 @@ export class PlacesManager {
     /**
      * Initialize the photosphere viewer using Photo Sphere Viewer library
      */
-    initPhotosphereViewer(photoSrc, placeName) {
+    async initPhotosphereViewer(photoSrc, placeName) {
         const container = document.getElementById('photosphere-canvas');
         
         if (!container) {
@@ -730,7 +736,8 @@ export class PlacesManager {
         console.log('Initializing photosphere viewer with:', { photoSrc, placeName, container });
         
         try {
-            // Create the Photo Sphere Viewer using imported Viewer class
+            // Import Viewer dynamically to avoid bundle size issues
+            const { Viewer } = await import('@photo-sphere-viewer/core');
             this.photosphereViewer = new Viewer({
             container: container,
             panorama: photoSrc,

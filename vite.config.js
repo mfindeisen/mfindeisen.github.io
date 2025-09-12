@@ -18,8 +18,20 @@ export default defineConfig({
     outDir: '../dist',
     emptyOutDir: true,
     sourcemap: true,
-    // Custom plugin to copy textures folder
+    chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
     rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split Three.js into its own chunk
+          'three': ['three'],
+          // Split photo sphere viewer into its own chunk
+          'photo-sphere-viewer': ['@photo-sphere-viewer/core'],
+          // Split MapTiler into its own chunk
+          'maplibregl': ['maplibregl'],
+          // Split vendor libraries
+          'vendor': ['@photo-sphere-viewer/core']
+        }
+      },
       plugins: [
         {
           name: 'copy-textures',
@@ -59,6 +71,7 @@ export default defineConfig({
   
   // Optimize dependencies
   optimizeDeps: {
-    include: ['three']
+    include: ['three', 'maplibregl'],
+    exclude: ['@photo-sphere-viewer/core'] // Exclude from pre-bundling to allow dynamic imports
   }
 });
