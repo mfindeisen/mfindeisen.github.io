@@ -192,6 +192,9 @@ class App {
             // Initialize PlacesManager
             this.placesManager = new PlacesManager(this.mapTilerMap);
             
+            // Set places manager reference in UI manager
+            this.uiManager.setPlacesManager(this.placesManager);
+            
             // Add alignment tool for fine-tuning
             this.setupAlignmentTool();
         } catch (error) {
@@ -418,12 +421,12 @@ class App {
         if (portfolioOverlay) {
             const closeBtn = portfolioOverlay.querySelector('.close-portfolio');
             if (closeBtn) {
-                closeBtn.addEventListener('click', this.uiManager.hidePortfolio.bind(this.uiManager));
+                closeBtn.addEventListener('click', this.hidePortfolio.bind(this));
             }
             
             portfolioOverlay.addEventListener('click', (e) => {
                 if (e.target === portfolioOverlay) {
-                    this.uiManager.hidePortfolio();
+                    this.hidePortfolio();
                 }
             });
         }
@@ -1037,23 +1040,38 @@ class App {
     
     showPortfolio() {
         console.log('Showing portfolio overlay');
-        this.portfolioOverlay.classList.add('visible');
+        const portfolioOverlay = this.uiManager.getElement('portfolioOverlay');
+        if (portfolioOverlay) {
+            portfolioOverlay.classList.add('visible');
+        }
         this.portfolioIsVisible = true; // Set flag to prevent map resets
         
         // Hide reopen button when portfolio is shown
-        this.reopenPortfolioBtn.classList.remove('visible');
+        const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
+        if (reopenPortfolioBtn) {
+            reopenPortfolioBtn.classList.remove('visible');
+        }
         
         // Hide back to beginning button when portfolio is shown
-        this.backToBeginningBtn.classList.add('hidden');
+        const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
+        if (backToBeginningBtn) {
+            backToBeginningBtn.classList.add('hidden');
+        }
+        
+        // Hide places list when portfolio is shown
+        if (this.placesManager) {
+            this.placesManager.setPlacesListVisibility(false);
+        }
         
         // Keep footer visible when portfolio is open
         // (removed footer hiding)
         
         // Ensure maptile map is hidden when portfolio is shown
-        if (this.googleEarthContainer) {
-            this.googleEarthContainer.style.opacity = '0';
-            this.googleEarthContainer.style.zIndex = '0';
-            this.googleEarthContainer.classList.remove('visible');
+        const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
+        if (googleEarthContainer) {
+            googleEarthContainer.style.opacity = '0';
+            googleEarthContainer.style.zIndex = '0';
+            googleEarthContainer.classList.remove('visible');
         }
         
         // Prevent background scrolling
@@ -1066,7 +1084,10 @@ class App {
         console.log('🔴 Has zoomed to Erbil:', this.hasZoomedToErbil);
         console.log('🔴 Has completed map journey:', this.hasCompletedMapJourney);
         
-        this.portfolioOverlay.classList.remove('visible');
+        const portfolioOverlay = this.uiManager.getElement('portfolioOverlay');
+        if (portfolioOverlay) {
+            portfolioOverlay.classList.remove('visible');
+        }
         this.portfolioIsVisible = false; // Clear flag to allow map resets again
         
         // Mark that user manually dismissed the portfolio
@@ -1074,21 +1095,25 @@ class App {
         this.uiManager.setState('portfolioManuallyDismissed', true);
         
         // Restore background scrolling
-        this.unlockScroll();
+        this.uiManager.unlockScroll();
         
         // Footer remains visible (no need to restore)
         
         // Restore maptile map visibility if we're at the right scroll position
         const scrollProgress = this.scrollController.getScrollProgress();
-        console.log('🔴 hidePortfolio() - scroll progress:', scrollProgress);
+        const currentScroll = window.pageYOffset;
+        console.log('🔴 hidePortfolio() - scroll progress:', scrollProgress, 'current scroll:', currentScroll);
         
         if (scrollProgress > 0.5) {
             console.log('🔴 hidePortfolio() - restoring map visibility WITHOUT calling updateGoogleEarthVisibility');
             // Simply restore the map visibility without calling updateGoogleEarthVisibility
             // to avoid resetting the map position
-            this.googleEarthContainer.style.opacity = '1';
-            this.googleEarthContainer.style.zIndex = '2';
-            this.googleEarthContainer.classList.add('visible');
+            const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
+            if (googleEarthContainer) {
+                googleEarthContainer.style.opacity = '1';
+                googleEarthContainer.style.zIndex = '2';
+                googleEarthContainer.classList.add('visible');
+            }
             
             // Hide background elements to show the map
             this.hideBackgroundElements(1.0);
@@ -1107,32 +1132,45 @@ class App {
         if (this.hasCompletedMapJourney && this.portfolioHasBeenShown) {
             setTimeout(() => {
                 // Check if maptile map is visible before showing the button
-                const isMapTileVisible = this.googleEarthContainer && 
-                                         this.googleEarthContainer.classList.contains('visible') && 
-                                         parseFloat(this.googleEarthContainer.style.opacity) > 0;
+                const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
+                const isMapTileVisible = googleEarthContainer && 
+                                         googleEarthContainer.classList.contains('visible') && 
+                                         parseFloat(googleEarthContainer.style.opacity) > 0;
                 
                 console.log('Portfolio closed - scroll progress:', scrollProgress, 'hasCompleted:', this.hasCompletedMapJourney, 'wasAutoShown:', this.portfolioHasBeenShown, 'isMapTileVisible:', isMapTileVisible);
                 
                 if (isMapTileVisible) {
-                    this.reopenPortfolioBtn.classList.add('visible');
+                    const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
+                    if (reopenPortfolioBtn) {
+                        reopenPortfolioBtn.classList.add('visible');
+                    }
                     console.log('✅ Showing reopen portfolio button - all conditions met');
                 } else {
                     console.log('❌ Not showing reopen portfolio button - maptile map not visible');
                 }
                 
                 // Also show back to beginning button if we're at the end
-                if (scrollProgress > 0.95 && this.backToBeginningBtn) {
-                    console.log('Showing back to beginning button after portfolio close');
-                    this.backToBeginningBtn.classList.remove('hidden'); // Show by removing hidden class
-                    console.log('Button classes after show:', this.backToBeginningBtn.className);
+                if (scrollProgress > 0.95) {
+                    const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
+                    if (backToBeginningBtn) {
+                        console.log('Showing back to beginning button after portfolio close');
+                        backToBeginningBtn.classList.remove('hidden'); // Show by removing hidden class
+                        console.log('Button classes after show:', backToBeginningBtn.className);
+                    }
                 }
             }, 300); // Small delay for smooth transition
         } else {
             // If we haven't completed the map journey and we're at the top, show the initial buttons
             if (window.pageYOffset <= 10) {
                 setTimeout(() => {
-                    this.scrollIndicator.classList.remove('hidden');
-                    this.skipButton.classList.remove('hidden');
+                    const scrollIndicator = this.uiManager.getElement('scrollIndicator');
+                    const skipButton = this.uiManager.getElement('skipButton');
+                    if (scrollIndicator) {
+                        scrollIndicator.classList.remove('hidden');
+                    }
+                    if (skipButton) {
+                        skipButton.classList.remove('hidden');
+                    }
                 }, 300); // Small delay for smooth transition
             }
         }
@@ -1147,8 +1185,14 @@ class App {
         this.resetMapTileMap();
         
         // Hide the skip button and scroll indicator
-        this.skipButton.classList.add('hidden');
-        this.scrollIndicator.classList.add('hidden');
+        const skipButton = this.uiManager.getElement('skipButton');
+        const scrollIndicator = this.uiManager.getElement('scrollIndicator');
+        if (skipButton) {
+            skipButton.classList.add('hidden');
+        }
+        if (scrollIndicator) {
+            scrollIndicator.classList.add('hidden');
+        }
         
         // Show portfolio overlay immediately
         this.showPortfolio();
@@ -1158,7 +1202,10 @@ class App {
         console.log('🟢 backToBeginning() called - RESETTING TO COMPLETE BEGINNING');
         
         // Hide the back to beginning button immediately
-        this.backToBeginningBtn.classList.add('hidden');
+        const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
+        if (backToBeginningBtn) {
+            backToBeginningBtn.classList.add('hidden');
+        }
         
         // Hide places list immediately
         if (this.placesManager) {
@@ -1198,14 +1245,21 @@ class App {
         
         // Show the initial UI elements after a delay
         setTimeout(() => {
-            this.scrollIndicator.classList.remove('hidden');
-            this.skipButton.classList.remove('hidden');
+            const scrollIndicator = this.uiManager.getElement('scrollIndicator');
+            const skipButton = this.uiManager.getElement('skipButton');
+            if (scrollIndicator) {
+                scrollIndicator.classList.remove('hidden');
+            }
+            if (skipButton) {
+                skipButton.classList.remove('hidden');
+            }
         }, 1000); // Give time for scroll animation to complete
     }
     
     lockScroll() {
         // Store current scroll position
         this.scrollPosition = window.pageYOffset;
+        console.log('🔒 lockScroll() - storing scroll position:', this.scrollPosition);
         
         // Apply scroll lock styles
         document.body.style.position = 'fixed';
@@ -1239,10 +1293,25 @@ class App {
             this.preventScrollKeys = null;
         }
         
-        // Restore scroll position
-        window.scrollTo(0, this.scrollPosition);
+        // Only restore scroll position if we're not in the MapTiler view
+        // If we're in the MapTiler view (scroll progress > 0.5), stay at current position
+        const scrollProgress = this.scrollController.getScrollProgress();
+        const currentScroll = window.pageYOffset;
         
-        console.log('Background scroll unlocked');
+        console.log('🔵 unlockScroll() - scroll progress:', scrollProgress, 'current scroll:', currentScroll, 'stored scroll:', this.scrollPosition);
+        
+        if (scrollProgress <= 0.5) {
+            // Restore scroll position only if we're not in the MapTiler view
+            // If stored scroll position is undefined, use current position
+            const targetScroll = this.scrollPosition !== undefined ? this.scrollPosition : currentScroll;
+            console.log('🔵 unlockScroll() - restoring scroll to:', targetScroll);
+            window.scrollTo(0, targetScroll);
+        } else {
+            console.log('🔵 unlockScroll() - staying at current position:', currentScroll, '(MapTiler view)');
+        }
+        // If scrollProgress > 0.5, we're in MapTiler view, so don't change scroll position
+        
+        console.log('Background scroll unlocked, scroll progress:', scrollProgress);
     }
     
     easeInOutQuart(t) {

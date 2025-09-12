@@ -2,7 +2,7 @@
  * UIManager - Handles general UI state and interactions
  */
 export class UIManager {
-    constructor() {
+    constructor(placesManager = null) {
         this.elements = {
             container: document.getElementById('canvas-container'),
             scrollProgress: document.getElementById('scroll-progress'),
@@ -27,6 +27,7 @@ export class UIManager {
         this.autoScrollAnimation = null;
         this.scrollPosition = 0;
         this.preventScrollKeys = null;
+        this.placesManager = placesManager;
     }
 
     // Element getters
@@ -41,6 +42,11 @@ export class UIManager {
 
     getState(key) {
         return this.state[key];
+    }
+
+    // Set places manager reference
+    setPlacesManager(placesManager) {
+        this.placesManager = placesManager;
     }
 
     // UI visibility controls
@@ -101,7 +107,29 @@ export class UIManager {
             this.preventScrollKeys = null;
         }
         
-        window.scrollTo(0, this.scrollPosition);
+        // Only restore scroll position if we're not in the MapTiler view
+        // If we're in the MapTiler view (scroll progress > 0.5), stay at current position
+        const currentScroll = window.pageYOffset;
+        
+        // We need to calculate scroll progress, but we don't have access to scrollController
+        // So we'll use a simple heuristic: if we're near the bottom of the page, don't restore
+        const documentHeight = document.documentElement.scrollHeight;
+        const windowHeight = window.innerHeight;
+        const maxScroll = documentHeight - windowHeight;
+        const scrollProgress = maxScroll > 0 ? currentScroll / maxScroll : 0;
+        
+        console.log('🔵 UIManager unlockScroll() - scroll progress:', scrollProgress, 'current scroll:', currentScroll, 'stored scroll:', this.scrollPosition);
+        
+        if (scrollProgress <= 0.5) {
+            // Restore scroll position only if we're not in the MapTiler view
+            // If stored scroll position is undefined, use current position
+            const targetScroll = this.scrollPosition !== undefined ? this.scrollPosition : currentScroll;
+            console.log('🔵 UIManager unlockScroll() - restoring scroll to:', targetScroll);
+            window.scrollTo(0, targetScroll);
+        } else {
+            console.log('🔵 UIManager unlockScroll() - staying at current position:', currentScroll, '(MapTiler view)');
+        }
+        
         console.log('Background scroll unlocked');
     }
 
@@ -171,6 +199,11 @@ export class UIManager {
         
         this.hideElement('reopenPortfolioBtn');
         this.hideElement('backToBeginningBtn');
+        
+        // Hide places list when portfolio is shown
+        if (this.placesManager) {
+            this.placesManager.setPlacesListVisibility(false);
+        }
         
         this.lockScroll();
     }

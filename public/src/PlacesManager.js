@@ -251,7 +251,6 @@ export class PlacesManager {
                 <div class="photosphere-modal-header">
                     <h3>${placeName} - 360° View</h3>
                     <div class="photosphere-controls">
-                        <button class="photosphere-reset" title="Reset View">🔄</button>
                         <button class="photosphere-fullscreen" title="Fullscreen">⛶</button>
                         <button class="photosphere-close">&times;</button>
                     </div>
