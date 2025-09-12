@@ -21,15 +21,19 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
     rollupOptions: {
       output: {
-        manualChunks: {
+        manualChunks: (id) => {
           // Split Three.js into its own chunk
-          'three': ['three'],
+          if (id.includes('node_modules/three')) {
+            return 'three';
+          }
           // Split photo sphere viewer into its own chunk
-          'photo-sphere-viewer': ['@photo-sphere-viewer/core'],
-          // Split MapTiler into its own chunk
-          'maplibregl': ['maplibregl'],
-          // Split vendor libraries
-          'vendor': ['@photo-sphere-viewer/core']
+          if (id.includes('node_modules/@photo-sphere-viewer')) {
+            return 'photo-sphere-viewer';
+          }
+          // Split other large vendor libraries
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
         }
       },
       plugins: [
