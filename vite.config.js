@@ -15,7 +15,9 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
-    sourcemap: true
+    sourcemap: true,
+    // Copy static assets from public directory
+    copyPublicDir: true
   },
   
   // Optimize dependencies
