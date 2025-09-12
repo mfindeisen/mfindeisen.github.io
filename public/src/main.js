@@ -24,6 +24,7 @@ class App {
         this.mapTilerMap = null;
         this.isAutoScrolling = false;
         this.autoScrollAnimation = null;
+        this.portfolioIsVisible = false; // Track if portfolio is currently visible
         
         // Reset scroll position to 0 on page load/reload
         this.resetScrollPosition();
@@ -851,6 +852,9 @@ class App {
     }
 
     updateGoogleEarthVisibility(progress) {
+        console.log('🔵 updateGoogleEarthVisibility() called with progress:', progress);
+        console.trace('🔵 updateGoogleEarthVisibility() call stack:');
+        
         // Start loading MapTiler early for smooth transition
         if (progress > 0.5) {
             // Pre-load MapTiler but keep it invisible and behind
@@ -901,25 +905,39 @@ class App {
             // Remove footer margin when not showing map
             this.footer.style.marginBottom = '';
             
-            // When scrolling back up, just reset flags but keep map position
-            if (this.hasZoomedToErbil) {
-                console.log('User scrolled back up - resetting flags but keeping map position');
+            // When scrolling back up, reset flags and map position
+            // Only reset if we're actually scrolling from a high position (not just portfolio closing)
+            console.log('🔵 updateGoogleEarthVisibility() - checking reset conditions:');
+            console.log('🔵 hasZoomedToErbil:', this.hasZoomedToErbil);
+            console.log('🔵 progress:', progress);
+            console.log('🔵 progress < 0.3:', progress < 0.3);
+            console.log('🔵 portfolioIsVisible:', this.portfolioIsVisible);
+            console.log('🔵 condition (hasZoomedToErbil && progress < 0.3 && !portfolioIsVisible):', this.hasZoomedToErbil && progress < 0.3 && !this.portfolioIsVisible);
+            
+            if (this.hasZoomedToErbil && progress < 0.3 && !this.portfolioIsVisible) {
+                console.log('🔵 User scrolled back up from high position - resetting flags and map position');
+                
+                // Reset the maptile map to its original state
+                this.resetMapTileMap();
                 
                 // Reset completion status so animation can run again
                 this.hasCompletedMapJourney = false;
                 
-                // Reset portfolio flags so it can show again if user goes through the full journey
-                this.portfolioHasBeenShown = false;
-                this.portfolioManuallyDismissed = false;
-                // Don't reset flyToAnimationCompleted here - only reset when actually starting new animation
+                // Don't reset portfolio flags here - only reset when user goes to very beginning
+                // This allows portfolio to reopen if user scrolls back down without going to top
                 
-                console.log('Flags reset, map position maintained');
+                console.log('🔵 Flags and map position reset (portfolio flags preserved)');
+            } else {
+                console.log('🔵 NOT resetting map - conditions not met');
+                if (this.portfolioIsVisible) {
+                    console.log('🔵 Portfolio is visible - preventing map reset');
+                }
             }
             
             // Reset zoom flag when going back
             this.hasZoomedToErbil = false;
             
-            // Only reset flyTo flag when user stays at the very beginning for an extended period
+            // Only reset flyTo flag and portfolio flags when user stays at the very beginning for an extended period
             // This indicates they want a completely fresh start
             if (progress < 0.005) {
                 if (!this.isAtBeginning) {
@@ -927,7 +945,10 @@ class App {
                     this.beginningTimer = setTimeout(() => {
                         if (this.isAtBeginning && progress < 0.005) {
                             this.flyToAnimationCompleted = false;
-                            console.log('Reset flyTo completion flag - user wants fresh start');
+                            // Reset portfolio flags only when user stays at very beginning for extended period
+                            this.portfolioHasBeenShown = false;
+                            this.portfolioManuallyDismissed = false;
+                            console.log('Reset flyTo completion flag and portfolio flags - user wants fresh start');
                         }
                     }, 3000); // 3 second delay for intentional reset
                 }
@@ -1065,6 +1086,7 @@ class App {
     showPortfolio() {
         console.log('Showing portfolio overlay');
         this.portfolioOverlay.classList.add('visible');
+        this.portfolioIsVisible = true; // Set flag to prevent map resets
         
         // Hide reopen button when portfolio is shown
         this.reopenPortfolioBtn.classList.remove('visible');
@@ -1087,11 +1109,13 @@ class App {
     }
     
     hidePortfolio() {
-        console.log('Hiding portfolio overlay');
-        console.log('FlyTo animation completed flag:', this.flyToAnimationCompleted);
-        console.log('Has zoomed to Erbil:', this.hasZoomedToErbil);
+        console.log('🔴 hidePortfolio() called');
+        console.log('🔴 FlyTo animation completed flag:', this.flyToAnimationCompleted);
+        console.log('🔴 Has zoomed to Erbil:', this.hasZoomedToErbil);
+        console.log('🔴 Has completed map journey:', this.hasCompletedMapJourney);
         
         this.portfolioOverlay.classList.remove('visible');
+        this.portfolioIsVisible = false; // Clear flag to allow map resets again
         
         // Mark that user manually dismissed the portfolio
         this.portfolioManuallyDismissed = true;
@@ -1103,9 +1127,21 @@ class App {
         
         // Restore maptile map visibility if we're at the right scroll position
         const scrollProgress = this.scrollController.getScrollProgress();
+        console.log('🔴 hidePortfolio() - scroll progress:', scrollProgress);
+        
         if (scrollProgress > 0.5) {
-            // Re-trigger the visibility logic to restore maptile map if appropriate
-            this.updateGoogleEarthVisibility(scrollProgress);
+            console.log('🔴 hidePortfolio() - restoring map visibility WITHOUT calling updateGoogleEarthVisibility');
+            // Simply restore the map visibility without calling updateGoogleEarthVisibility
+            // to avoid resetting the map position
+            this.googleEarthContainer.style.opacity = '1';
+            this.googleEarthContainer.style.zIndex = '2';
+            this.googleEarthContainer.classList.add('visible');
+            
+            // Hide background elements to show the map
+            this.hideBackgroundElements(1.0);
+            console.log('🔴 hidePortfolio() - map visibility restored, should stay at Erbil coordinates');
+        } else {
+            console.log('🔴 hidePortfolio() - scroll progress too low, not restoring map');
         }
         
         // Only show reopen portfolio button if we've completed the map journey AND portfolio was auto-shown
@@ -1148,6 +1184,9 @@ class App {
     skipToPortfolio() {
         console.log('Skipping directly to portfolio');
         
+        // Reset the maptile map to its original state since user is skipping the journey
+        this.resetMapTileMap();
+        
         // Hide the skip button and scroll indicator
         this.skipButton.classList.add('hidden');
         this.scrollIndicator.classList.add('hidden');
@@ -1157,10 +1196,13 @@ class App {
     }
     
     backToBeginning() {
-        console.log('Scrolling back to beginning');
+        console.log('🟢 backToBeginning() called - THIS IS THE CORRECT WAY TO RESET THE MAP');
         
         // Hide the back to beginning button immediately
         this.backToBeginningBtn.classList.add('hidden');
+        
+        // Reset the maptile map to its original state
+        this.resetMapTileMap();
         
         // Smooth scroll to top
         window.scrollTo({
@@ -1300,6 +1342,36 @@ class App {
             this.mapTilerMap.touchZoomRotate.disable();
             console.log('Map interactions disabled');
         }
+    }
+    
+    resetMapTileMap() {
+        console.log('🟡 resetMapTileMap() called - THIS SHOULD NOT HAPPEN WHEN PORTFOLIO IS CLOSED');
+        console.trace('🟡 resetMapTileMap() call stack:');
+        
+        if (!this.mapTilerMap) {
+            console.warn('🟡 MapTiler map not initialized, cannot reset');
+            return;
+        }
+        
+        console.log('🟡 Resetting maptile map to original state');
+        
+        // Get the original center coordinates
+        const originalCenter = this.getCurrentEarthCenter();
+        const originalZoom = 4.11; // Original zoom level from initMapTiler
+        
+        // Reset map to original position and zoom
+        this.mapTilerMap.setCenter(originalCenter);
+        this.mapTilerMap.setZoom(originalZoom);
+        
+        // Disable map interactions to match original state
+        this.enableMapInteractions(false);
+        
+        // Reset any ongoing animations by stopping them
+        if (this.mapTilerMap.isMoving()) {
+            this.mapTilerMap.stop();
+        }
+        
+        console.log('🟡 Maptile map reset to center:', originalCenter, 'zoom:', originalZoom);
     }
     
 
