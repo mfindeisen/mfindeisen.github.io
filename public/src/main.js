@@ -1,38 +1,20 @@
-import * as THREE from '/three/build/three.module.js';
-import { EarthScene } from './EarthScene.js';
+import * as THREE from 'three';
+import { EarthScene } from './earth/EarthScene.js';
+import { PlacesManager } from './PlacesManager.js';
 import { ScrollController } from './ScrollController.js';
+import { UIManager } from './ui/UIManager.js';
+import { Modal } from './ui/Modal.js';
+import { Tooltip } from './ui/Tooltip.js';
+import { EffectsManager } from './effects/EffectsManager.js';
+import { AnimationController } from './effects/AnimationController.js';
+import { MapManager } from './map/MapManager.js';
+import { AlignmentTool } from './map/AlignmentTool.js';
+import { MathUtils } from './utils/MathUtils.js';
 
 class App {
     constructor() {
-        this.container = document.getElementById('canvas-container');
-        this.scrollProgress = document.getElementById('scroll-progress');
-        this.googleEarthContainer = document.getElementById('google-earth-container');
-        this.scrollIndicator = document.getElementById('scroll-indicator');
-        this.portfolioOverlay = document.getElementById('portfolio-overlay');
-        this.skipButton = document.getElementById('skip-button');
-        this.reopenPortfolioBtn = document.getElementById('reopen-portfolio-btn');
-        this.backToBeginningBtn = document.getElementById('back-to-beginning-btn');
-        this.footer = document.getElementById('footer');
-        
-        this.hasZoomedToErbil = false;
-        this.hasCompletedMapJourney = false;
-        this.portfolioHasBeenShown = false; // Track if portfolio was shown automatically
-        this.portfolioManuallyDismissed = false; // Track if user manually closed it
-        this.flyToAnimationCompleted = false; // Track if flyTo animation has completed
-        this.isAtBeginning = false; // Track if user is at the beginning
-        this.beginningTimer = null; // Timer for sustained beginning detection
-        this.mapTilerMap = null;
-        this.isAutoScrolling = false;
-        this.autoScrollAnimation = null;
-        this.portfolioIsVisible = false; // Track if portfolio is currently visible
-        
-        // Reset scroll position to 0 on page load/reload
         this.resetScrollPosition();
-        
         this.init();
-        this.initMapTiler();
-        this.setupEventListeners();
-        this.animate();
     }
 
     resetScrollPosition() {
@@ -54,27 +36,87 @@ class App {
         }, 100);
     }
 
-    init() {
-        // Create renderer
+    async init() {
+        // Initialize UI manager
+        this.uiManager = new UIManager();
+        
+        // Initialize tooltip system
+        Tooltip.init();
+        
+        // Initialize modal system
+        this.modal = new Modal();
+        
+        // Initialize effects manager
+        this.effectsManager = new EffectsManager();
+        
+        // Initialize animation controller
+        this.animationController = new AnimationController(THREE);
+        
+        // Initialize scroll controller
+        this.scrollController = new ScrollController();
+        
+        // Initialize map manager
+        this.mapManager = new MapManager();
+        
+        // Initialize Three.js renderer
+        this.initRenderer();
+        
+        // Initialize Earth scene
+        this.earthScene = new EarthScene(THREE);
+        
+        // Initialize MapTiler
+        await this.initMapTiler();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        // Start animation loop
+        this.animate();
+        
+        console.log('App initialized successfully');
+    }
+
+    /**
+     * Initialize Three.js renderer
+     */
+    initRenderer() {
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
             alpha: false 
         });
-        this.renderer.setClearColor(0x000000); // Black space background
+        this.renderer.setClearColor(0x000000);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.container.appendChild(this.renderer.domElement);
+        
+        const container = this.uiManager.getElement('container');
+        container.appendChild(this.renderer.domElement);
+    }
 
-        // Create earth scene
-        this.earthScene = new EarthScene();
-        
-        // Create scroll controller
-        this.scrollController = new ScrollController();
-        
-        console.log('Three.js App initialized');
+    /**
+     * Initialize MapTiler
+     */
+    async initMapTiler() {
+        try {
+            await this.mapManager.init(
+                'maptiler-map',
+                'https://api.maptiler.com/maps/0199257a-01d6-7358-b3cb-99a4e119c9cb/style.json',
+                '6xZpq7YqiHrgv1PNVwTM'
+            );
+            
+            // Initialize alignment tool
+            this.alignmentTool = new AlignmentTool(this.mapManager);
+            this.alignmentTool.create();
+            
+            // Initialize places manager
+            this.placesManager = new PlacesManager(this.mapManager.getMap());
+            
+            console.log('MapTiler initialized successfully');
+        } catch (error) {
+            console.error('Failed to initialize MapTiler:', error);
+        }
     }
 
     // Calculate the center point of the 3D Earth model for perfect alignment
@@ -135,27 +177,26 @@ class App {
     }
 
     // Dynamic center calculation for perfect alignment
-    initMapTiler() {
-        // Calculate the center point of the 3D Earth model
-        const earthCenter = this.calculateEarthCenter();
-        
-        // Initialize MapTiler map with calculated center
-        this.mapTilerMap = new maplibregl.Map({
-            container: 'maptiler-map',
-            style: 'https://api.maptiler.com/maps/0199257a-01d6-7358-b3cb-99a4e119c9cb/style.json?key=6xZpq7YqiHrgv1PNVwTM',
-            center: earthCenter, // Calculated coordinates [lng, lat]
-            zoom: 4.11, // Starting zoom level
-            interactive: false // Start with interactions disabled
-        });
-
-        this.mapTilerMap.on('load', () => {
-            console.log('MapTiler map loaded with center:', earthCenter);
+    async initMapTiler() {
+        try {
+            // Initialize MapTiler map using MapManager
+            this.mapTilerMap = await this.mapManager.init(
+                'maptiler-map',
+                'https://api.maptiler.com/maps/0199257a-01d6-7358-b3cb-99a4e119c9cb/style.json',
+                '6xZpq7YqiHrgv1PNVwTM'
+            );
+            
             // Start with interactions disabled
             this.enableMapInteractions(false);
             
+            // Initialize PlacesManager
+            this.placesManager = new PlacesManager(this.mapTilerMap);
+            
             // Add alignment tool for fine-tuning
             this.setupAlignmentTool();
-        });
+        } catch (error) {
+            console.error('Failed to initialize MapTiler:', error);
+        }
     }
 
     // Setup alignment tool for fine-tuning map positioning
@@ -326,40 +367,66 @@ class App {
     }
 
     setupEventListeners() {
-        // Handle window resize
+        // Window resize
         window.addEventListener('resize', this.onWindowResize.bind(this));
         
-        // Handle scroll
+        // Scroll events
         window.addEventListener('scroll', this.onScroll.bind(this));
+        window.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
         
-        // Handle scroll indicator click
-        this.scrollIndicator.addEventListener('click', this.startAutoScroll.bind(this));
+        // UI events
+        this.setupUIEvents();
         
-        // Mobile touch event handling to prevent overscroll issues
+        // Mobile touch handling
         this.setupMobileTouchHandling();
         
-        // Handle portfolio overlay close
-        const closeBtn = document.querySelector('.close-portfolio');
-        closeBtn.addEventListener('click', this.hidePortfolio.bind(this));
-        
-        // Close portfolio when clicking outside the content
-        this.portfolioOverlay.addEventListener('click', (e) => {
-            if (e.target === this.portfolioOverlay) {
-                this.hidePortfolio();
-            }
-        });
-        
-        // Handle skip to portfolio button
-        this.skipButton.addEventListener('click', this.skipToPortfolio.bind(this));
-        
-        // Handle reopen portfolio button
-        this.reopenPortfolioBtn.addEventListener('click', this.showPortfolio.bind(this));
-        
-        // Handle back to beginning button
-        this.backToBeginningBtn.addEventListener('click', this.backToBeginning.bind(this));
-        
-        // Add fun easter egg interactions
+        // Easter egg controls
         this.setupEasterEggControls();
+    }
+
+    /**
+     * Setup UI event listeners
+     */
+    setupUIEvents() {
+        const scrollIndicator = this.uiManager.getElement('scrollIndicator');
+        const skipButton = this.uiManager.getElement('skipButton');
+        const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
+        const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
+        const portfolioOverlay = this.uiManager.getElement('portfolioOverlay');
+        
+        // Store element references as class properties
+        this.scrollIndicator = scrollIndicator;
+        this.skipButton = skipButton;
+        this.backToBeginningBtn = backToBeginningBtn;
+        
+        if (scrollIndicator) {
+            scrollIndicator.addEventListener('click', this.uiManager.startAutoScroll.bind(this.uiManager));
+        }
+        
+        if (skipButton) {
+            skipButton.addEventListener('click', this.skipToPortfolio.bind(this));
+        }
+        
+        if (reopenPortfolioBtn) {
+            reopenPortfolioBtn.addEventListener('click', this.uiManager.showPortfolio.bind(this.uiManager));
+        }
+        
+        if (backToBeginningBtn) {
+            backToBeginningBtn.addEventListener('click', this.backToBeginning.bind(this));
+        }
+        
+        if (portfolioOverlay) {
+            const closeBtn = portfolioOverlay.querySelector('.close-portfolio');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', this.uiManager.hidePortfolio.bind(this.uiManager));
+            }
+            
+            portfolioOverlay.addEventListener('click', (e) => {
+                if (e.target === portfolioOverlay) {
+                    this.uiManager.hidePortfolio();
+                }
+            });
+        }
     }
 
     setupMobileTouchHandling() {
@@ -777,250 +844,135 @@ class App {
 
     onScroll() {
         const scrollProgress = this.scrollController.getScrollProgress();
-        console.log('Scroll event triggered, progress:', scrollProgress);
-        this.scrollProgress.textContent = `Progress: ${Math.round(scrollProgress * 100)}%`;
+        this.uiManager.getElement('scrollProgress').textContent = `Progress: ${Math.round(scrollProgress * 100)}%`;
         
-        // Mobile scroll boundary protection - prevent scrolling past transformation completion
-        const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
-        if (isMobile && scrollProgress >= 1.0) {
-            // If we've reached 100% progress on mobile, prevent further scrolling
-            const maxScroll = this.scrollController.getMaxScroll();
-            const currentScroll = window.pageYOffset;
-            
-            // If user tries to scroll past the maximum, snap back to the maximum
-            if (currentScroll > maxScroll) {
-                window.scrollTo(0, maxScroll);
-                return; // Exit early to prevent further processing
-            }
-        }
-        
-        // Handle scroll indicator and skip button visibility
-        if (!this.isAutoScrolling) {
-            if (window.pageYOffset > 50) {
-                // Hide when scrolling down
-                this.scrollIndicator.classList.add('hidden');
-                this.skipButton.classList.add('hidden');
-            } else if (window.pageYOffset <= 10 && !this.hasCompletedMapJourney) {
-                // Show again when scrolling back to top (only if haven't completed map journey)
-                this.scrollIndicator.classList.remove('hidden');
-                this.skipButton.classList.remove('hidden');
-                // Hide back to beginning button when at the top
-                this.backToBeginningBtn.classList.add('hidden');
-            }
-        }
-        
-        // Check if maptile map is visible
-        const isMapTileVisible = this.googleEarthContainer && 
-                                 this.googleEarthContainer.classList.contains('visible') && 
-                                 parseFloat(this.googleEarthContainer.style.opacity) > 0;
-        
-        // Show reopen portfolio button when maptile map is visible AND portfolio was auto-shown and dismissed
-        if (isMapTileVisible && this.reopenPortfolioBtn && this.portfolioHasBeenShown && this.portfolioManuallyDismissed) {
-            this.reopenPortfolioBtn.classList.add('visible');
-            console.log('✅ onScroll: Showing reopen portfolio button - all conditions met');
-        } else if (this.reopenPortfolioBtn) {
-            // Hide the button if conditions are not met
-            this.reopenPortfolioBtn.classList.remove('visible');
-            if (isMapTileVisible) {
-                console.log('❌ onScroll: Hiding reopen portfolio button - conditions not met:', {
-                    hasBeenShown: this.portfolioHasBeenShown,
-                    manuallyDismissed: this.portfolioManuallyDismissed
-                });
-            }
-        }
-        
-        // Show back to beginning button when at the end and have completed the journey
-        // Temporarily using 0.95 instead of 0.95 for easier testing
-        if (scrollProgress > 0.95 && this.hasCompletedMapJourney && !this.portfolioOverlay.classList.contains('visible') && this.backToBeginningBtn) {
-            console.log('Should show back to beginning button - progress:', scrollProgress);
-            this.backToBeginningBtn.classList.remove('hidden'); // Show by removing hidden class
-        } else if (scrollProgress <= 0.95 && this.hasCompletedMapJourney && this.backToBeginningBtn && !isMapTileVisible) {
-            // Hide the button when not at the end (but only if journey completed) AND maptile map is not visible
-            this.backToBeginningBtn.classList.add('hidden');
-        }
-        
-        
-        // Test with a simple progress value
-        const testProgress = Math.min(window.pageYOffset / 1000, 1); // Simple test
-        console.log('Test progress:', testProgress);
-        
-        // Update earth transformation based on scroll
+        // Update earth transformation
         this.earthScene.updateTransformation(scrollProgress);
         
         // Control Google Earth fade-in
         this.updateGoogleEarthVisibility(scrollProgress);
+        
+        // Update UI based on scroll progress
+        this.updateUIOnScroll(scrollProgress);
+    }
+
+    /**
+     * Handle wheel event
+     */
+    onWheel(e) {
+        this.animationController.handleScroll(e, this.earthScene, this.uiManager);
+    }
+
+    /**
+     * Update UI based on scroll progress
+     */
+    updateUIOnScroll(progress) {
+        // Handle scroll indicator and skip button visibility
+        if (!this.uiManager.getState('isAutoScrolling')) {
+            if (window.pageYOffset > 50) {
+                this.uiManager.hideElement('scrollIndicator');
+                this.uiManager.hideElement('skipButton');
+            } else if (window.pageYOffset <= 10 && !this.uiManager.getState('hasCompletedMapJourney')) {
+                this.uiManager.showElement('scrollIndicator');
+                this.uiManager.showElement('skipButton');
+                this.uiManager.hideElement('backToBeginningBtn');
+            }
+        }
+        
+        // Show back to beginning button when at the end
+        if (progress > 0.95 && this.uiManager.getState('hasCompletedMapJourney') && 
+            !this.uiManager.getElement('portfolioOverlay').classList.contains('visible')) {
+            this.uiManager.showElement('backToBeginningBtn');
+        } else if (progress <= 0.95 && this.uiManager.getState('hasCompletedMapJourney')) {
+            this.uiManager.hideElement('backToBeginningBtn');
+        }
+        
+        // Check beginning state
+        this.uiManager.checkBeginningState(progress);
     }
 
     updateGoogleEarthVisibility(progress) {
-        console.log('🔵 updateGoogleEarthVisibility() called with progress:', progress);
-        console.trace('🔵 updateGoogleEarthVisibility() call stack:');
+        const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
         
-        // Start loading MapTiler early for smooth transition
         if (progress > 0.5) {
-            // Pre-load MapTiler but keep it invisible and behind
-            this.googleEarthContainer.style.zIndex = '0';
-            this.googleEarthContainer.style.opacity = 0;
+            googleEarthContainer.style.zIndex = '0';
+            googleEarthContainer.style.opacity = 0;
             
-            // Use the perfect alignment point discovered: cross-fade at 0.37 opacity (progress 0.968)
             const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
-            const activationThreshold = isMobile ? 0.90 : 0.968; // Use the perfect alignment point
-            const fadeRange = isMobile ? 0.10 : 0.032; // Shorter fade range to maintain perfect alignment
+            const activationThreshold = isMobile ? 0.90 : 0.968;
+            const fadeRange = isMobile ? 0.10 : 0.032;
             
             if (progress > activationThreshold) {
                 const fadeProgress = Math.min((progress - activationThreshold) / fadeRange, 1.0);
                 
-                // Start cross-fade: bring MapTiler to front and make it visible
-                this.googleEarthContainer.style.zIndex = '2'; // Bring to front
-                this.googleEarthContainer.style.opacity = fadeProgress;
-                this.googleEarthContainer.classList.add('visible');
+                googleEarthContainer.style.zIndex = '2';
+                googleEarthContainer.style.opacity = fadeProgress;
+                googleEarthContainer.classList.add('visible');
                 
-                // Hide all background elements as soon as maptile map becomes visible
                 this.hideBackgroundElements(fadeProgress);
                 
-                // Add margin to footer when map becomes visible
                 if (fadeProgress >= 0.5) {
-                    this.footer.style.marginBottom = '20px';
+                    this.uiManager.getElement('footer').style.marginBottom = '20px';
                 }
                 
-                // When fade is complete, zoom to Erbil
-                // Use the perfect alignment threshold to trigger zoom at the right moment
-                const animationThreshold = isMobile ? 0.95 : 1.0; // Keep at 1.0 to trigger after perfect cross-fade
-                if (fadeProgress >= animationThreshold && !this.hasZoomedToErbil) {
-                    console.log('Triggering Erbil animation - fadeProgress:', fadeProgress, 'threshold:', animationThreshold, 'isMobile:', isMobile);
+                const animationThreshold = isMobile ? 0.95 : 1.0;
+                if (fadeProgress >= animationThreshold && !this.uiManager.getState('hasZoomedToErbil')) {
                     this.zoomToErbil();
-                    this.hasZoomedToErbil = true;
+                    this.uiManager.setState('hasZoomedToErbil', true);
                 }
-                
-                console.log('Cross-fade progress:', fadeProgress, 'MapTiler opacity:', fadeProgress, 'Threshold:', activationThreshold, 'isMobile:', isMobile);
             }
         } else {
-            // Keep MapTiler completely hidden in early stages
-            this.googleEarthContainer.style.zIndex = '0';
-            this.googleEarthContainer.style.opacity = 0;
-            this.googleEarthContainer.classList.remove('visible');
+            googleEarthContainer.style.zIndex = '0';
+            googleEarthContainer.style.opacity = 0;
+            googleEarthContainer.classList.remove('visible');
             
-            // Show all background elements when maptile map is not visible
             this.showBackgroundElements();
+            this.uiManager.getElement('footer').style.marginBottom = '';
             
-            // Remove footer margin when not showing map
-            this.footer.style.marginBottom = '';
-            
-            // When scrolling back up, reset flags and map position
-            // Only reset if we're actually scrolling from a high position (not just portfolio closing)
-            console.log('🔵 updateGoogleEarthVisibility() - checking reset conditions:');
-            console.log('🔵 hasZoomedToErbil:', this.hasZoomedToErbil);
-            console.log('🔵 progress:', progress);
-            console.log('🔵 progress < 0.3:', progress < 0.3);
-            console.log('🔵 portfolioIsVisible:', this.portfolioIsVisible);
-            console.log('🔵 condition (hasZoomedToErbil && progress < 0.3 && !portfolioIsVisible):', this.hasZoomedToErbil && progress < 0.3 && !this.portfolioIsVisible);
-            
-            if (this.hasZoomedToErbil && progress < 0.3 && !this.portfolioIsVisible) {
-                console.log('🔵 User scrolled back up from high position - resetting flags and map position');
-                
-                // Reset the maptile map to its original state
+            if (this.uiManager.getState('hasZoomedToErbil') && progress < 0.3 && !this.uiManager.getState('portfolioIsVisible')) {
                 this.resetMapTileMap();
-                
-                // Reset completion status so animation can run again
-                this.hasCompletedMapJourney = false;
-                
-                // Don't reset portfolio flags here - only reset when user goes to very beginning
-                // This allows portfolio to reopen if user scrolls back down without going to top
-                
-                console.log('🔵 Flags and map position reset (portfolio flags preserved)');
-            } else {
-                console.log('🔵 NOT resetting map - conditions not met');
-                if (this.portfolioIsVisible) {
-                    console.log('🔵 Portfolio is visible - preventing map reset');
-                }
+                this.uiManager.setState('hasCompletedMapJourney', false);
             }
             
-            // Reset zoom flag when going back
-            this.hasZoomedToErbil = false;
-            
-            // Only reset flyTo flag and portfolio flags when user stays at the very beginning for an extended period
-            // This indicates they want a completely fresh start
-            if (progress < 0.005) {
-                if (!this.isAtBeginning) {
-                    this.isAtBeginning = true;
-                    this.beginningTimer = setTimeout(() => {
-                        if (this.isAtBeginning && progress < 0.005) {
-                            this.flyToAnimationCompleted = false;
-                            // Reset portfolio flags only when user stays at very beginning for extended period
-                            this.portfolioHasBeenShown = false;
-                            this.portfolioManuallyDismissed = false;
-                            console.log('Reset flyTo completion flag and portfolio flags - user wants fresh start');
-                        }
-                    }, 3000); // 3 second delay for intentional reset
-                }
-            } else if (progress >= 0.01) {
-                this.isAtBeginning = false;
-                if (this.beginningTimer) {
-                    clearTimeout(this.beginningTimer);
-                    this.beginningTimer = null;
-                }
-            }
+            this.uiManager.setState('hasZoomedToErbil', false);
         }
     }
 
     hideBackgroundElements(fadeProgress) {
-        // Hide the 3D Earth scene (canvas container) as soon as maptile map becomes visible
-        if (this.container) {
-            this.container.style.opacity = Math.max(0, 1 - fadeProgress * 2); // Fade out quickly
-            this.container.style.pointerEvents = 'none'; // Disable interactions
+        const container = this.uiManager.getElement('container');
+        if (container) {
+            container.style.opacity = Math.max(0, 1 - fadeProgress * 2);
+            container.style.pointerEvents = 'none';
         }
         
-        // Hide scroll indicator
-        if (this.scrollIndicator) {
-            this.scrollIndicator.classList.add('hidden');
+        this.uiManager.hideElement('scrollIndicator');
+        this.uiManager.hideElement('skipButton');
+        
+        if (this.uiManager.getState('portfolioHasBeenShown') && this.uiManager.getState('portfolioManuallyDismissed')) {
+            this.uiManager.showElement('reopenPortfolioBtn');
+        } else {
+            this.uiManager.hideElement('reopenPortfolioBtn');
         }
         
-        // Hide skip button
-        if (this.skipButton) {
-            this.skipButton.classList.add('hidden');
-        }
+        this.uiManager.showElement('backToBeginningBtn');
         
-        // Show reopen portfolio button only if portfolio was auto-shown and dismissed
-        if (this.reopenPortfolioBtn && this.portfolioHasBeenShown && this.portfolioManuallyDismissed) {
-            this.reopenPortfolioBtn.classList.add('visible');
-            console.log('✅ hideBackgroundElements: Showing reopen portfolio button - all conditions met');
-        } else if (this.reopenPortfolioBtn) {
-            this.reopenPortfolioBtn.classList.remove('visible');
-            console.log('❌ hideBackgroundElements: Hiding reopen portfolio button - conditions not met:', {
-                hasBeenShown: this.portfolioHasBeenShown,
-                manuallyDismissed: this.portfolioManuallyDismissed
-            });
-        }
-        
-        if (this.backToBeginningBtn) {
-            this.backToBeginningBtn.classList.remove('hidden');
-        }
-        
-        // Hide info panel (scroll progress)
         const infoPanel = document.querySelector('.info');
         if (infoPanel) {
             infoPanel.style.opacity = Math.max(0, 1 - fadeProgress * 2);
         }
-        
-        console.log('Background elements hidden - fadeProgress:', fadeProgress);
     }
 
     showBackgroundElements() {
-        // Show the 3D Earth scene (canvas container)
-        if (this.container) {
-            this.container.style.opacity = '1';
-            this.container.style.pointerEvents = 'auto';
+        const container = this.uiManager.getElement('container');
+        if (container) {
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
         }
         
-        // Show info panel (scroll progress)
         const infoPanel = document.querySelector('.info');
         if (infoPanel) {
             infoPanel.style.opacity = '1';
         }
-        
-        // Note: Other elements (scroll indicator, buttons, footer) are controlled by other logic
-        // and will be shown/hidden based on scroll position and other conditions
-        
-        console.log('Background elements shown');
     }
 
     startAutoScroll() {
@@ -1105,7 +1057,7 @@ class App {
         }
         
         // Prevent background scrolling
-        this.lockScroll();
+        this.uiManager.lockScroll();
     }
     
     hidePortfolio() {
@@ -1119,6 +1071,7 @@ class App {
         
         // Mark that user manually dismissed the portfolio
         this.portfolioManuallyDismissed = true;
+        this.uiManager.setState('portfolioManuallyDismissed', true);
         
         // Restore background scrolling
         this.unlockScroll();
@@ -1139,6 +1092,12 @@ class App {
             
             // Hide background elements to show the map
             this.hideBackgroundElements(1.0);
+            
+            // Show places list when portfolio is hidden and map is visible
+            if (this.placesManager) {
+                this.placesManager.setPlacesListVisibility(true);
+            }
+            
             console.log('🔴 hidePortfolio() - map visibility restored, should stay at Erbil coordinates');
         } else {
             console.log('🔴 hidePortfolio() - scroll progress too low, not restoring map');
@@ -1196,12 +1155,21 @@ class App {
     }
     
     backToBeginning() {
-        console.log('🟢 backToBeginning() called - THIS IS THE CORRECT WAY TO RESET THE MAP');
+        console.log('🟢 backToBeginning() called - RESETTING TO COMPLETE BEGINNING');
         
         // Hide the back to beginning button immediately
         this.backToBeginningBtn.classList.add('hidden');
         
-        // Reset the maptile map to its original state
+        // Hide places list immediately
+        if (this.placesManager) {
+            this.placesManager.setPlacesListVisibility(false);
+        }
+        
+        // Reset Earth to complete sphere (0% morphing)
+        this.earthScene.reset();
+        this.earthScene.updateTransformation(0); // Force update to sphere state
+        
+        // Reset the maptile map to original state
         this.resetMapTileMap();
         
         // Smooth scroll to top
@@ -1216,6 +1184,17 @@ class App {
         this.portfolioHasBeenShown = false;
         this.portfolioManuallyDismissed = false;
         this.flyToAnimationCompleted = false;
+        this.portfolioIsVisible = false;
+        this.isAutoScrolling = false;
+        
+        // Also reset UI manager states
+        this.uiManager.setState('portfolioHasBeenShown', false);
+        this.uiManager.setState('portfolioManuallyDismissed', false);
+        this.uiManager.setState('hasCompletedMapJourney', false);
+        this.uiManager.setState('hasZoomedToErbil', false);
+        this.uiManager.setState('flyToAnimationCompleted', false);
+        this.uiManager.setState('isAutoScrolling', false);
+        this.uiManager.setState('portfolioIsVisible', false);
         
         // Show the initial UI elements after a delay
         setTimeout(() => {
@@ -1270,108 +1249,72 @@ class App {
         return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
     }
 
-    zoomToErbil() {
-        if (!this.mapTilerMap) {
-            console.error('MapTiler map not initialized');
+    async zoomToErbil() {
+        // Wait for map to be initialized
+        let attempts = 0;
+        while (!this.mapManager.isMapInitialized() && attempts < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        if (!this.mapManager.isMapInitialized()) {
+            console.error('MapTiler map not initialized after waiting');
             return;
         }
 
-        // If animation already completed, don't start again
-        if (this.flyToAnimationCompleted) {
+        if (this.uiManager.getState('flyToAnimationCompleted')) {
             console.log('FlyTo animation already completed, skipping');
             return;
         }
 
         console.log('Starting smooth flyTo animation to Erbil, Iraq');
         
-        // Target coordinates (Erbil, Iraq)
         const targetLng = 44.0259;
         const targetLat = 36.1982;
         const targetZoom = 13;
         
-        // Set animation start time to prevent duplicate triggers
-        this.flyToStartTime = Date.now();
-        
-        // Use MapTiler SDK's native flyTo method for smooth animation
-        this.mapTilerMap.flyTo({
-            center: [targetLng, targetLat], // [longitude, latitude]
-            zoom: targetZoom,
-            duration: 8000, // 8 seconds for slower, more cinematic feel
-            essential: true // Animation cannot be interrupted
-        });
-
-        // Use timeout instead of moveend event to avoid duplicate triggers
-        setTimeout(() => {
-            // Only run this logic if the flyTo animation hasn't completed yet
-            if (!this.flyToAnimationCompleted) {
-                this.flyToAnimationCompleted = true; // Mark animation as completed
-                
-                // Enable map interactions after animation completes
-                this.enableMapInteractions(true);
-                console.log('Zoom to Erbil completed at coordinates:', targetLat, targetLng, 'zoom:', targetZoom);
-                
-                // Mark that we've completed the full map journey
-                this.hasCompletedMapJourney = true;
-                
-                // Show portfolio overlay after a brief delay (only if not shown before and not manually dismissed)
-                if (!this.portfolioHasBeenShown && !this.portfolioManuallyDismissed) {
-                    setTimeout(() => {
-                        this.showPortfolio();
-                        this.portfolioHasBeenShown = true; // Mark as shown
-                    }, 2000); // 2 second delay to let user appreciate the map
+        try {
+            await this.mapManager.flyTo([targetLng, targetLat], targetZoom, 8000);
+            
+            this.uiManager.setState('flyToAnimationCompleted', true);
+            this.mapManager.setInteractions(true);
+            
+            setTimeout(() => {
+                if (this.placesManager) {
+                    this.mapManager.ensureContainerInteractions(this.uiManager.getElement('googleEarthContainer'));
+                    this.placesManager.addAllMarkers();
+                    this.placesManager.setPlacesListVisibility(true);
                 }
+            }, 100);
+            
+            this.uiManager.setState('hasCompletedMapJourney', true);
+            
+            if (!this.uiManager.getState('portfolioHasBeenShown') && !this.uiManager.getState('portfolioManuallyDismissed')) {
+                setTimeout(() => {
+                    this.uiManager.showPortfolio();
+                    this.uiManager.setState('portfolioHasBeenShown', true);
+                }, 2000);
             }
-        }, 8500); // Wait for animation to complete (8s + 500ms buffer)
-    }
-    
-    enableMapInteractions(enable) {
-        if (!this.mapTilerMap) return;
-        
-        if (enable) {
-            // Enable all map interactions
-            this.mapTilerMap.dragPan.enable();
-            this.mapTilerMap.scrollZoom.enable();
-            this.mapTilerMap.doubleClickZoom.enable();
-            this.mapTilerMap.touchZoomRotate.enable();
-            console.log('Map interactions enabled');
-        } else {
-            // Disable all map interactions
-            this.mapTilerMap.dragPan.disable();
-            this.mapTilerMap.scrollZoom.disable();
-            this.mapTilerMap.doubleClickZoom.disable();
-            this.mapTilerMap.touchZoomRotate.disable();
-            console.log('Map interactions disabled');
+        } catch (error) {
+            console.error('Error during flyTo animation:', error);
         }
     }
     
+    enableMapInteractions(enable) {
+        this.mapManager.setInteractions(enable);
+    }
+
+    ensureMapContainerInteractions() {
+        this.mapManager.ensureContainerInteractions(this.uiManager.getElement('googleEarthContainer'));
+    }
+    
+
     resetMapTileMap() {
         console.log('🟡 resetMapTileMap() called - THIS SHOULD NOT HAPPEN WHEN PORTFOLIO IS CLOSED');
         console.trace('🟡 resetMapTileMap() call stack:');
         
-        if (!this.mapTilerMap) {
-            console.warn('🟡 MapTiler map not initialized, cannot reset');
-            return;
-        }
-        
-        console.log('🟡 Resetting maptile map to original state');
-        
-        // Get the original center coordinates
-        const originalCenter = this.getCurrentEarthCenter();
-        const originalZoom = 4.11; // Original zoom level from initMapTiler
-        
-        // Reset map to original position and zoom
-        this.mapTilerMap.setCenter(originalCenter);
-        this.mapTilerMap.setZoom(originalZoom);
-        
-        // Disable map interactions to match original state
-        this.enableMapInteractions(false);
-        
-        // Reset any ongoing animations by stopping them
-        if (this.mapTilerMap.isMoving()) {
-            this.mapTilerMap.stop();
-        }
-        
-        console.log('🟡 Maptile map reset to center:', originalCenter, 'zoom:', originalZoom);
+        this.mapManager.reset();
+        this.uiManager.setState('hasZoomedToErbil', false);
     }
     
 
