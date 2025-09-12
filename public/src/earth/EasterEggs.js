@@ -301,7 +301,23 @@ export class EasterEggs {
             const z = this.astronautStartPos.z + (this.astronautEndPos.z - this.astronautStartPos.z) * t;
             
             const floatingY = y + Math.sin(currentTime * 0.001) * 0.05;
-            this.astronaut.position.set(x, floatingY, z);
+            
+            // Check if position would be inside earth sphere and adjust if necessary
+            const earthRadius = 2.5;
+            const minDistance = earthRadius + 1.5;
+            const distanceFromCenter = Math.sqrt(x * x + floatingY * floatingY + z * z);
+            
+            let finalX = x, finalY = floatingY, finalZ = z;
+            
+            if (distanceFromCenter < minDistance) {
+                // Push astronaut away from earth center to maintain safe distance
+                const pushFactor = minDistance / distanceFromCenter;
+                finalX = x * pushFactor;
+                finalY = floatingY * pushFactor;
+                finalZ = z * pushFactor;
+            }
+            
+            this.astronaut.position.set(finalX, finalY, finalZ);
             
             const direction = new THREE.Vector3(
                 this.astronautEndPos.x - this.astronautStartPos.x,
@@ -328,18 +344,32 @@ export class EasterEggs {
         console.log('🚀 Astronaut appearing for journey!');
         
         const direction = Math.random() < 0.5 ? -1 : 1;
+        const earthRadius = 2.5;
+        const minDistance = earthRadius + 1.5; // Keep astronaut at least 1.5 units away from earth surface
         
-        this.astronautStartPos = {
-            x: direction * (20 + Math.random() * 5),
-            y: (Math.random() - 0.5) * 8,
-            z: (Math.random() - 0.5) * 4
-        };
+        // Generate start position outside earth sphere
+        let startPos;
+        do {
+            startPos = {
+                x: direction * (20 + Math.random() * 5),
+                y: (Math.random() - 0.5) * 8,
+                z: (Math.random() - 0.5) * 4
+            };
+        } while (Math.sqrt(startPos.x * startPos.x + startPos.y * startPos.y + startPos.z * startPos.z) < minDistance);
         
-        this.astronautEndPos = {
-            x: -direction * (20 + Math.random() * 5),
-            y: this.astronautStartPos.y + (Math.random() - 0.5) * 3,
-            z: this.astronautStartPos.z + (Math.random() - 0.5) * 2
-        };
+        this.astronautStartPos = startPos;
+        
+        // Generate end position outside earth sphere
+        let endPos;
+        do {
+            endPos = {
+                x: -direction * (20 + Math.random() * 5),
+                y: this.astronautStartPos.y + (Math.random() - 0.5) * 3,
+                z: this.astronautStartPos.z + (Math.random() - 0.5) * 2
+            };
+        } while (Math.sqrt(endPos.x * endPos.x + endPos.y * endPos.y + endPos.z * endPos.z) < minDistance);
+        
+        this.astronautEndPos = endPos;
         
         this.astronautJourneyProgress = 0;
         this.astronautJourneySpeed = 0.0005 + Math.random() * 0.0003;

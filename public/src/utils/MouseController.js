@@ -18,10 +18,11 @@ export class MouseController {
      * Setup mouse event listeners
      */
     setupEventListeners() {
-        window.addEventListener('mousedown', this.onMouseDown.bind(this));
-        window.addEventListener('mousemove', this.onMouseMove.bind(this));
-        window.addEventListener('mouseup', this.onMouseUp.bind(this));
-        window.addEventListener('mouseleave', this.onMouseUp.bind(this));
+        // Mouse rotation disabled - no event listeners needed
+        // window.addEventListener('mousedown', this.onMouseDown.bind(this));
+        // window.addEventListener('mousemove', this.onMouseMove.bind(this));
+        // window.addEventListener('mouseup', this.onMouseUp.bind(this));
+        // window.addEventListener('mouseleave', this.onMouseUp.bind(this));
     }
 
     /**

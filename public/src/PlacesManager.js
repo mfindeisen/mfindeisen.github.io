@@ -923,43 +923,102 @@ export class PlacesManager {
         style.textContent = `
             .places-list-container {
                 position: fixed;
-                top: 20px;
-                left: 20px;
+                top: 0;
+                left: 0;
+                height: 100vh;
                 z-index: 1000;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: rgba(255, 255, 255, 0.95);
-                border: 2px solid #ff4444;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-                backdrop-filter: blur(10px);
-                min-width: 280px;
-                max-width: 320px;
+                background: white;
+                box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .places-list-container.collapsed {
+                width: 60px;
+            }
+            
+            .places-list-container:not(.collapsed) {
+                width: 320px;
             }
             
             .places-list-header {
-                background: #ff4444;
-                color: white;
-                padding: 12px 16px;
-                font-size: 14px;
-                font-weight: 600;
-                border-radius: 10px 10px 0 0;
-                text-align: center;
-                letter-spacing: 0.5px;
+                background: #f8f9fa;
+                color: #333;
+                padding: 16px 20px;
+                font-size: 16px;
+                font-weight: 500;
+                border-bottom: 1px solid #e0e0e0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: pointer;
+                user-select: none;
+                min-height: 56px;
+                box-sizing: border-box;
+            }
+            
+            .places-list-container.collapsed .places-list-header {
+                padding: 16px 12px;
+                justify-content: center;
+            }
+            
+            .places-list-title {
+                flex: 1;
+                font-weight: 500;
+                color: #1a73e8;
+            }
+            
+            .places-list-container.collapsed .places-list-title {
+                display: none;
+            }
+            
+            .places-list-toggle {
+                background: none;
+                border: none;
+                color: #5f6368;
+                font-size: 18px;
+                cursor: pointer;
+                padding: 8px;
+                border-radius: 50%;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .places-list-toggle:hover {
+                background: rgba(95, 99, 104, 0.1);
+                color: #1a73e8;
+            }
+            
+            .toggle-icon {
+                transition: transform 0.2s ease;
+                font-size: 16px;
+            }
+            
+            .hamburger-icon {
+                font-size: 18px;
+                font-weight: bold;
             }
             
             .places-list {
-                max-height: 400px;
+                flex: 1;
                 overflow-y: auto;
-                border-radius: 0 0 10px 10px;
+                background: white;
             }
             
             .place-item {
                 display: flex;
                 align-items: center;
-                padding: 14px 16px;
-                border-bottom: 1px solid rgba(255, 68, 68, 0.1);
+                padding: 16px 20px;
+                border-bottom: 1px solid #f0f0f0;
                 cursor: pointer;
                 transition: all 0.2s ease;
+                position: relative;
             }
             
             .place-item:last-child {
@@ -967,77 +1026,185 @@ export class PlacesManager {
             }
             
             .place-item:hover {
-                background: rgba(255, 68, 68, 0.08);
-                transform: translateX(2px);
+                background: #f8f9fa;
+            }
+            
+            .place-item:active {
+                background: #e8f0fe;
+            }
+            
+            .places-list-container.collapsed .place-item {
+                padding: 16px 12px;
+                justify-content: center;
             }
             
             .place-item-content {
                 flex: 1;
             }
             
+            .places-list-container.collapsed .place-item-content {
+                display: none;
+            }
+            
             .place-name {
                 font-size: 14px;
-                font-weight: 600;
-                color: #333;
-                margin-bottom: 2px;
+                font-weight: 500;
+                color: #202124;
+                margin-bottom: 4px;
+                line-height: 1.4;
             }
             
             .place-date {
                 font-size: 12px;
-                color: #666;
+                color: #5f6368;
                 margin-bottom: 2px;
             }
             
             .place-type {
-                font-size: 11px;
-                color: #888;
+                font-size: 12px;
+                color: #1a73e8;
+                font-weight: 400;
             }
             
             .place-fly-button {
-                font-size: 16px;
-                opacity: 0.6;
-                transition: opacity 0.2s ease;
+                font-size: 18px;
+                color: #5f6368;
+                transition: all 0.2s ease;
+                padding: 8px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
             }
             
             .place-item:hover .place-fly-button {
-                opacity: 1;
+                color: #1a73e8;
+                background: rgba(26, 115, 232, 0.1);
+            }
+            
+            .places-list-container.collapsed .place-fly-button {
+                font-size: 16px;
+                width: 36px;
+                height: 36px;
             }
             
             /* Scrollbar styling */
             .places-list::-webkit-scrollbar {
-                width: 6px;
+                width: 8px;
             }
             
             .places-list::-webkit-scrollbar-track {
-                background: rgba(255, 68, 68, 0.1);
-                border-radius: 3px;
+                background: transparent;
             }
             
             .places-list::-webkit-scrollbar-thumb {
-                background: rgba(255, 68, 68, 0.3);
-                border-radius: 3px;
+                background: rgba(95, 99, 104, 0.3);
+                border-radius: 4px;
             }
             
             .places-list::-webkit-scrollbar-thumb:hover {
-                background: rgba(255, 68, 68, 0.5);
+                background: rgba(95, 99, 104, 0.5);
             }
             
             /* Mobile responsiveness */
             @media (max-width: 768px) {
-                .places-list-container {
-                    top: 10px;
-                    left: 10px;
-                    min-width: 250px;
-                    max-width: 280px;
+                .places-list-container:not(.collapsed) {
+                    width: 280px;
                 }
                 
-                .places-list {
-                    max-height: 300px;
+                .places-list-container.collapsed {
+                    width: 56px;
+                }
+                
+                .places-list-header {
+                    padding: 12px 16px;
+                    font-size: 14px;
+                    min-height: 48px;
+                }
+                
+                .places-list-container.collapsed .places-list-header {
+                    padding: 12px 8px;
+                }
+                
+                .places-list-toggle {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 16px;
+                }
+                
+                .place-item {
+                    padding: 12px 16px;
+                }
+                
+                .places-list-container.collapsed .place-item {
+                    padding: 12px 8px;
+                }
+                
+                .place-name {
+                    font-size: 13px;
+                }
+                
+                .place-date {
+                    font-size: 11px;
+                }
+                
+                .place-type {
+                    font-size: 11px;
+                }
+                
+                .place-fly-button {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 16px;
+                }
+                
+                .places-list-container.collapsed .place-fly-button {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 14px;
+                }
+            }
+            
+            /* Extra small mobile devices */
+            @media (max-width: 480px) {
+                .places-list-container:not(.collapsed) {
+                    width: 260px;
+                }
+                
+                .places-list-container.collapsed {
+                    width: 52px;
                 }
                 
                 .places-list-header {
                     padding: 10px 14px;
                     font-size: 13px;
+                    min-height: 44px;
+                }
+                
+                .places-list-container.collapsed .places-list-header {
+                    padding: 10px 6px;
+                }
+                
+                .place-item {
+                    padding: 10px 14px;
+                }
+                
+                .places-list-container.collapsed .place-item {
+                    padding: 10px 6px;
+                }
+                
+                .place-name {
+                    font-size: 12px;
+                }
+                
+                .place-date {
+                    font-size: 10px;
+                }
+                
+                .place-type {
+                    font-size: 10px;
                 }
             }
         `;
@@ -1053,10 +1220,16 @@ export class PlacesManager {
         this.placesListElement = document.createElement('div');
         this.placesListElement.className = 'places-list-container';
         
-        // Create header
+        // Create header with toggle button
         const header = document.createElement('div');
         header.className = 'places-list-header';
-        header.innerHTML = '📍 My Places';
+        header.innerHTML = `
+            <span class="places-list-title">My Places</span>
+            <button class="places-list-toggle" title="Toggle places list">
+                <span class="toggle-icon">▼</span>
+                <span class="hamburger-icon" style="display: none;">☰</span>
+            </button>
+        `;
         
         // Create the list container
         const listContainer = document.createElement('div');
@@ -1076,6 +1249,9 @@ export class PlacesManager {
         // Initially hidden - will be shown when MapTiler view is active
         this.placesListElement.style.display = 'none';
         
+        // Add toggle functionality
+        this.setupToggleFunctionality();
+        
         // Add to the page
         document.body.appendChild(this.placesListElement);
         
@@ -1083,6 +1259,60 @@ export class PlacesManager {
         this.addPlacesListStyles();
         
         console.log('Places list created and added to page');
+    }
+
+    /**
+     * Setup toggle functionality for the places list
+     */
+    setupToggleFunctionality() {
+        const toggleButton = this.placesListElement.querySelector('.places-list-toggle');
+        const listContainer = this.placesListElement.querySelector('.places-list');
+        const toggleIcon = this.placesListElement.querySelector('.toggle-icon');
+        const hamburgerIcon = this.placesListElement.querySelector('.hamburger-icon');
+        
+        // Check if we're on mobile and start collapsed
+        const isMobile = window.innerWidth <= 768;
+        this.isListCollapsed = isMobile; // Start collapsed on mobile
+        
+        if (toggleButton && listContainer && toggleIcon && hamburgerIcon) {
+            // Set initial state
+            if (this.isListCollapsed) {
+                listContainer.style.display = 'none';
+                toggleIcon.style.display = 'none';
+                hamburgerIcon.style.display = 'block';
+                this.placesListElement.classList.add('collapsed');
+            }
+            
+            toggleButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.togglePlacesList();
+            });
+        }
+    }
+
+    /**
+     * Toggle the places list visibility
+     */
+    togglePlacesList() {
+        const listContainer = this.placesListElement.querySelector('.places-list');
+        const toggleIcon = this.placesListElement.querySelector('.toggle-icon');
+        const hamburgerIcon = this.placesListElement.querySelector('.hamburger-icon');
+        
+        if (listContainer && toggleIcon && hamburgerIcon) {
+            this.isListCollapsed = !this.isListCollapsed;
+            
+            if (this.isListCollapsed) {
+                listContainer.style.display = 'none';
+                toggleIcon.style.display = 'none';
+                hamburgerIcon.style.display = 'block';
+                this.placesListElement.classList.add('collapsed');
+            } else {
+                listContainer.style.display = 'block';
+                toggleIcon.style.display = 'block';
+                hamburgerIcon.style.display = 'none';
+                this.placesListElement.classList.remove('collapsed');
+            }
+        }
     }
 
     /**

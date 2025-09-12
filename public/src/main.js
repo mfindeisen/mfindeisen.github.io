@@ -1128,8 +1128,8 @@ class App {
             console.log('🔴 hidePortfolio() - scroll progress too low, not restoring map');
         }
         
-        // Only show reopen portfolio button if we've completed the map journey AND portfolio was auto-shown
-        if (this.hasCompletedMapJourney && this.portfolioHasBeenShown) {
+        // Only show reopen portfolio button if we've completed the map journey AND portfolio was auto-shown AND manually dismissed
+        if (this.hasCompletedMapJourney && this.portfolioHasBeenShown && this.portfolioManuallyDismissed) {
             setTimeout(() => {
                 // Check if maptile map is visible before showing the button
                 const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
@@ -1337,9 +1337,9 @@ class App {
         }
 
         console.log('Starting smooth flyTo animation to Erbil, Iraq');
-        
-        const targetLng = 44.0259;
-        const targetLat = 36.1982;
+        // 36.1892566,44.0100967
+        const targetLng = 44.0100967;
+        const targetLat = 36.1892566;
         const targetZoom = 13;
         
         try {

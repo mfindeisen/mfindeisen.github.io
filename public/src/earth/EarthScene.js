@@ -51,10 +51,7 @@ export class EarthScene {
     updateTransformation(progress) {
         if (!this.geometry.getEarthMesh()) return;
         
-        // Reset mouse rotation when starting to scroll
-        if (progress > 0 && this.mouseController.getTargetWorldRotation() !== 0) {
-            this.mouseController.setTargetWorldRotation(0);
-        }
+        // Mouse rotation disabled - no reset needed
         
         // Convert progress to scrollProgress
         this.scrollProgress = 1 - progress;
@@ -122,8 +119,8 @@ export class EarthScene {
             this.cloudRotationY += this.THREE.MathUtils.degToRad(0.1);
         }
         
-        // Apply base rotation + mouse rotation to all objects
-        const totalRotationY = this.currentRotationY + this.mouseController.getWorldRotation();
+        // Apply base rotation only (mouse rotation disabled)
+        const totalRotationY = this.currentRotationY;
         
         // Update geometry rotation
         this.geometry.updateRotation(totalRotationY, this.cloudRotationY, this.isScrolling || this.hasStartedMorphing);
@@ -159,8 +156,7 @@ export class EarthScene {
         // Reset camera
         this.camera.position.set(0, 0, 15);
         
-        // Reset mouse controller
-        this.mouseController.resetRotation();
+        // Mouse rotation disabled - no reset needed
     }
 
     /**
