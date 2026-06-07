@@ -221,6 +221,10 @@ export class UIManager {
 
     // Beginning state management
     checkBeginningState(progress) {
+        if (this.getState('portfolioIsVisible') || this.getState('showcaseIsVisible')) {
+            return;
+        }
+
         if (progress < 0.005) {
             if (!this.state.isAtBeginning) {
                 this.setState('isAtBeginning', true);
