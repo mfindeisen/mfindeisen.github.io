@@ -970,7 +970,7 @@ class App {
                 this.hideBackgroundElements(fadeProgress);
 
                 if (fadeProgress >= 0.5) {
-                    this.uiManager.getElement('footer').style.marginBottom = '20px';
+                    this.uiManager.getElement('footer').style.marginBottom = window.innerWidth <= 768 ? '45px' : '25px';
                 }
 
                 const animationThreshold = isMobile ? 0.95 : 1.0;
