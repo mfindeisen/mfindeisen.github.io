@@ -480,6 +480,10 @@ class App {
         document.addEventListener('touchmove', (e) => {
             // Let modal overlays handle their own scrolling
             if (this.uiManager && this.uiManager.getState('portfolioIsVisible')) {
+                const portfolioContent = document.querySelector('#portfolio-overlay .portfolio-content');
+                if (portfolioContent && !portfolioContent.contains(e.target)) {
+                    e.preventDefault();
+                }
                 return;
             }
             const showcaseOverlay = document.getElementById('showcase-overlay');
