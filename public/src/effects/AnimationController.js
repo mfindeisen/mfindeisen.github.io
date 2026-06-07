@@ -224,9 +224,11 @@ export class AnimationController {
             if (window.pageYOffset > 50) {
                 uiManager.hideElement('scrollIndicator');
                 uiManager.hideElement('skipButton');
+                uiManager.hideElement('showcaseBtn');
             } else if (window.pageYOffset <= 10 && !uiManager.getState('hasCompletedMapJourney')) {
                 uiManager.showElement('scrollIndicator');
                 uiManager.showElement('skipButton');
+                uiManager.showElement('showcaseBtn');
                 uiManager.hideElement('backToBeginningBtn');
             }
         }

@@ -400,6 +400,7 @@ class App {
         // Store element references as class properties
         this.scrollIndicator = scrollIndicator;
         this.skipButton = skipButton;
+        this.showcaseBtn = this.uiManager.getElement('showcaseBtn');
         this.backToBeginningBtn = backToBeginningBtn;
 
         if (scrollIndicator) {
@@ -930,9 +931,11 @@ class App {
             if (window.pageYOffset > 50) {
                 this.uiManager.hideElement('scrollIndicator');
                 this.uiManager.hideElement('skipButton');
+                this.uiManager.hideElement('showcaseBtn');
             } else if (window.pageYOffset <= 10 && !this.uiManager.getState('hasCompletedMapJourney')) {
                 this.uiManager.showElement('scrollIndicator');
                 this.uiManager.showElement('skipButton');
+                this.uiManager.showElement('showcaseBtn');
                 this.uiManager.hideElement('backToBeginningBtn');
             }
         }
@@ -1005,6 +1008,7 @@ class App {
 
         this.uiManager.hideElement('scrollIndicator');
         this.uiManager.hideElement('skipButton');
+        this.uiManager.hideElement('showcaseBtn');
 
         if (this.uiManager.getState('portfolioHasBeenShown') && this.uiManager.getState('portfolioManuallyDismissed')) {
             this.uiManager.showElement('reopenPortfolioBtn');
@@ -1042,6 +1046,7 @@ class App {
         // Update indicator appearance and hide skip button
         this.scrollIndicator.classList.add('animating');
         this.skipButton.classList.add('hidden');
+        if (this.showcaseBtn) this.showcaseBtn.classList.add('hidden');
 
         // Get the maximum scroll distance
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -1268,11 +1273,15 @@ class App {
                 setTimeout(() => {
                     const scrollIndicator = this.uiManager.getElement('scrollIndicator');
                     const skipButton = this.uiManager.getElement('skipButton');
+                    const showcaseBtn = this.uiManager.getElement('showcaseBtn');
                     if (scrollIndicator) {
                         scrollIndicator.classList.remove('hidden');
                     }
                     if (skipButton) {
                         skipButton.classList.remove('hidden');
+                    }
+                    if (showcaseBtn) {
+                        showcaseBtn.classList.remove('hidden');
                     }
                 }, 300); // Small delay for smooth transition
             }
@@ -1290,11 +1299,15 @@ class App {
         // Hide the skip button and scroll indicator
         const skipButton = this.uiManager.getElement('skipButton');
         const scrollIndicator = this.uiManager.getElement('scrollIndicator');
+        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
         if (skipButton) {
             skipButton.classList.add('hidden');
         }
         if (scrollIndicator) {
             scrollIndicator.classList.add('hidden');
+        }
+        if (showcaseBtn) {
+            showcaseBtn.classList.add('hidden');
         }
 
         // Show portfolio overlay immediately
@@ -1350,11 +1363,15 @@ class App {
         setTimeout(() => {
             const scrollIndicator = this.uiManager.getElement('scrollIndicator');
             const skipButton = this.uiManager.getElement('skipButton');
+            const showcaseBtn = this.uiManager.getElement('showcaseBtn');
             if (scrollIndicator) {
                 scrollIndicator.classList.remove('hidden');
             }
             if (skipButton) {
                 skipButton.classList.remove('hidden');
+            }
+            if (showcaseBtn) {
+                showcaseBtn.classList.remove('hidden');
             }
         }, 1000); // Give time for scroll animation to complete
     }
