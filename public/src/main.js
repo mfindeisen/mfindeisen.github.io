@@ -422,11 +422,15 @@ class App {
         if (portfolioOverlay) {
             const closeBtn = portfolioOverlay.querySelector('.close-portfolio');
             if (closeBtn) {
-                closeBtn.addEventListener('click', this.hidePortfolio.bind(this));
+                closeBtn.addEventListener('click', (e) => {
+                    if (Date.now() - (this.portfolioOpenTime || 0) < 500) return;
+                    this.hidePortfolio();
+                });
             }
 
             portfolioOverlay.addEventListener('click', (e) => {
                 if (e.target === portfolioOverlay) {
+                    if (Date.now() - (this.portfolioOpenTime || 0) < 500) return;
                     this.hidePortfolio();
                 }
             });
@@ -442,11 +446,15 @@ class App {
         if (showcaseOverlay) {
             const closeBtn = showcaseOverlay.querySelector('.close-portfolio');
             if (closeBtn) {
-                closeBtn.addEventListener('click', this.hideShowcase.bind(this));
+                closeBtn.addEventListener('click', (e) => {
+                    if (Date.now() - (this.showcaseOpenTime || 0) < 500) return;
+                    this.hideShowcase();
+                });
             }
 
             showcaseOverlay.addEventListener('click', (e) => {
                 if (e.target === showcaseOverlay) {
+                    if (Date.now() - (this.showcaseOpenTime || 0) < 500) return;
                     this.hideShowcase();
                 }
             });
@@ -1113,6 +1121,7 @@ class App {
 
     showPortfolio() {
         console.log('Showing portfolio overlay');
+        this.portfolioOpenTime = Date.now();
         const portfolioOverlay = this.uiManager.getElement('portfolioOverlay');
         if (portfolioOverlay) {
             portfolioOverlay.classList.add('visible');
@@ -1150,6 +1159,7 @@ class App {
 
     showShowcase() {
         console.log('Showing showcase overlay');
+        this.showcaseOpenTime = Date.now();
         const showcaseOverlay = this.uiManager.getElement('showcaseOverlay');
         if (showcaseOverlay) {
             showcaseOverlay.classList.add('visible');
@@ -1334,6 +1344,12 @@ class App {
         const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
         if (backToBeginningBtn) {
             backToBeginningBtn.classList.add('hidden');
+        }
+
+        // Reset the scroll indicator
+        const scrollIndicator = this.uiManager.getElement('scrollIndicator');
+        if (scrollIndicator) {
+            scrollIndicator.classList.remove('animating');
         }
 
         // Hide places list immediately
