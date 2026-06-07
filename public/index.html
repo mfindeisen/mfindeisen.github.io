@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matthias Findeisen - Full Stack Developer & Creative Technologist</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/favicon.svg">
     <meta name="theme-color" content="#000000">
+
+    <!-- MapLibre GL -->
     <script src="https://unpkg.com/maplibre-gl@4.1.1/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@4.1.1/dist/maplibre-gl.css" rel="stylesheet" />
+
     <style>
         * {
             margin: 0;
@@ -41,23 +45,81 @@
         .content {
             position: relative;
             z-index: 2;
-            height: 600vh; /* Make page more scrollable to reach 100% */
+            height: 600vh;
+            /* Make page more scrollable to reach 100% */
             pointer-events: none;
         }
-        
+
         /* Mobile-specific improvements */
         @media (max-width: 768px) {
             .content {
-                height: 650vh; /* Extra height on mobile to ensure full scroll */
+                height: 650vh;
+                /* Extra height on mobile to ensure full scroll */
                 /* Improve mobile scrolling behavior */
                 -webkit-overflow-scrolling: touch;
                 overscroll-behavior: none;
             }
-            
+
             body {
                 /* Prevent bounce scrolling on iOS */
                 overscroll-behavior: none;
                 -webkit-overflow-scrolling: touch;
+                /* Prevent overscroll that shows black space */
+                overscroll-behavior-y: none;
+                /* Ensure no background shows through */
+                background: #000;
+                min-height: 100vh;
+                height: auto;
+            }
+
+            html {
+                /* Prevent overscroll on the html element */
+                overscroll-behavior: none;
+                overscroll-behavior-y: none;
+                /* Ensure black background */
+                background: #000;
+            }
+
+            /* Prevent any potential black space from showing */
+            * {
+                overscroll-behavior: none;
+            }
+
+            /* Improve touch targets for mobile */
+            button,
+            .contact-link,
+            .close-portfolio {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* Better spacing for mobile UI elements */
+            .info {
+                top: 10px;
+                left: 10px;
+                padding: 8px;
+                font-size: 12px;
+            }
+
+            #skip-button {
+                top: 10px;
+                right: 10px;
+                padding: 12px 20px;
+                font-size: 13px;
+            }
+
+            #reopen-portfolio-btn {
+                top: 10px;
+                right: 10px;
+                padding: 10px 18px;
+                font-size: 13px;
+            }
+
+            #showcase-btn {
+                top: 10px;
+                right: 160px;
+                padding: 10px 18px;
+                font-size: 13px;
             }
         }
 
@@ -80,15 +142,20 @@
             left: 0;
             width: 100%;
             height: 100vh;
-            z-index: 0; /* Behind the 3D canvas initially */
+            z-index: 0;
+            /* Behind the 3D canvas initially */
             opacity: 0;
-            pointer-events: none; /* Allow clicks to pass through when invisible */
-            transition: none; /* Remove CSS transition to allow JS control */
-            visibility: visible; /* Always load the iframe for faster transition */
+            pointer-events: none;
+            /* Allow clicks to pass through when invisible */
+            transition: none;
+            /* Remove CSS transition to allow JS control */
+            visibility: visible;
+            /* Always load the iframe for faster transition */
         }
 
         #google-earth-container.visible {
-            pointer-events: auto; /* Enable interactions when visible */
+            pointer-events: auto;
+            /* Enable interactions when visible */
         }
 
         #maptiler-map {
@@ -168,12 +235,19 @@
         }
 
         @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
                 transform: translateY(0);
             }
+
             40% {
                 transform: translateY(-8px);
             }
+
             60% {
                 transform: translateY(-4px);
             }
@@ -213,7 +287,8 @@
             transition: width 0.1s ease;
         }
 
-        #portfolio-overlay {
+        #portfolio-overlay,
+        #showcase-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -230,7 +305,8 @@
             justify-content: center;
         }
 
-        #portfolio-overlay.visible {
+        #portfolio-overlay.visible,
+        #showcase-overlay.visible {
             opacity: 1;
             pointer-events: auto;
         }
@@ -249,7 +325,8 @@
             position: relative;
         }
 
-        #portfolio-overlay.visible .portfolio-content {
+        #portfolio-overlay.visible .portfolio-content,
+        #showcase-overlay.visible .portfolio-content {
             transform: translateY(0);
         }
 
@@ -428,10 +505,10 @@
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 1;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 
-                        0 4px 16px rgba(0, 0, 0, 0.15),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25),
+                0 4px 16px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
             letter-spacing: 0.6px;
             position: relative;
             overflow: hidden;
@@ -454,10 +531,10 @@
             border-color: rgba(255, 255, 255, 0.35);
             color: white;
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 
-                        0 6px 20px rgba(0, 0, 0, 0.25),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.25),
-                        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
+                0 6px 20px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.15);
             backdrop-filter: blur(24px) saturate(200%);
             -webkit-backdrop-filter: blur(24px) saturate(200%);
         }
@@ -468,10 +545,10 @@
 
         #skip-button:active {
             transform: translateY(-1px) scale(0.98);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 
-                        0 3px 10px rgba(0, 0, 0, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-                        inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3),
+                0 3px 10px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.25);
         }
 
         #skip-button.hidden {
@@ -519,6 +596,113 @@
             transform: translateY(0);
         }
 
+        #showcase-btn {
+            position: fixed;
+            top: 20px;
+            right: 250px;
+            z-index: 12;
+            padding: 14px 28px;
+            background: rgba(155, 89, 182, 0.9);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(155, 89, 182, 0.6);
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        #showcase-btn:hover {
+            background: rgba(155, 89, 182, 1);
+            border-color: rgba(155, 89, 182, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+        }
+
+        #showcase-btn:active {
+            transform: translateY(0);
+        }
+
+        #back-to-beginning-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(46, 125, 50, 0.6);
+            border: 1px solid rgba(46, 125, 50, 0.8);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+            pointer-events: auto;
+        }
+
+        /* Mobile-specific styling for back to beginning button */
+        @media (max-width: 768px) {
+            #back-to-beginning-btn {
+                padding: 12px;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                font-size: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                bottom: 20px;
+            }
+
+            #back-to-beginning-btn::before {
+                content: '↑';
+                font-size: 20px;
+                font-weight: bold;
+                line-height: 1;
+            }
+        }
+
+        #back-to-beginning-btn.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) translateY(10px);
+        }
+
+        #back-to-beginning-btn:hover {
+            background: rgba(46, 125, 50, 1);
+            border-color: rgba(46, 125, 50, 0.8);
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+        }
+
+        #back-to-beginning-btn:active {
+            transform: translateX(-50%);
+        }
+
+        /* Mobile hover and active states */
+        @media (max-width: 768px) {
+            #back-to-beginning-btn:hover {
+                transform: translateX(-50%) translateY(-2px) scale(1.1);
+            }
+
+            #back-to-beginning-btn:active {
+                transform: translateX(-50%) scale(0.95);
+            }
+        }
+
         /* Custom scrollbar for portfolio content */
         .portfolio-content::-webkit-scrollbar {
             width: 8px;
@@ -557,25 +741,25 @@
                 width: 95%;
                 max-height: 85vh;
             }
-            
+
             .portfolio-title {
                 font-size: 2rem;
             }
-            
+
             .profile-photo {
                 width: 100px;
                 height: 100px;
             }
-            
+
             .skills-grid {
                 grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             }
-            
+
             .contact-links {
                 flex-direction: column;
                 gap: 10px;
             }
-            
+
             /* Slightly wider scrollbar on mobile for easier touch interaction */
             .portfolio-content::-webkit-scrollbar {
                 width: 10px;
@@ -602,9 +786,9 @@
             text-align: left;
             pointer-events: auto;
             line-height: 1.5;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
-                        0 4px 16px rgba(0, 0, 0, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         #footer:hover {
@@ -612,9 +796,9 @@
             color: rgba(255, 255, 255, 1);
             border-color: rgba(255, 255, 255, 0.35);
             transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
-                        0 6px 20px rgba(0, 0, 0, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
+                0 6px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(20px) saturate(200%);
             -webkit-backdrop-filter: blur(20px) saturate(200%);
         }
@@ -649,9 +833,13 @@
         }
 
         @keyframes heartbeat {
-            0%, 50%, 100% {
+
+            0%,
+            50%,
+            100% {
                 transform: scale(1);
             }
+
             25% {
                 transform: scale(1.1);
             }
@@ -664,23 +852,60 @@
 
         @media (max-width: 768px) {
             #footer {
-                font-size: 11px;
-                padding: 12px 16px;
-                max-width: 200px;
-                bottom: 15px;
-                right: 15px;
+                font-size: 10px;
+                padding: 8px 12px;
+                max-width: 160px;
+                bottom: 10px;
+                right: 10px;
+                border-radius: 16px;
             }
-            
+
             .footer-line {
+                font-size: 10px;
+            }
+
+            .footer-line.main {
                 font-size: 11px;
             }
-            
+
+            .tech-stack {
+                font-size: 9px;
+            }
+
+            .footer-content {
+                gap: 4px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #footer {
+                font-size: 9px;
+                padding: 6px 10px;
+                max-width: 140px;
+                bottom: 8px;
+                right: 8px;
+                border-radius: 12px;
+            }
+
+            .footer-line {
+                font-size: 9px;
+            }
+
             .footer-line.main {
-                font-size: 12px;
+                font-size: 10px;
+            }
+
+            .tech-stack {
+                font-size: 8px;
+            }
+
+            .footer-content {
+                gap: 3px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="info">
         <!-- <div>Scroll to unwrap the Earth</div> -->
@@ -688,8 +913,12 @@
     </div>
 
     <button id="skip-button">Skip to Portfolio →</button>
-    
+
     <button id="reopen-portfolio-btn">👤 View Portfolio</button>
+
+    <button id="showcase-btn">✨ Showcase</button>
+
+    <button id="back-to-beginning-btn" class="hidden">↑ Back to Beginning</button>
 
     <div id="google-earth-container">
         <div id="maptiler-map"></div>
@@ -706,7 +935,7 @@
         <div class="scroll-arrow">
             <div class="arrow-icon"></div>
         </div>
-        
+
         <div class="progress-indicator">
             <span>Unwrapping Earth...</span>
             <div class="progress-bar">
@@ -717,127 +946,185 @@
 
     <div id="portfolio-overlay">
         <div class="portfolio-content">
-          <button class="close-portfolio">&times;</button>
-          
-           <div class="portfolio-header">
-             <img src="profile-photo.jpg" alt="Matthias Findeisen" class="profile-photo">
-             <div class="header-text">
-               <h1 class="portfolio-title">Matthias Findeisen</h1>
-               <p class="portfolio-subtitle">Full Stack Developer & Creative Technologist</p>
-               <div class="location-badge">
+            <button class="close-portfolio">&times;</button>
+
+            <div class="portfolio-header">
+                <img src="profile-photo.jpg" alt="Matthias Findeisen" class="profile-photo">
+                <div class="header-text">
+                    <h1 class="portfolio-title">Matthias Findeisen</h1>
+                    <p class="portfolio-subtitle">Full Stack Developer & Creative Technologist</p>
+                    <!-- <div class="location-badge">
                  <span>📍</span>
                  <span>Based in Erbil, Iraq</span>
-               </div>
-             </div>
-           </div>
-      
-           <div class="portfolio-section">
-            <h2 class="section-title">About Me</h2>
-            <p>
-              I’m a passionate full-stack developer combining technical craftsmanship and creative vision. I specialize in immersive web experiences, 3D visualisation (Three.js/WebGL), and bridging UI/UX with performant, maintainable backends. 
-              My background as an archaeologist has shaped the way I approach technology: working in complex, intercultural environments taught me precision, resilience, and a fascination for uncovering hidden structures—skills I now channel into building digital systems. 
-              Beyond development, I’m driven by curiosity for geospatial technologies, creative coding, and exploring how storytelling, data, and design can merge into meaningful interactive experiences.
-            </p>
-          </div>
-          
-      
-          <div class="portfolio-section">
-            <h2 class="section-title">Skills</h2>
-            <div class="skills-grid">
-              <div class="skill-tag">JavaScript / TypeScript</div>
-              <div class="skill-tag">Node.js / Express</div>
-              <div class="skill-tag">Three.js / WebGL</div>
-              <div class="skill-tag">React / Vue / Svelte</div>
-              <div class="skill-tag">Python</div>
-              <div class="skill-tag">Java</div>
-              <div class="skill-tag">GIS / Geospatial</div>
-              <div class="skill-tag">Docker / DevOps basics</div>
-              <div class="skill-tag">UX / UI Collaboration</div>
-            </div>
-          </div>
-      
-          <div class="portfolio-section">
-            <h2 class="section-title">Experience</h2>
-            
-            <div class="experience-item">
-              <div class="experience-title">System Engineer</div>
-              <div class="experience-company">ESCRIBA AG • Apr 2021 – Present • Berlin, Germany</div>
-              <div class="experience-description">
-                - Requirements management in agile software development using low-code/no-code technology  
-                - Backend development with Java and frontend with JavaScript  
-                - Process modeling with UML & BPMN 2.0  
-                - API analysis and implementation (REST, JSON, XML)  
-                - Configuration of Tomcat servers and web services
-              </div>
-            </div>
-          
-            <div class="experience-item">
-              <div class="experience-title">Graduate Student Assistant (Surveyor & Developer)</div>
-              <div class="experience-company">University of Tübingen / Freie Universität Berlin / German Archaeological Institute • 2012 – 2019 • Middle East & Europe</div>
-              <div class="experience-description">
-                Worked on multiple international archaeological projects in Iran, Iraq, Jordan, and Saudi Arabia.  
-                - Conducted field surveys, supervised excavations, and coordinated data collection in challenging environments  
-                - Designed and managed research databases, developed custom digital tools (Python, Django, JavaScript) for data processing and visualization  
-                - Combined cultural heritage expertise with technical development to support large-scale research projects
-              </div>
-            </div>
-          
-            <div class="experience-item">
-              <div class="experience-title">Graduate Student Assistant</div>
-              <div class="experience-company">Topoi Excellence Cluster • Dec 2016 – Dec 2018 • Berlin, Germany</div>
-              <div class="experience-description">
-                - Database design and management  
-                - Development of research applications with Python, JavaScript, CSS, Shell, Django  
-                - Supported digital humanities initiatives with custom technical solutions
-              </div>
-            </div>
-          </div>
-          
-      
-          <div class="portfolio-section">
-            <h2 class="section-title">Education & Certifications</h2>
-            <div class="experience-item">
-                <div class="experience-title">Freie Universität Berlin / History and Cultures of Ancient Western Asia: Focus on Archaeology of Ancient Western Asia</div>
-                <div class="experience-company">2017-2021 (incomplete)</div>
-                <div class="experience-description">
-                  [Any relevant thesis or coursework, if applicable]
+               </div> -->
                 </div>
-              </div>
-            <div class="experience-item">
-              <div class="experience-title">Freie Universität Berlin / Studies in Ancient Civilisations (Concentration: Ancient Near Eastern Archaeology)</div>
-              <div class="experience-company">2015</div>
-              <div class="experience-description">
-                [Any relevant thesis or coursework, if applicable]
-              </div>
             </div>
-            <!-- Add certifications if you have, e.g. AWS, GIS, etc. -->
-          </div>
-      
-          <div class="portfolio-section">
-            <h2 class="section-title">Interests & Side Projects</h2>
-            <p>
-              Aside from professional work, I enjoy building experimental 3D visualizations, exploring geospatial data, contributing to open-source, and continually learning new interactive web technologies.
-            </p>
-          </div>
-      
-          <div class="contact-links">
-            <a href="mailto:findeisen.matthias@gmail.com" class="contact-link">
-              <span>📧</span>
-              <span>Email</span>
-            </a>
-            <a href="https://linkedin.com/in/matthias-findeisen" class="contact-link" target="_blank">
-              <span>💼</span>
-              <span>LinkedIn</span>
-            </a>
-            <a href="https://github.com/mfindeisen" class="contact-link" target="_blank">
-              <span>💻</span>
-              <span>GitHub</span>
-            </a>
-          </div>
-        
+
+            <div class="portfolio-section">
+                <h2 class="section-title">About Me</h2>
+                <p>
+                    I’m a passionate full-stack developer combining technical craftsmanship and creative vision. I
+                    specialize in immersive web experiences, 3D visualisation (Three.js/WebGL), and bridging UI/UX with
+                    performant, maintainable backends.
+                    My background as an archaeologist has shaped the way I approach technology: working in complex,
+                    intercultural environments taught me precision, resilience, and a fascination for uncovering hidden
+                    structures—skills I now channel into building digital systems.
+                    Beyond development, I’m driven by curiosity for geospatial technologies, creative coding, and
+                    exploring how storytelling, data, and design can merge into meaningful interactive experiences.
+                </p>
+            </div>
+
+
+            <div class="portfolio-section">
+                <h2 class="section-title">Skills</h2>
+                <div class="skills-grid">
+                    <div class="skill-tag">JavaScript / TypeScript</div>
+                    <div class="skill-tag">Node.js / Express</div>
+                    <div class="skill-tag">Three.js / WebGL</div>
+                    <div class="skill-tag">React / Vue / Svelte</div>
+                    <div class="skill-tag">Python</div>
+                    <div class="skill-tag">Java</div>
+                    <div class="skill-tag">GIS / Geospatial</div>
+                    <div class="skill-tag">Docker / DevOps basics</div>
+                    <div class="skill-tag">UX / UI Collaboration</div>
+                </div>
+            </div>
+
+            <div class="portfolio-section">
+                <h2 class="section-title">Experience</h2>
+
+                <div class="experience-item">
+                    <div class="experience-title">System Engineer</div>
+                    <div class="experience-company">ESCRIBA AG • Apr 2021 – Present • Berlin, Germany</div>
+                    <div class="experience-description">
+                        - Requirements management in agile software development using low-code/no-code technology
+                        - Backend development with Java and frontend with JavaScript
+                        - Process modeling with UML & BPMN 2.0
+                        - API analysis and implementation (REST, JSON, XML)
+                        - Configuration of Tomcat servers and web services
+                    </div>
+                </div>
+
+                <div class="experience-item">
+                    <div class="experience-title">Graduate Student Assistant (Surveyor & Developer)</div>
+                    <div class="experience-company">University of Tübingen / Freie Universität Berlin / German
+                        Archaeological Institute • 2012 – 2019 • West Asia & Europe</div>
+                    <div class="experience-description">
+                        Worked on multiple international archaeological projects in West Asia (Iran, Iraq, Jordan, Saudi
+                        Arabia) and contemporary archaeology excavations in Germany.
+                        - Conducted field surveys, supervised excavations, and coordinated data collection in
+                        challenging environments
+                        - Participated in critical contemporary archaeology excavations in Berlin uncovering the
+                        material realities of the National Socialist era (forced labor camps at Tempelhofer Feld and
+                        investigations near the former Kaiser Wilhelm Institute for Anthropology, Human Heredity, and
+                        Eugenics)
+                        - Designed and managed research databases, developed custom digital tools (Python, Django,
+                        JavaScript) for data processing and visualization
+                        - Combined cultural heritage expertise with technical development to support large-scale
+                        research projects
+                    </div>
+                </div>
+
+                <div class="experience-item">
+                    <div class="experience-title">Graduate Student Assistant</div>
+                    <div class="experience-company">Topoi Excellence Cluster • Dec 2016 – Dec 2018 • Berlin, Germany
+                    </div>
+                    <div class="experience-description">
+                        - Database design and management
+                        - Development of research applications with Python, JavaScript, CSS, Shell, Django
+                        - Supported digital humanities initiatives with custom technical solutions
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="portfolio-section">
+                <h2 class="section-title">Education & Certifications</h2>
+                <div class="experience-item">
+                    <div class="experience-title">Freie Universität Berlin / History and Cultures of Ancient Western
+                        Asia: Focus on Archaeology of Ancient Western Asia</div>
+                    <div class="experience-company">2017-2021 (incomplete)</div>
+                    <div class="experience-description">
+                        Extensive focus on the intersection of archaeology, politics, and sociology.
+                        <ul style="margin-top: 8px; padding-left: 20px;">
+                            <li><strong>Theoretical Approaches:</strong> Theories of Subjectivation, Power Dynamics,
+                                Post-Colonialism, Orientalism, and Feminism.</li>
+                            <li><strong>Socio-Political Archaeology:</strong> Social Inequality in Early Complex
+                                Societies, Imperialism, and the Problems of Ideology.</li>
+                            <li><strong>Contemporary Context:</strong> The Political Dimension of Archaeology Today.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="experience-item">
+                    <div class="experience-title">Freie Universität Berlin / Studies in Ancient Civilisations
+                        (Concentration: Ancient Near Eastern Archaeology)</div>
+                    <div class="experience-company">2015</div>
+                    <div class="experience-description">
+                        Foundational studies in Ancient Western Asian Archaeology, material culture, and field
+                        methods.<br><br>
+                        <strong>Bachelor Thesis ("Open Access und Open Data in der Archäologie"):</strong>
+                        Explored the application of Semantic Web technologies (Linked Open Data, JSON-LD, RDF) to
+                        archaeological research. Developed a conceptual WebGIS for the contemporary archaeology
+                        excavations of National Socialist forced labor camps at the Tempelhofer Feld. This work was
+                        subsequently cited in Reinhard Bernbeck's publication <em>"Materielle Spuren des
+                            nationalsozialistischen Terrors: Zu einer Archäologie der Zeitgeschichte"</em>.
+                    </div>
+                </div>
+                <!-- Add certifications if you have, e.g. AWS, GIS, etc. -->
+            </div>
+
+            <div class="portfolio-section">
+                <h2 class="section-title">Interests & Side Projects</h2>
+                <p>
+                    Aside from professional work, I enjoy building experimental 3D visualizations, exploring geospatial
+                    data, contributing to open-source, and continually learning new interactive web technologies.
+                </p>
+                <p style="margin-top: 10px;">
+                    <strong>Personal Research & Reading:</strong> Deeply interested in Theories of Power
+                    (Machttheorien), as well as the history, culture, and geopolitics of Kurdistan.
+                </p>
+            </div>
+
+            <div class="contact-links">
+                <a href="mailto:findeisen.matthias@gmail.com" class="contact-link">
+                    <span>📧</span>
+                    <span>Email</span>
+                </a>
+                <a href="https://linkedin.com/in/matthias-findeisen" class="contact-link" target="_blank">
+                    <span>💼</span>
+                    <span>LinkedIn</span>
+                </a>
+                <a href="https://github.com/mfindeisen" class="contact-link" target="_blank">
+                    <span>💻</span>
+                    <span>GitHub</span>
+                </a>
+            </div>
+
         </div>
-       </div>
-       
+    </div>
+
+    <div id="showcase-overlay">
+        <div class="portfolio-content">
+            <button class="close-portfolio" id="close-showcase">&times;</button>
+
+            <div class="portfolio-header">
+                <div class="header-text">
+                    <h1 class="portfolio-title">Showcase</h1>
+                    <p class="portfolio-subtitle">Coming Soon</p>
+                </div>
+            </div>
+
+            <div class="portfolio-section" style="text-align: center; padding: 40px 0;">
+                <p style="font-size: 1.2rem; color: #666;">
+                    I'm currently curating my best interactive 3D and geospatial web projects.<br>
+                    Check back soon to explore them!
+                </p>
+                <div style="font-size: 3rem; margin-top: 20px;">🚧 ✨ 🚀</div>
+            </div>
+        </div>
+    </div>
+
     <div id="footer">
         <div class="footer-content">
             <div class="footer-line main">
@@ -847,11 +1134,18 @@
                 Three.js • MapTiler • WebGL
             </div>
             <div class="footer-line">
-                © 2025 Matthias Findeisen
+                © <span id="current-year">2025</span> Matthias Findeisen
+            </div>
+            <script>
+                document.getElementById('current-year').textContent = new Date().getFullYear();
+            </script>
+            <div class="footer-line" style="font-size: 10px; opacity: 0.7; margin-top: 4px;">
+                ✨ Press 'H' for hidden features
             </div>
         </div>
     </div>
 
     <script type="module" src="/src/main.js"></script>
 </body>
+
 </html>

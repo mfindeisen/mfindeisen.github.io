@@ -1,0 +1,223 @@
+{
+  "generated": "2025-09-12T22:14:58.010Z",
+  "totalPhotos": 25,
+  "thumbnailSizes": {
+    "preview": {
+      "width": 150,
+      "height": 150,
+      "quality": 80
+    },
+    "gallery": {
+      "width": 200,
+      "height": 200,
+      "quality": 85
+    },
+    "medium": {
+      "width": 400,
+      "height": 400,
+      "quality": 90
+    }
+  },
+  "files": [
+    {
+      "original": "20241102_132908.jpg",
+      "thumbnails": [
+        "20241102_132908_preview.jpg",
+        "20241102_132908_gallery.jpg",
+        "20241102_132908_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20221015_115356533.jpg",
+      "thumbnails": [
+        "PXL_20221015_115356533_preview.jpg",
+        "PXL_20221015_115356533_gallery.jpg",
+        "PXL_20221015_115356533_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20221015_115629967.jpg",
+      "thumbnails": [
+        "PXL_20221015_115629967_preview.jpg",
+        "PXL_20221015_115629967_gallery.jpg",
+        "PXL_20221015_115629967_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20221015_150921206.jpg",
+      "thumbnails": [
+        "PXL_20221015_150921206_preview.jpg",
+        "PXL_20221015_150921206_gallery.jpg",
+        "PXL_20221015_150921206_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20221016_100441108.jpg",
+      "thumbnails": [
+        "PXL_20221016_100441108_preview.jpg",
+        "PXL_20221016_100441108_gallery.jpg",
+        "PXL_20221016_100441108_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20221016_100536586.jpg",
+      "thumbnails": [
+        "PXL_20221016_100536586_preview.jpg",
+        "PXL_20221016_100536586_gallery.jpg",
+        "PXL_20221016_100536586_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241101_143435275.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241101_143435275.RAW-01.COVER_preview.jpg",
+        "PXL_20241101_143435275.RAW-01.COVER_gallery.jpg",
+        "PXL_20241101_143435275.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_102754081.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_102754081.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_102754081.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_102754081.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_102815695.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_102815695.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_102815695.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_102815695.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_102826919.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_102826919.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_102826919.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_102826919.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_102907796.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_102907796.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_102907796.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_102907796.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_103216524.RAW-01.MP.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_103216524.RAW-01.MP.COVER_preview.jpg",
+        "PXL_20241102_103216524.RAW-01.MP.COVER_gallery.jpg",
+        "PXL_20241102_103216524.RAW-01.MP.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_103244091.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_103244091.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_103244091.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_103244091.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_103245906.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_103245906.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_103245906.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_103245906.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_103301112.PHOTOSPHERE.jpg",
+      "thumbnails": [
+        "PXL_20241102_103301112.PHOTOSPHERE_preview.jpg",
+        "PXL_20241102_103301112.PHOTOSPHERE_gallery.jpg",
+        "PXL_20241102_103301112.PHOTOSPHERE_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_103536911.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_103536911.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_103536911.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_103536911.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_103547754.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_103547754.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_103547754.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_103547754.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_103644688.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_103644688.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_103644688.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_103644688.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_103739902.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_103739902.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_103739902.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_103739902.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_103748514.PHOTOSPHERE.jpg",
+      "thumbnails": [
+        "PXL_20241102_103748514.PHOTOSPHERE_preview.jpg",
+        "PXL_20241102_103748514.PHOTOSPHERE_gallery.jpg",
+        "PXL_20241102_103748514.PHOTOSPHERE_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_104000380.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_104000380.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_104000380.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_104000380.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_104025670.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_104025670.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_104025670.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_104025670.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_104224604.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_104224604.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_104224604.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_104224604.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_130901805.RAW-01.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_130901805.RAW-01.COVER_preview.jpg",
+        "PXL_20241102_130901805.RAW-01.COVER_gallery.jpg",
+        "PXL_20241102_130901805.RAW-01.COVER_medium.jpg"
+      ]
+    },
+    {
+      "original": "PXL_20241102_141808163.RAW-01.MP.COVER.jpg",
+      "thumbnails": [
+        "PXL_20241102_141808163.RAW-01.MP.COVER_preview.jpg",
+        "PXL_20241102_141808163.RAW-01.MP.COVER_gallery.jpg",
+        "PXL_20241102_141808163.RAW-01.MP.COVER_medium.jpg"
+      ]
+    }
+  ]
+}
