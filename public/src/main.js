@@ -952,11 +952,9 @@ class App {
             if (window.pageYOffset > 50) {
                 this.uiManager.hideElement('scrollIndicator');
                 this.uiManager.hideElement('skipButton');
-                this.uiManager.hideElement('showcaseBtn');
             } else if (window.pageYOffset <= 10 && !this.uiManager.getState('hasCompletedMapJourney')) {
                 this.uiManager.showElement('scrollIndicator');
                 this.uiManager.showElement('skipButton');
-                this.uiManager.showElement('showcaseBtn');
                 this.uiManager.hideElement('backToBeginningBtn');
             }
         }
@@ -1029,12 +1027,13 @@ class App {
 
         this.uiManager.hideElement('scrollIndicator');
         this.uiManager.hideElement('skipButton');
-        this.uiManager.hideElement('showcaseBtn');
 
         if (this.uiManager.getState('portfolioHasBeenShown') && this.uiManager.getState('portfolioManuallyDismissed')) {
             this.uiManager.showElement('reopenPortfolioBtn');
+            this.uiManager.showElement('showcaseBtn');
         } else {
             this.uiManager.hideElement('reopenPortfolioBtn');
+            this.uiManager.hideElement('showcaseBtn');
         }
 
         this.uiManager.showElement('backToBeginningBtn');
@@ -1067,7 +1066,6 @@ class App {
         // Update indicator appearance and hide skip button
         this.scrollIndicator.classList.add('animating');
         this.skipButton.classList.add('hidden');
-        if (this.showcaseBtn) this.showcaseBtn.classList.add('hidden');
 
         // Get the maximum scroll distance
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -1140,6 +1138,11 @@ class App {
             backToBeginningBtn.classList.add('hidden');
         }
 
+        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
+        if (showcaseBtn) {
+            showcaseBtn.classList.remove('visible');
+        }
+
         // Hide places list when portfolio is shown
         if (this.placesManager) {
             this.placesManager.setPlacesListVisibility(false);
@@ -1178,6 +1181,11 @@ class App {
             googleEarthContainer.classList.remove('visible');
         }
 
+        const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
+        if (reopenPortfolioBtn) {
+            reopenPortfolioBtn.classList.remove('visible');
+        }
+
         // Prevent background scrolling
         this.uiManager.lockScroll();
     }
@@ -1206,14 +1214,27 @@ class App {
             if (this.placesManager) {
                 this.placesManager.setPlacesListVisibility(true);
             }
+
+            // Restore buttons
+            const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
+            if (reopenPortfolioBtn) {
+                reopenPortfolioBtn.classList.add('visible');
+            }
+            const showcaseBtn = this.uiManager.getElement('showcaseBtn');
+            if (showcaseBtn) {
+                showcaseBtn.classList.add('visible');
+            }
         }
     }
 
     hidePortfolio() {
+        const hasCompleted = this.uiManager.getState('hasCompletedMapJourney');
+        const hasBeenShown = this.uiManager.getState('portfolioHasBeenShown');
+        const manuallyDismissed = this.uiManager.getState('portfolioManuallyDismissed');
+
         console.log('🔴 hidePortfolio() called');
-        console.log('🔴 FlyTo animation completed flag:', this.flyToAnimationCompleted);
-        console.log('🔴 Has zoomed to Erbil:', this.hasZoomedToErbil);
-        console.log('🔴 Has completed map journey:', this.hasCompletedMapJourney);
+        console.log('🔴 Has completed map journey:', hasCompleted);
+        console.log('🔴 Has been shown:', hasBeenShown);
 
         const portfolioOverlay = this.uiManager.getElement('portfolioOverlay');
         if (portfolioOverlay) {
@@ -1260,7 +1281,7 @@ class App {
         }
 
         // Only show reopen portfolio button if we've completed the map journey AND portfolio was auto-shown AND manually dismissed
-        if (this.hasCompletedMapJourney && this.portfolioHasBeenShown && this.portfolioManuallyDismissed) {
+        if (hasCompleted && hasBeenShown && manuallyDismissed) {
             setTimeout(() => {
                 // Check if maptile map is visible before showing the button
                 const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
@@ -1268,12 +1289,16 @@ class App {
                     googleEarthContainer.classList.contains('visible') &&
                     parseFloat(googleEarthContainer.style.opacity) > 0;
 
-                console.log('Portfolio closed - scroll progress:', scrollProgress, 'hasCompleted:', this.hasCompletedMapJourney, 'wasAutoShown:', this.portfolioHasBeenShown, 'isMapTileVisible:', isMapTileVisible);
+                console.log('Portfolio closed - scroll progress:', scrollProgress, 'hasCompleted:', hasCompleted, 'wasAutoShown:', hasBeenShown, 'isMapTileVisible:', isMapTileVisible);
 
                 if (isMapTileVisible) {
                     const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
                     if (reopenPortfolioBtn) {
                         reopenPortfolioBtn.classList.add('visible');
+                    }
+                    const showcaseBtn = this.uiManager.getElement('showcaseBtn');
+                    if (showcaseBtn) {
+                        showcaseBtn.classList.add('visible');
                     }
                     console.log('✅ Showing reopen portfolio button - all conditions met');
                 } else {
@@ -1296,15 +1321,11 @@ class App {
                 setTimeout(() => {
                     const scrollIndicator = this.uiManager.getElement('scrollIndicator');
                     const skipButton = this.uiManager.getElement('skipButton');
-                    const showcaseBtn = this.uiManager.getElement('showcaseBtn');
                     if (scrollIndicator) {
                         scrollIndicator.classList.remove('hidden');
                     }
                     if (skipButton) {
                         skipButton.classList.remove('hidden');
-                    }
-                    if (showcaseBtn) {
-                        showcaseBtn.classList.remove('hidden');
                     }
                 }, 300); // Small delay for smooth transition
             }
@@ -1322,15 +1343,11 @@ class App {
         // Hide the skip button and scroll indicator
         const skipButton = this.uiManager.getElement('skipButton');
         const scrollIndicator = this.uiManager.getElement('scrollIndicator');
-        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
         if (skipButton) {
             skipButton.classList.add('hidden');
         }
         if (scrollIndicator) {
             scrollIndicator.classList.add('hidden');
-        }
-        if (showcaseBtn) {
-            showcaseBtn.classList.add('hidden');
         }
 
         // Show portfolio overlay immediately
@@ -1388,19 +1405,25 @@ class App {
         this.uiManager.setState('isAutoScrolling', false);
         this.uiManager.setState('portfolioIsVisible', false);
 
+        // Hide the showcase button and reopen portfolio button
+        const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
+        if (reopenPortfolioBtn) {
+            reopenPortfolioBtn.classList.remove('visible');
+        }
+        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
+        if (showcaseBtn) {
+            showcaseBtn.classList.remove('visible');
+        }
+
         // Show the initial UI elements after a delay
         setTimeout(() => {
             const scrollIndicator = this.uiManager.getElement('scrollIndicator');
             const skipButton = this.uiManager.getElement('skipButton');
-            const showcaseBtn = this.uiManager.getElement('showcaseBtn');
             if (scrollIndicator) {
                 scrollIndicator.classList.remove('hidden');
             }
             if (skipButton) {
                 skipButton.classList.remove('hidden');
-            }
-            if (showcaseBtn) {
-                showcaseBtn.classList.remove('hidden');
             }
         }, 1000); // Give time for scroll animation to complete
     }
