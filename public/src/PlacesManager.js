@@ -2107,8 +2107,9 @@ export class PlacesManager {
                     border-radius: 20px 20px 0 0 !important;
                     position: relative !important;
                     cursor: grab !important;
-                    background: #f8f9fa !important;
-                    border-bottom: 1px solid #e0e0e0 !important;
+                    background: rgba(0, 0, 0, 0.4) !important;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
+                    color: rgba(255, 255, 255, 0.9) !important;
                 }
                 
                 .places-list-header:active {
@@ -2123,14 +2124,14 @@ export class PlacesManager {
                     transform: translateX(-50%) !important;
                     width: 40px !important;
                     height: 4px !important;
-                    background: #ccc !important;
+                    background: rgba(255, 255, 255, 0.5) !important;
                     border-radius: 2px !important;
                 }
                 
                 /* Make mobile title more prominent */
                 .places-list-container .places-list-title {
                     font-weight: 600 !important;
-                    color: #1a73e8 !important;
+                    color: rgba(255, 255, 255, 0.9) !important;
                 }
             }
             
