@@ -11,6 +11,8 @@ export class UIManager {
             portfolioOverlay: document.getElementById('portfolio-overlay'),
             skipButton: document.getElementById('skip-button'),
             reopenPortfolioBtn: document.getElementById('reopen-portfolio-btn'),
+            showcaseBtn: document.getElementById('showcase-btn'),
+            showcaseOverlay: document.getElementById('showcase-overlay'),
             backToBeginningBtn: document.getElementById('back-to-beginning-btn'),
             footer: document.getElementById('footer')
         };

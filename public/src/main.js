@@ -430,6 +430,26 @@ class App {
                 }
             });
         }
+        
+        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
+        const showcaseOverlay = this.uiManager.getElement('showcaseOverlay');
+        
+        if (showcaseBtn) {
+            showcaseBtn.addEventListener('click', this.showShowcase.bind(this));
+        }
+        
+        if (showcaseOverlay) {
+            const closeBtn = showcaseOverlay.querySelector('.close-portfolio');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', this.hideShowcase.bind(this));
+            }
+            
+            showcaseOverlay.addEventListener('click', (e) => {
+                if (e.target === showcaseOverlay) {
+                    this.hideShowcase();
+                }
+            });
+        }
     }
 
     setupMobileTouchHandling() {
@@ -791,6 +811,11 @@ class App {
     }
 
     showShortcutsHelp() {
+        if (this.closeHelp) {
+            this.closeHelp();
+            return;
+        }
+
         const helpText = `
             🎮 Easter Egg Controls:
             A - Astronaut speed boost 🚀
@@ -819,11 +844,41 @@ class App {
         helpDiv.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5)';
         helpDiv.textContent = helpText;
         
-        // Close on click
-        helpDiv.addEventListener('click', () => helpDiv.remove());
+        this.closeHelp = () => {
+            if (helpDiv.parentNode) {
+                helpDiv.remove();
+            }
+            document.removeEventListener('click', clickHandler);
+            document.removeEventListener('keydown', keyHandler);
+            this.closeHelp = null;
+        };
+
+        const clickHandler = () => {
+            this.closeHelp();
+        };
+
+        const keyHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeHelp();
+            }
+        };
+
+        // Delay attaching listeners to prevent immediate triggering
+        setTimeout(() => {
+            if (this.closeHelp) {
+                document.addEventListener('click', clickHandler);
+                document.addEventListener('keydown', keyHandler);
+            }
+        }, 10);
         
         document.body.appendChild(helpDiv);
-        setTimeout(() => helpDiv.remove(), 8000);
+        
+        // Auto-close after 8 seconds
+        setTimeout(() => {
+            if (this.closeHelp) {
+                this.closeHelp();
+            }
+        }, 8000);
     }
 
     showTooltip(message, duration = 2000) {
@@ -1063,9 +1118,6 @@ class App {
             this.placesManager.setPlacesListVisibility(false);
         }
         
-        // Keep footer visible when portfolio is open
-        // (removed footer hiding)
-        
         // Ensure maptile map is hidden when portfolio is shown
         const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
         if (googleEarthContainer) {
@@ -1076,6 +1128,57 @@ class App {
         
         // Prevent background scrolling
         this.uiManager.lockScroll();
+    }
+    
+    showShowcase() {
+        console.log('Showing showcase overlay');
+        const showcaseOverlay = this.uiManager.getElement('showcaseOverlay');
+        if (showcaseOverlay) {
+            showcaseOverlay.classList.add('visible');
+        }
+        
+        // Hide places list when showcase is shown
+        if (this.placesManager) {
+            this.placesManager.setPlacesListVisibility(false);
+        }
+        
+        // Ensure maptile map is hidden when showcase is shown
+        const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
+        if (googleEarthContainer) {
+            googleEarthContainer.style.opacity = '0';
+            googleEarthContainer.style.zIndex = '0';
+            googleEarthContainer.classList.remove('visible');
+        }
+        
+        // Prevent background scrolling
+        this.uiManager.lockScroll();
+    }
+    
+    hideShowcase() {
+        console.log('Hiding showcase overlay');
+        const showcaseOverlay = this.uiManager.getElement('showcaseOverlay');
+        if (showcaseOverlay) {
+            showcaseOverlay.classList.remove('visible');
+        }
+        
+        // Restore background scrolling
+        this.uiManager.unlockScroll();
+        
+        // Restore maptile map visibility if we're at the right scroll position
+        const scrollProgress = this.scrollController.getScrollProgress();
+        if (scrollProgress > 0.5) {
+            const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
+            if (googleEarthContainer) {
+                googleEarthContainer.style.opacity = '1';
+                googleEarthContainer.style.zIndex = '2';
+                googleEarthContainer.classList.add('visible');
+            }
+            
+            // Show places list when showcase is hidden and map is visible
+            if (this.placesManager) {
+                this.placesManager.setPlacesListVisibility(true);
+            }
+        }
     }
     
     hidePortfolio() {

@@ -169,7 +169,6 @@ export class AnimationController {
         // Ensure completely flat in final phase
         if (progress > 0.85) {
             targetTilt = 0;
-            earthScene.spherePlane.rotation.y = 0;
         }
         
         earthScene.spherePlane.rotation.z = targetTilt;

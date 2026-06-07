@@ -40,6 +40,7 @@ export class EarthScene {
         this.targetRotationY = 0;
         this.rotationSpeed = 0.05;
         this.cloudRotationY = 0;
+        this.sunAngle = 0.2;
         
         this.isInitialized = true;
         console.log('EarthScene initialized');
@@ -51,7 +52,36 @@ export class EarthScene {
     updateTransformation(progress) {
         if (!this.geometry.getEarthMesh()) return;
         
-        // Mouse rotation disabled - no reset needed
+        // Handle rotation normalization when morphing begins
+        if (progress > 0 && !this._morphRotationInitialized) {
+            this._morphStartRotationY = this.currentRotationY;
+            this._morphTargetRotationY = Math.round(this.currentRotationY / (Math.PI * 2)) * (Math.PI * 2);
+            
+            this._morphStartCloudRotationY = this.cloudRotationY;
+            this._morphTargetCloudRotationY = Math.round(this.cloudRotationY / (Math.PI * 2)) * (Math.PI * 2);
+            
+            this._morphStartSunAngle = this.sunAngle;
+            this._morphTargetSunAngle = Math.round((this.sunAngle - 0.2) / (Math.PI * 2)) * (Math.PI * 2) + 0.2;
+            
+            this._morphRotationInitialized = true;
+        } else if (progress === 0) {
+            this._morphRotationInitialized = false;
+        }
+
+        if (this._morphRotationInitialized) {
+            // Animate to nearest 2*PI multiple early in the scroll (by 40% progress)
+            let rotProgress = Math.min(progress * 2.5, 1.0);
+            rotProgress = MathUtils.easeInOutCubic(rotProgress);
+            
+            this.currentRotationY = this._morphStartRotationY + (this._morphTargetRotationY - this._morphStartRotationY) * rotProgress;
+            this.cloudRotationY = this._morphStartCloudRotationY + (this._morphTargetCloudRotationY - this._morphStartCloudRotationY) * rotProgress;
+            this.sunAngle = this._morphStartSunAngle + (this._morphTargetSunAngle - this._morphStartSunAngle) * rotProgress;
+            
+            if (this.lighting && this.lighting.lights.sun) {
+                this.lighting.lights.sun.position.x = Math.cos(this.sunAngle) * 50;
+                this.lighting.lights.sun.position.z = Math.sin(this.sunAngle) * 50;
+            }
+        }
         
         // Convert progress to scrollProgress
         this.scrollProgress = 1 - progress;
@@ -117,6 +147,13 @@ export class EarthScene {
             
             // Update cloud rotation independently
             this.cloudRotationY += this.THREE.MathUtils.degToRad(0.1);
+            
+            // Orbit the sun for day/night cycle
+            this.sunAngle += this.THREE.MathUtils.degToRad(0.06);
+            if (this.lighting && this.lighting.lights.sun) {
+                this.lighting.lights.sun.position.x = Math.cos(this.sunAngle) * 50;
+                this.lighting.lights.sun.position.z = Math.sin(this.sunAngle) * 50;
+            }
         }
         
         // Apply base rotation only (mouse rotation disabled)
@@ -148,6 +185,7 @@ export class EarthScene {
         this.currentRotationY = 0;
         this.targetRotationY = 0;
         this.cloudRotationY = 0;
+        this.sunAngle = 0.2;
         this.isScrolling = false;
         
         // Reset lighting
