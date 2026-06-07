@@ -1821,8 +1821,12 @@ export class PlacesManager {
                 height: 100vh;
                 z-index: 1000;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: white;
-                box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+                background: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(16px) saturate(180%);
+                -webkit-backdrop-filter: blur(16px) saturate(180%);
+                color: rgba(255, 255, 255, 0.9);
+                border-right: 1px solid rgba(255, 255, 255, 0.25);
+                box-shadow: 2px 0 16px rgba(0, 0, 0, 0.3);
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 display: flex;
                 flex-direction: column;
@@ -1881,12 +1885,12 @@ export class PlacesManager {
             }
             
             .places-list-header {
-                background: #f8f9fa;
-                color: #333;
+                background: rgba(0, 0, 0, 0.4);
+                color: rgba(255, 255, 255, 0.9);
                 padding: 16px 20px;
                 font-size: 16px;
                 font-weight: 500;
-                border-bottom: 1px solid #e0e0e0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.25);
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -1928,7 +1932,7 @@ export class PlacesManager {
             .places-list-title {
                 flex: 1;
                 font-weight: 500;
-                color: #1a73e8;
+                color: rgba(255, 255, 255, 0.9);
             }
             
             .places-list-container.collapsed .places-list-title {
@@ -1938,7 +1942,7 @@ export class PlacesManager {
             .places-list-toggle {
                 background: none;
                 border: none;
-                color: #5f6368;
+                color: rgba(255, 255, 255, 0.7);
                 font-size: 18px;
                 cursor: pointer;
                 padding: 8px;
@@ -1952,8 +1956,8 @@ export class PlacesManager {
             }
             
             .places-list-toggle:hover {
-                background: rgba(95, 99, 104, 0.1);
-                color: #1a73e8;
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
             }
             
             .toggle-icon {
@@ -1969,14 +1973,14 @@ export class PlacesManager {
             .places-list {
                 flex: 1;
                 overflow-y: auto;
-                background: white;
+                background: transparent;
             }
             
             .place-item {
                 display: flex;
                 align-items: center;
                 padding: 16px 20px;
-                border-bottom: 1px solid #f0f0f0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 cursor: pointer;
                 transition: all 0.2s ease;
                 position: relative;
@@ -1987,11 +1991,11 @@ export class PlacesManager {
             }
             
             .place-item:hover {
-                background: #f8f9fa;
+                background: rgba(255, 255, 255, 0.1);
             }
             
             .place-item:active {
-                background: #e8f0fe;
+                background: rgba(255, 255, 255, 0.2);
             }
             
             .places-list-container.collapsed .place-item {
@@ -2010,26 +2014,26 @@ export class PlacesManager {
             .place-name {
                 font-size: 14px;
                 font-weight: 500;
-                color: #202124;
+                color: rgba(255, 255, 255, 0.95);
                 margin-bottom: 4px;
                 line-height: 1.4;
             }
             
             .place-date {
                 font-size: 12px;
-                color: #5f6368;
+                color: rgba(255, 255, 255, 0.7);
                 margin-bottom: 2px;
             }
             
             .place-type {
                 font-size: 12px;
-                color: #1a73e8;
+                color: #64b5f6;
                 font-weight: 400;
             }
             
             .place-fly-button {
                 font-size: 18px;
-                color: #5f6368;
+                color: rgba(255, 255, 255, 0.7);
                 transition: all 0.2s ease;
                 padding: 8px;
                 border-radius: 50%;
@@ -2041,8 +2045,8 @@ export class PlacesManager {
             }
             
             .place-item:hover .place-fly-button {
-                color: #1a73e8;
-                background: rgba(26, 115, 232, 0.1);
+                color: #fff;
+                background: rgba(255, 255, 255, 0.2);
             }
             
             .places-list-container.collapsed .place-fly-button {
