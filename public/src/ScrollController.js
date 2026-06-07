@@ -42,6 +42,14 @@ export class ScrollController {
                 const nearBottomProgress = 1.0 - (remainingScroll / 30) * 0.12;
                 progress = Math.max(progress, nearBottomProgress);
             }
+        } else {
+            // For desktop, ensure we reach exactly 1.0 at the very bottom
+            // Floating point or minor subpixel scroll issues can prevent it
+            const remainingScroll = this.maxScroll - currentScroll;
+            if (remainingScroll <= 20 && progress > 0.95) {
+                const nearBottomProgress = 1.0 - (remainingScroll / 20) * 0.05;
+                progress = Math.max(progress, nearBottomProgress);
+            }
         }
         
         return progress;

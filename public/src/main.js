@@ -995,7 +995,7 @@ class App {
                     this.uiManager.getElement('footer').style.marginBottom = window.innerWidth <= 768 ? '45px' : '25px';
                 }
 
-                const animationThreshold = isMobile ? 0.95 : 1.0;
+                const animationThreshold = isMobile ? 0.95 : 0.99;
                 if (fadeProgress >= animationThreshold && !this.uiManager.getState('hasZoomedToErbil')) {
                     this.zoomToErbil();
                     this.uiManager.setState('hasZoomedToErbil', true);
@@ -1321,11 +1321,16 @@ class App {
                 setTimeout(() => {
                     const scrollIndicator = this.uiManager.getElement('scrollIndicator');
                     const skipButton = this.uiManager.getElement('skipButton');
+                    const showcaseBtn = this.uiManager.getElement('showcaseBtn');
                     if (scrollIndicator) {
                         scrollIndicator.classList.remove('hidden');
                     }
                     if (skipButton) {
                         skipButton.classList.remove('hidden');
+                    }
+                    if (showcaseBtn) {
+                        showcaseBtn.classList.remove('hidden');
+                        showcaseBtn.classList.remove('visible');
                     }
                 }, 300); // Small delay for smooth transition
             }
@@ -1343,15 +1348,20 @@ class App {
         // Hide the skip button and scroll indicator
         const skipButton = this.uiManager.getElement('skipButton');
         const scrollIndicator = this.uiManager.getElement('scrollIndicator');
+        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
         if (skipButton) {
             skipButton.classList.add('hidden');
         }
         if (scrollIndicator) {
             scrollIndicator.classList.add('hidden');
         }
+        if (showcaseBtn) {
+            showcaseBtn.classList.add('hidden');
+        }
 
         // Show portfolio overlay immediately
         this.showPortfolio();
+        this.uiManager.setState('portfolioHasBeenShown', true);
     }
 
     backToBeginning() {
@@ -1535,6 +1545,17 @@ class App {
                     this.uiManager.showPortfolio();
                     this.uiManager.setState('portfolioHasBeenShown', true);
                 }, 2000);
+            } else {
+                setTimeout(() => {
+                    const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
+                    if (reopenPortfolioBtn) {
+                        reopenPortfolioBtn.classList.add('visible');
+                    }
+                    const showcaseBtn = this.uiManager.getElement('showcaseBtn');
+                    if (showcaseBtn) {
+                        showcaseBtn.classList.add('visible');
+                    }
+                }, 500);
             }
         } catch (error) {
             console.error('Error during flyTo animation:', error);
