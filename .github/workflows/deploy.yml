@@ -39,10 +39,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # The --base flag ensures that asset paths are correct when hosted in a subfolder (like /portfolio_earth/)
-      # If you use a custom domain, you can remove the --base flag.
+      # Since you are deploying to https://mfindeisen.github.io directly, no --base flag is needed.
       - name: Build
-        run: pnpm exec vite build --base=/${{ github.event.repository.name }}/
+        run: pnpm exec vite build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
