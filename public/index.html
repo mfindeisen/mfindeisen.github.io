@@ -293,7 +293,8 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100vh;
+            height: 100%; /* Fallback */
+            height: 100dvh;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(20px);
             z-index: 15;
@@ -325,6 +326,12 @@
             position: relative;
             overscroll-behavior-y: contain;
             -webkit-overflow-scrolling: touch;
+        }
+
+        .portfolio-content::after {
+            content: '';
+            display: block;
+            height: 40px; /* Extra space at bottom to prevent cutoff */
         }
 
         #portfolio-overlay.visible .portfolio-content,
@@ -750,7 +757,7 @@
             .portfolio-content {
                 padding: 30px 20px;
                 width: 95%;
-                max-height: 85vh;
+                max-height: 85dvh;
             }
 
             .portfolio-title {
