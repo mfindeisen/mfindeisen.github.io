@@ -470,6 +470,19 @@ class App {
         }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
+            // Let modal overlays handle their own scrolling
+            if (this.uiManager && this.uiManager.getState('portfolioIsVisible')) {
+                return;
+            }
+            const showcaseOverlay = document.getElementById('showcase-overlay');
+            if (showcaseOverlay && showcaseOverlay.classList.contains('visible')) {
+                return;
+            }
+            const photoModal = document.querySelector('.photo-modal-overlay, .photo-gallery-modal-overlay');
+            if (photoModal) {
+                return;
+            }
+
             if (!isScrolling) {
                 isScrolling = true;
             }
