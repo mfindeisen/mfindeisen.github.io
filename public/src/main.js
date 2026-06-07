@@ -481,8 +481,20 @@ class App {
             // Let modal overlays handle their own scrolling
             if (this.uiManager && this.uiManager.getState('portfolioIsVisible')) {
                 const portfolioContent = document.querySelector('#portfolio-overlay .portfolio-content');
-                if (portfolioContent && !portfolioContent.contains(e.target)) {
-                    e.preventDefault();
+                if (portfolioContent) {
+                    if (!portfolioContent.contains(e.target)) {
+                        e.preventDefault();
+                    } else {
+                        const currentY = e.touches[0].clientY;
+                        const deltaY = currentY - touchStartY; // positive = dragging down (scrolling up)
+                        const isAtTop = portfolioContent.scrollTop <= 0;
+                        const isAtBottom = portfolioContent.scrollTop + portfolioContent.clientHeight >= portfolioContent.scrollHeight - 1;
+                        
+                        // Prevent scroll chaining if at boundary
+                        if ((isAtTop && deltaY > 0) || (isAtBottom && deltaY < 0)) {
+                            if (e.cancelable) e.preventDefault();
+                        }
+                    }
                 }
                 return;
             }
