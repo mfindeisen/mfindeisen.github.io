@@ -323,6 +323,8 @@
             transition: transform 0.8s ease;
             overflow-y: auto;
             position: relative;
+            overscroll-behavior-y: contain;
+            -webkit-overflow-scrolling: touch;
         }
 
         #portfolio-overlay.visible .portfolio-content,
@@ -717,7 +719,9 @@
         .portfolio-content::-webkit-scrollbar-track {
             background: rgba(0, 0, 0, 0.1);
             border-radius: 4px;
-            margin: 20px 0;
+            margin: 25px 0;
+            background-clip: padding-box;
+            border: 4px solid transparent;
         }
 
         .portfolio-content::-webkit-scrollbar-thumb {
