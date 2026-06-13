@@ -171,7 +171,7 @@ export class App {
         // Store element references as class properties
         this.scrollIndicator = scrollIndicator;
         this.skipButton = skipButton;
-        this.showcaseBtn = this.uiManager.getElement('showcaseBtn');
+        this.skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
         this.backToBeginningBtn = backToBeginningBtn;
 
         if (scrollIndicator) {
@@ -194,14 +194,17 @@ export class App {
 
         // Overlay close events are now handled centrally by UIManager.setupOverlayListeners
 
-        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
-        if (showcaseBtn) {
-            showcaseBtn.addEventListener('click', () => {
-                if (this.uiManager.getState('journeyState') !== 'arrived') {
-                    this.skipToOverlay('showcase');
-                } else {
-                    this.uiManager.setActiveOverlay('showcase');
-                }
+        const skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
+        if (skipShowcaseBtn) {
+            skipShowcaseBtn.addEventListener('click', () => {
+                this.skipToOverlay('showcase');
+            });
+        }
+
+        const reopenShowcaseBtn = this.uiManager.getElement('reopenShowcaseBtn');
+        if (reopenShowcaseBtn) {
+            reopenShowcaseBtn.addEventListener('click', () => {
+                this.uiManager.setActiveOverlay('showcase');
             });
         }
     }
@@ -311,11 +314,8 @@ export class App {
                 }, 2000);
             } else {
                 setTimeout(() => {
-                    const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
-                    if (reopenPortfolioBtn) {
-                        reopenPortfolioBtn.classList.add('visible');
-                    }
-                    // showcaseBtn is handled by updateUIOnScroll now
+                    this.uiManager.showElement('reopenPortfolioBtn');
+                    this.uiManager.showElement('reopenShowcaseBtn');
                 }, 500);
             }
         } catch (error) {
@@ -347,11 +347,13 @@ export class App {
             if (window.pageYOffset > 50 && this.uiManager.getState('journeyState') !== 'arrived') {
                 this.uiManager.hideElement('scrollIndicator');
                 this.uiManager.hideElement('skipButton');
-                this.uiManager.hideElement('showcaseBtn');
+                this.uiManager.hideElement('skipShowcaseBtn');
+                this.uiManager.hideElement('footer');
             } else if (window.pageYOffset <= 10 && this.uiManager.getState('journeyState') !== 'arrived') {
                 this.uiManager.showElement('scrollIndicator');
                 this.uiManager.showElement('skipButton');
-                this.uiManager.showElement('showcaseBtn');
+                this.uiManager.showElement('skipShowcaseBtn');
+                this.uiManager.showElement('footer');
                 this.uiManager.hideElement('backToBeginningBtn');
             }
         }
@@ -425,13 +427,12 @@ export class App {
 
         this.uiManager.hideElement('scrollIndicator');
         this.uiManager.hideElement('skipButton');
+        this.uiManager.hideElement('footer');
 
-        if (this.uiManager.getState('portfolioHasBeenShown') && this.uiManager.getState('portfolioManuallyDismissed')) {
-            this.uiManager.showElement('reopenPortfolioBtn');
-            this.uiManager.showElement('showcaseBtn');
-        } else {
+        // Do not show any top-level overlay buttons during the unwrap animation
+        if (this.uiManager.getState('journeyState') !== 'arrived') {
             this.uiManager.hideElement('reopenPortfolioBtn');
-            this.uiManager.hideElement('showcaseBtn');
+            this.uiManager.hideElement('reopenShowcaseBtn');
         }
 
         this.uiManager.showElement('backToBeginningBtn');
@@ -475,10 +476,11 @@ export class App {
         // Reset the maptile map to its original state since user is skipping the journey
         this.resetMapTileMap();
 
-        // Hide the skip button, showcase button, and scroll indicator natively via UIManager
+        // Hide the skip button, showcase button, scroll indicator, and footer natively via UIManager
         this.uiManager.hideElement('skipButton');
         this.uiManager.hideElement('scrollIndicator');
-        this.uiManager.hideElement('showcaseBtn');
+        this.uiManager.hideElement('skipShowcaseBtn');
+        this.uiManager.hideElement('footer');
 
         // Special state tracking for portfolio
         if (overlayName === 'portfolio') {
@@ -561,21 +563,27 @@ export class App {
         if (reopenPortfolioBtn) {
             reopenPortfolioBtn.classList.remove('visible');
         }
-        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
-        if (showcaseBtn) {
-            showcaseBtn.classList.remove('visible');
+        const skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
+        if (skipShowcaseBtn) {
+            skipShowcaseBtn.classList.remove('visible');
+        }
+
+        const reopenShowcaseBtn = this.uiManager.getElement('reopenShowcaseBtn');
+        if (reopenShowcaseBtn) {
+            reopenShowcaseBtn.classList.remove('visible');
         }
 
         // Show the initial UI elements after a delay
         setTimeout(() => {
             const scrollIndicator = this.uiManager.getElement('scrollIndicator');
             const skipButton = this.uiManager.getElement('skipButton');
-            if (scrollIndicator) {
-                scrollIndicator.classList.remove('hidden');
-            }
-            if (skipButton) {
-                skipButton.classList.remove('hidden');
-            }
+            const skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
+            const footer = this.uiManager.getElement('footer');
+            
+            if (scrollIndicator) scrollIndicator.classList.remove('hidden');
+            if (skipButton) skipButton.classList.remove('hidden');
+            if (skipShowcaseBtn) skipShowcaseBtn.classList.remove('hidden');
+            if (footer) footer.classList.remove('hidden');
         }, 1000); // Give time for scroll animation to complete
     }
 }

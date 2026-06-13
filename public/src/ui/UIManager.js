@@ -10,8 +10,9 @@ export class UIManager {
             scrollIndicator: document.getElementById('scroll-indicator'),
             portfolioOverlay: document.getElementById('portfolio-overlay'),
             skipButton: document.getElementById('skip-button'),
+            skipShowcaseBtn: document.getElementById('skip-showcase-btn'),
             reopenPortfolioBtn: document.getElementById('reopen-portfolio-btn'),
-            showcaseBtn: document.getElementById('showcase-btn'),
+            reopenShowcaseBtn: document.getElementById('reopen-showcase-btn'),
             showcaseOverlay: document.getElementById('showcase-overlay'),
             backToBeginningBtn: document.getElementById('back-to-beginning-btn'),
             footer: document.getElementById('footer')
@@ -183,6 +184,8 @@ export class UIManager {
         
         this.showElement('scrollIndicator', 'animating');
         this.hideElement('skipButton');
+        this.hideElement('skipShowcaseBtn');
+        this.hideElement('footer');
         
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
         const duration = 12000;
@@ -256,7 +259,7 @@ export class UIManager {
                 // Show Reopen Portfolio & Showcase buttons if manually dismissed
                 if (this.getState('portfolioHasBeenShown') && this.getState('portfolioManuallyDismissed')) {
                     this.showElement('reopenPortfolioBtn');
-                    this.showElement('showcaseBtn');
+                    this.showElement('reopenShowcaseBtn');
                 }
                 // We are at the map (arrived), so unconditionally restore MapTiler map
                 const googleEarthContainer = this.getElement('googleEarthContainer');
@@ -275,7 +278,8 @@ export class UIManager {
                 if (window.pageYOffset <= 10) {
                     this.showElement('scrollIndicator');
                     this.showElement('skipButton');
-                    this.showElement('showcaseBtn');
+                    this.showElement('skipShowcaseBtn');
+                    this.showElement('footer');
                 }
             }
         } else {
@@ -283,7 +287,8 @@ export class UIManager {
             this.lockScroll();
             this.hideElement('reopenPortfolioBtn');
             this.hideElement('backToBeginningBtn');
-            this.hideElement('showcaseBtn');
+            this.hideElement('skipShowcaseBtn');
+            this.hideElement('reopenShowcaseBtn');
             
             if (this.placesManager) {
                 this.placesManager.setPlacesListVisibility(false);
