@@ -6,7 +6,7 @@ export class MapManager {
         this.mapTilerMap = null;
         this.isInitialized = false;
         this.originalCenter = [0, 0];
-        this.originalZoom = 4.11;
+        this.originalZoom = 4.21;
     }
 
     /**
@@ -23,7 +23,7 @@ export class MapManager {
                 // Calculate the center point of the 3D Earth model
                 const earthCenter = this.calculateEarthCenter();
                 this.originalCenter = earthCenter;
-                
+
                 // Initialize MapTiler map
                 this.mapTilerMap = new maplibregl.Map({
                     container: containerId,
@@ -57,19 +57,19 @@ export class MapManager {
     calculateEarthCenter() {
         // The 3D Earth model uses equirectangular projection
         // When morphed to flat plane, it covers a specific geographic area
-        
+
         // Based on the morphing geometry, the plane covers:
         // Width: Math.PI * 5 (approximately 15.71 units)
         // Height: Math.PI * 2.5 (approximately 7.85 units)
-        
+
         // For equirectangular projection:
         // - Width covers 360° of longitude
         // - Height covers 180° of latitude (from -90° to +90°)
-        
+
         // The center of the plane corresponds to:
         // Longitude: 0° (Greenwich meridian)
         // Latitude: 0° (Equator)
-        
+
         // Default center (can be adjusted for better alignment)
         return [0, 0]; // [longitude, latitude]
     }
@@ -82,7 +82,7 @@ export class MapManager {
             console.warn('MapTiler map not initialized');
             return;
         }
-        
+
         this.mapTilerMap.setCenter([lng, lat]);
         console.log(`Map center updated to: [${lng}, ${lat}]`);
     }
@@ -105,7 +105,7 @@ export class MapManager {
             console.warn('MapTiler map not initialized');
             return;
         }
-        
+
         this.mapTilerMap.setZoom(zoom);
     }
 
@@ -127,7 +127,7 @@ export class MapManager {
             console.warn('MapTiler map not initialized');
             return;
         }
-        
+
         if (enabled) {
             this.mapTilerMap.dragPan.enable();
             this.mapTilerMap.scrollZoom.enable();
@@ -175,21 +175,21 @@ export class MapManager {
             console.warn('MapTiler map not initialized');
             return;
         }
-        
+
         console.log('Resetting map to original state');
-        
+
         // Reset map to original position and zoom
         this.mapTilerMap.setCenter(this.originalCenter);
         this.mapTilerMap.setZoom(this.originalZoom);
-        
+
         // Disable map interactions to match original state
         this.setInteractions(false);
-        
+
         // Reset any ongoing animations
         if (this.mapTilerMap.isMoving()) {
             this.mapTilerMap.stop();
         }
-        
+
         console.log('Map reset to center:', this.originalCenter, 'zoom:', this.originalZoom);
     }
 
@@ -221,7 +221,7 @@ export class MapManager {
             containerElement.style.pointerEvents = 'auto';
             console.log('Map container pointer events set to auto');
         }
-        
+
         const mapCanvas = this.getCanvas();
         if (mapCanvas) {
             mapCanvas.style.pointerEvents = 'auto';
