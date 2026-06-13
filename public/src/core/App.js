@@ -103,10 +103,14 @@ export class App {
      */
     async initMapTiler() {
         try {
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const localApiKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_MAPTILER_LOCAL_API_KEY : null;
+            const apiKey = (isLocalhost && localApiKey) ? localApiKey : '8gl234ODD2pw5oJkzeVo';
+
             this.mapTilerMap = await this.mapManager.init(
                 'maptiler-map',
                 'https://api.maptiler.com/maps/0199257a-01d6-7358-b3cb-99a4e119c9cb/style.json',
-                '8gl234ODD2pw5oJkzeVo'
+                apiKey
             );
 
             // Start with interactions disabled
@@ -175,54 +179,28 @@ export class App {
         }
 
         if (skipButton) {
-            skipButton.addEventListener('click', this.skipToPortfolio.bind(this));
+            skipButton.addEventListener('click', () => this.skipToOverlay('portfolio'));
         }
 
         if (reopenPortfolioBtn) {
-            reopenPortfolioBtn.addEventListener('click', this.uiManager.showPortfolio.bind(this.uiManager));
+            reopenPortfolioBtn.addEventListener('click', () => {
+                this.uiManager.setActiveOverlay('portfolio');
+            });
         }
 
         if (backToBeginningBtn) {
             backToBeginningBtn.addEventListener('click', this.backToBeginning.bind(this));
         }
 
-        if (portfolioOverlay) {
-            const closeBtn = portfolioOverlay.querySelector('.close-portfolio');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', (e) => {
-                    if (Date.now() - (this.portfolioOpenTime || 0) < 500) return;
-                    this.hidePortfolio();
-                });
-            }
-
-            portfolioOverlay.addEventListener('click', (e) => {
-                if (e.target === portfolioOverlay) {
-                    if (Date.now() - (this.portfolioOpenTime || 0) < 500) return;
-                    this.hidePortfolio();
-                }
-            });
-        }
+        // Overlay close events are now handled centrally by UIManager.setupOverlayListeners
 
         const showcaseBtn = this.uiManager.getElement('showcaseBtn');
-        const showcaseOverlay = this.uiManager.getElement('showcaseOverlay');
-
         if (showcaseBtn) {
-            showcaseBtn.addEventListener('click', this.showShowcase.bind(this));
-        }
-
-        if (showcaseOverlay) {
-            const closeBtn = showcaseOverlay.querySelector('.close-portfolio');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', (e) => {
-                    if (Date.now() - (this.showcaseOpenTime || 0) < 500) return;
-                    this.hideShowcase();
-                });
-            }
-
-            showcaseOverlay.addEventListener('click', (e) => {
-                if (e.target === showcaseOverlay) {
-                    if (Date.now() - (this.showcaseOpenTime || 0) < 500) return;
-                    this.hideShowcase();
+            showcaseBtn.addEventListener('click', () => {
+                if (this.uiManager.getState('journeyState') !== 'arrived') {
+                    this.skipToOverlay('showcase');
+                } else {
+                    this.uiManager.setActiveOverlay('showcase');
                 }
             });
         }
@@ -248,6 +226,11 @@ export class App {
     }
 
     onScroll() {
+        // Prevent fake scroll events caused by CSS position: fixed from ruining the state
+        if (this.uiManager && this.uiManager.getState('isScrollLocked')) {
+            return;
+        }
+
         const scrollProgress = this.scrollController.getScrollProgress();
         this.uiManager.getElement('scrollProgress').textContent = `Progress: ${Math.round(scrollProgress * 100)}%`;
 
@@ -289,7 +272,7 @@ export class App {
             return;
         }
 
-        if (this.uiManager.getState('flyToAnimationCompleted')) {
+        if (this.uiManager.getState('journeyState') === 'arrived') {
             console.log('FlyTo animation already completed, skipping');
             return;
         }
@@ -301,9 +284,16 @@ export class App {
         const targetZoom = 13;
 
         try {
-            await this.mapManager.flyTo([targetLng, targetLat], targetZoom, 8000);
+            // Lock scrolling immediately so the user is physically prevented from
+            // scrolling up during the flight animation and ruining the map experience
+            this.uiManager.lockScroll();
 
-            this.uiManager.setState('flyToAnimationCompleted', true);
+            this.uiManager.setState('journeyState', 'flying');
+
+            // Reduced duration from 8000ms to 4000ms for a much faster direct flight
+            await this.mapManager.flyTo([targetLng, targetLat], targetZoom, 4000);
+
+            this.uiManager.setState('journeyState', 'arrived');
             this.mapManager.setInteractions(true);
 
             setTimeout(() => {
@@ -314,11 +304,9 @@ export class App {
                 }
             }, 100);
 
-            this.uiManager.setState('hasCompletedMapJourney', true);
-
             if (!this.uiManager.getState('portfolioHasBeenShown') && !this.uiManager.getState('portfolioManuallyDismissed')) {
                 setTimeout(() => {
-                    this.uiManager.showPortfolio();
+                    this.uiManager.setActiveOverlay('portfolio');
                     this.uiManager.setState('portfolioHasBeenShown', true);
                 }, 2000);
             } else {
@@ -327,10 +315,7 @@ export class App {
                     if (reopenPortfolioBtn) {
                         reopenPortfolioBtn.classList.add('visible');
                     }
-                    const showcaseBtn = this.uiManager.getElement('showcaseBtn');
-                    if (showcaseBtn) {
-                        showcaseBtn.classList.add('visible');
-                    }
+                    // showcaseBtn is handled by updateUIOnScroll now
                 }, 500);
             }
         } catch (error) {
@@ -359,21 +344,23 @@ export class App {
         updateUIOnScroll(progress) {
         // Handle scroll indicator and skip button visibility
         if (!this.uiManager.getState('isAutoScrolling')) {
-            if (window.pageYOffset > 50) {
+            if (window.pageYOffset > 50 && this.uiManager.getState('journeyState') !== 'arrived') {
                 this.uiManager.hideElement('scrollIndicator');
                 this.uiManager.hideElement('skipButton');
-            } else if (window.pageYOffset <= 10 && !this.uiManager.getState('hasCompletedMapJourney')) {
+                this.uiManager.hideElement('showcaseBtn');
+            } else if (window.pageYOffset <= 10 && this.uiManager.getState('journeyState') !== 'arrived') {
                 this.uiManager.showElement('scrollIndicator');
                 this.uiManager.showElement('skipButton');
+                this.uiManager.showElement('showcaseBtn');
                 this.uiManager.hideElement('backToBeginningBtn');
             }
         }
 
         // Show back to beginning button when at the end
-        if (progress > 0.95 && this.uiManager.getState('hasCompletedMapJourney') &&
-            !this.uiManager.getElement('portfolioOverlay').classList.contains('visible')) {
+        if (progress > 0.95 && this.uiManager.getState('journeyState') === 'arrived' &&
+            this.uiManager.getState('activeOverlay') === 'none') {
             this.uiManager.showElement('backToBeginningBtn');
-        } else if (progress <= 0.95 && this.uiManager.getState('hasCompletedMapJourney')) {
+        } else if (progress <= 0.95 && this.uiManager.getState('journeyState') === 'arrived') {
             this.uiManager.hideElement('backToBeginningBtn');
         }
 
@@ -409,9 +396,8 @@ export class App {
                 const animationThreshold = isMobile ? 0.95 : 0.99;
                 // Only trigger the final flyTo animation if we are actively scrolling DOWN
                 // This prevents re-triggering it during the "Back to beginning" smooth scroll UP
-                if (scrollingDown && fadeProgress >= animationThreshold && !this.uiManager.getState('hasZoomedToErbil')) {
+                if (scrollingDown && fadeProgress >= animationThreshold && this.uiManager.getState('journeyState') === 'idle') {
                     this.zoomToErbil();
-                    this.uiManager.setState('hasZoomedToErbil', true);
                 }
             }
         } else {
@@ -422,12 +408,10 @@ export class App {
             this.showBackgroundElements();
             this.uiManager.getElement('footer').style.marginBottom = '';
 
-            if (this.uiManager.getState('hasZoomedToErbil') && progress < 0.3 && !this.uiManager.getState('portfolioIsVisible')) {
+            if (this.uiManager.getState('journeyState') !== 'idle' && progress < 0.3 && this.uiManager.getState('activeOverlay') === 'none') {
                 this.resetMapTileMap();
-                this.uiManager.setState('hasCompletedMapJourney', false);
+                this.uiManager.setState('journeyState', 'idle');
             }
-
-            this.uiManager.setState('hasZoomedToErbil', false);
         }
     }
 
@@ -481,33 +465,28 @@ export class App {
         console.trace('🟡 resetMapTileMap() call stack:');
 
         this.mapManager.reset();
-        this.uiManager.setState('hasZoomedToErbil', false);
+        this.uiManager.setState('journeyState', 'idle');
     }
 
     
-    skipToPortfolio() {
-        console.log('Skipping directly to portfolio');
+    skipToOverlay(overlayName) {
+        console.log(`Skipping directly to ${overlayName}`);
 
         // Reset the maptile map to its original state since user is skipping the journey
         this.resetMapTileMap();
 
-        // Hide the skip button and scroll indicator
-        const skipButton = this.uiManager.getElement('skipButton');
-        const scrollIndicator = this.uiManager.getElement('scrollIndicator');
-        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
-        if (skipButton) {
-            skipButton.classList.add('hidden');
-        }
-        if (scrollIndicator) {
-            scrollIndicator.classList.add('hidden');
-        }
-        if (showcaseBtn) {
-            showcaseBtn.classList.add('hidden');
+        // Hide the skip button, showcase button, and scroll indicator natively via UIManager
+        this.uiManager.hideElement('skipButton');
+        this.uiManager.hideElement('scrollIndicator');
+        this.uiManager.hideElement('showcaseBtn');
+
+        // Special state tracking for portfolio
+        if (overlayName === 'portfolio') {
+            this.uiManager.setState('portfolioHasBeenShown', true);
         }
 
-        // Show portfolio overlay immediately
-        this.showPortfolio();
-        this.uiManager.setState('portfolioHasBeenShown', true);
+        // Show requested overlay immediately
+        this.uiManager.setActiveOverlay(overlayName);
     }
 
     
@@ -520,15 +499,19 @@ export class App {
             backToBeginningBtn.classList.add('hidden');
         }
 
+        // Hide any open overlays
+        this.uiManager.setActiveOverlay('none');
+
         // Reset the scroll indicator
         const scrollIndicator = this.uiManager.getElement('scrollIndicator');
         if (scrollIndicator) {
             scrollIndicator.classList.remove('animating');
         }
 
-        // Hide places list immediately and clear any open popups/modals
+        // Hide places list immediately, remove all markers, and clear any open popups/modals
         if (this.placesManager) {
             this.placesManager.setPlacesListVisibility(false);
+            this.placesManager.removeAllMarkers();
             this.placesManager.resetAllStates();
         }
 
@@ -539,6 +522,9 @@ export class App {
         // Reset the maptile map to original state
         this.resetMapTileMap();
 
+        // Unlock the scroll so the user can smoothly slide back to the top
+        this.uiManager.unlockScroll();
+
         // Smooth scroll to top
         window.scrollTo({
             top: 0,
@@ -546,22 +532,29 @@ export class App {
         });
 
         // Reset all journey flags for a fresh start
-        this.hasZoomedToErbil = false;
-        this.hasCompletedMapJourney = false;
-        this.portfolioHasBeenShown = false;
-        this.portfolioManuallyDismissed = false;
-        this.flyToAnimationCompleted = false;
-        this.portfolioIsVisible = false;
-        this.isAutoScrolling = false;
-
-        // Also reset UI manager states
+        this.uiManager.setState('journeyState', 'idle');
         this.uiManager.setState('portfolioHasBeenShown', false);
         this.uiManager.setState('portfolioManuallyDismissed', false);
-        this.uiManager.setState('hasCompletedMapJourney', false);
-        this.uiManager.setState('hasZoomedToErbil', false);
-        this.uiManager.setState('flyToAnimationCompleted', false);
-        this.uiManager.setState('isAutoScrolling', false);
-        this.uiManager.setState('portfolioIsVisible', false);
+        this.uiManager.setState('activeOverlay', 'none');
+        
+        // Protect the scroll up with isAutoScrolling
+        this.uiManager.setState('isAutoScrolling', true);
+        
+        let scrollTimeout;
+        const finishAutoScroll = () => {
+            this.uiManager.setState('isAutoScrolling', false);
+            window.removeEventListener('scroll', checkScrollComplete);
+            clearTimeout(scrollTimeout);
+        };
+        
+        const checkScrollComplete = () => {
+            if (window.pageYOffset <= 5) {
+                finishAutoScroll();
+            }
+        };
+        
+        window.addEventListener('scroll', checkScrollComplete);
+        scrollTimeout = setTimeout(finishAutoScroll, 2000); // Fallback
 
         // Hide the showcase button and reopen portfolio button
         const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
@@ -585,231 +578,4 @@ export class App {
             }
         }, 1000); // Give time for scroll animation to complete
     }
-
-    
-    showShowcase() {
-        console.log('Showing showcase overlay');
-        this.showcaseOpenTime = Date.now();
-        const showcaseOverlay = this.uiManager.getElement('showcaseOverlay');
-        if (showcaseOverlay) {
-            showcaseOverlay.classList.add('visible');
-        }
-
-        // Hide places list when showcase is shown
-        if (this.placesManager) {
-            this.placesManager.setPlacesListVisibility(false);
-        }
-
-        // Ensure maptile map is hidden when showcase is shown
-        const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
-        if (googleEarthContainer) {
-            googleEarthContainer.style.opacity = '0';
-            googleEarthContainer.style.zIndex = '0';
-            googleEarthContainer.classList.remove('visible');
-        }
-
-        const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
-        if (reopenPortfolioBtn) {
-            reopenPortfolioBtn.classList.remove('visible');
-        }
-
-        // Prevent background scrolling
-        this.uiManager.lockScroll();
-    }
-
-    
-    hideShowcase() {
-        console.log('Hiding showcase overlay');
-        const showcaseOverlay = this.uiManager.getElement('showcaseOverlay');
-        if (showcaseOverlay) {
-            showcaseOverlay.classList.remove('visible');
-        }
-
-        // Restore background scrolling
-        this.uiManager.unlockScroll();
-
-        // Restore maptile map visibility if we're at the right scroll position
-        const scrollProgress = this.scrollController.getScrollProgress();
-        if (scrollProgress > 0.5) {
-            const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
-            if (googleEarthContainer) {
-                googleEarthContainer.style.opacity = '1';
-                googleEarthContainer.style.zIndex = '2';
-                googleEarthContainer.classList.add('visible');
-            }
-
-            // Show places list when showcase is hidden and map is visible
-            if (this.placesManager) {
-                this.placesManager.setPlacesListVisibility(true);
-            }
-
-            // Restore buttons
-            const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
-            if (reopenPortfolioBtn) {
-                reopenPortfolioBtn.classList.add('visible');
-            }
-            const showcaseBtn = this.uiManager.getElement('showcaseBtn');
-            if (showcaseBtn) {
-                showcaseBtn.classList.add('visible');
-            }
-        }
-    }
-
-    
-    showPortfolio() {
-        console.log('Showing portfolio overlay');
-        this.portfolioOpenTime = Date.now();
-        const portfolioOverlay = this.uiManager.getElement('portfolioOverlay');
-        if (portfolioOverlay) {
-            portfolioOverlay.classList.add('visible');
-        }
-        this.portfolioIsVisible = true; // Set flag to prevent map resets
-
-        // Hide reopen button when portfolio is shown
-        const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
-        if (reopenPortfolioBtn) {
-            reopenPortfolioBtn.classList.remove('visible');
-        }
-
-        // Hide back to beginning button when portfolio is shown
-        const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
-        if (backToBeginningBtn) {
-            backToBeginningBtn.classList.add('hidden');
-        }
-
-        const showcaseBtn = this.uiManager.getElement('showcaseBtn');
-        if (showcaseBtn) {
-            showcaseBtn.classList.remove('visible');
-        }
-
-        // Hide places list when portfolio is shown
-        if (this.placesManager) {
-            this.placesManager.setPlacesListVisibility(false);
-        }
-
-        // Ensure maptile map is hidden when portfolio is shown
-        const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
-        if (googleEarthContainer) {
-            googleEarthContainer.style.opacity = '0';
-            googleEarthContainer.style.zIndex = '0';
-            googleEarthContainer.classList.remove('visible');
-        }
-
-        // Prevent background scrolling
-        this.uiManager.lockScroll();
-    }
-
-    
-    hidePortfolio() {
-        const hasCompleted = this.uiManager.getState('hasCompletedMapJourney');
-        const hasBeenShown = this.uiManager.getState('portfolioHasBeenShown');
-        const manuallyDismissed = this.uiManager.getState('portfolioManuallyDismissed');
-
-        console.log('🔴 hidePortfolio() called');
-        console.log('🔴 Has completed map journey:', hasCompleted);
-        console.log('🔴 Has been shown:', hasBeenShown);
-
-        const portfolioOverlay = this.uiManager.getElement('portfolioOverlay');
-        if (portfolioOverlay) {
-            portfolioOverlay.classList.remove('visible');
-        }
-        this.portfolioIsVisible = false; // Clear flag to allow map resets again
-
-        // Mark that user manually dismissed the portfolio
-        this.portfolioManuallyDismissed = true;
-        this.uiManager.setState('portfolioManuallyDismissed', true);
-
-        // Restore background scrolling
-        this.uiManager.unlockScroll();
-
-        // Footer remains visible (no need to restore)
-
-        // Restore maptile map visibility if we're at the right scroll position
-        const scrollProgress = this.scrollController.getScrollProgress();
-        const currentScroll = window.pageYOffset;
-        console.log('🔴 hidePortfolio() - scroll progress:', scrollProgress, 'current scroll:', currentScroll);
-
-        if (scrollProgress > 0.5) {
-            console.log('🔴 hidePortfolio() - restoring map visibility WITHOUT calling updateGoogleEarthVisibility');
-            // Simply restore the map visibility without calling updateGoogleEarthVisibility
-            // to avoid resetting the map position
-            const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
-            if (googleEarthContainer) {
-                googleEarthContainer.style.opacity = '1';
-                googleEarthContainer.style.zIndex = '2';
-                googleEarthContainer.classList.add('visible');
-            }
-
-            // Hide background elements to show the map
-            this.hideBackgroundElements(1.0);
-
-            // Show places list when portfolio is hidden and map is visible
-            if (this.placesManager) {
-                this.placesManager.setPlacesListVisibility(true);
-            }
-
-            console.log('🔴 hidePortfolio() - map visibility restored, should stay at Erbil coordinates');
-        } else {
-            console.log('🔴 hidePortfolio() - scroll progress too low, not restoring map');
-        }
-
-        // Only show reopen portfolio button if we've completed the map journey AND portfolio was auto-shown AND manually dismissed
-        if (hasCompleted && hasBeenShown && manuallyDismissed) {
-            setTimeout(() => {
-                // Check if maptile map is visible before showing the button
-                const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
-                const isMapTileVisible = googleEarthContainer &&
-                    googleEarthContainer.classList.contains('visible') &&
-                    parseFloat(googleEarthContainer.style.opacity) > 0;
-
-                console.log('Portfolio closed - scroll progress:', scrollProgress, 'hasCompleted:', hasCompleted, 'wasAutoShown:', hasBeenShown, 'isMapTileVisible:', isMapTileVisible);
-
-                if (isMapTileVisible) {
-                    const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
-                    if (reopenPortfolioBtn) {
-                        reopenPortfolioBtn.classList.add('visible');
-                    }
-                    const showcaseBtn = this.uiManager.getElement('showcaseBtn');
-                    if (showcaseBtn) {
-                        showcaseBtn.classList.add('visible');
-                    }
-                    console.log('✅ Showing reopen portfolio button - all conditions met');
-                } else {
-                    console.log('❌ Not showing reopen portfolio button - maptile map not visible');
-                }
-
-                // Also show back to beginning button if we're at the end
-                if (scrollProgress > 0.95) {
-                    const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
-                    if (backToBeginningBtn) {
-                        console.log('Showing back to beginning button after portfolio close');
-                        backToBeginningBtn.classList.remove('hidden'); // Show by removing hidden class
-                        console.log('Button classes after show:', backToBeginningBtn.className);
-                    }
-                }
-            }, 300); // Small delay for smooth transition
-        } else {
-            // If we haven't completed the map journey and we're at the top, show the initial buttons
-            if (window.pageYOffset <= 10) {
-                setTimeout(() => {
-                    const scrollIndicator = this.uiManager.getElement('scrollIndicator');
-                    const skipButton = this.uiManager.getElement('skipButton');
-                    const showcaseBtn = this.uiManager.getElement('showcaseBtn');
-                    if (scrollIndicator) {
-                        scrollIndicator.classList.remove('hidden');
-                    }
-                    if (skipButton) {
-                        skipButton.classList.remove('hidden');
-                    }
-                    if (showcaseBtn) {
-                        showcaseBtn.classList.remove('hidden');
-                        showcaseBtn.classList.remove('visible');
-                    }
-                }, 300); // Small delay for smooth transition
-            }
-        }
-
-        console.log('Portfolio hidden, flags - flyToCompleted:', this.flyToAnimationCompleted, 'hasZoomed:', this.hasZoomedToErbil);
-    }
 }
-

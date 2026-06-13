@@ -18,18 +18,50 @@ export class UIManager {
         };
         
         this.state = {
-            portfolioIsVisible: false,
+            hasCompletedMapJourney: false,
             portfolioHasBeenShown: false,
             portfolioManuallyDismissed: false,
+            hasZoomedToErbil: false,
+            isScrollLocked: false,
             isAutoScrolling: false,
-            isAtBeginning: false
+            activeOverlay: 'none', // 'none' | 'portfolio' | 'showcase'
+            journeyState: 'idle' // 'idle' | 'scrolling' | 'flying' | 'arrived'
         };
+
+        this.lastOverlayToggleTime = 0;
+        this.setupOverlayListeners();
         
         this.beginningTimer = null;
         this.autoScrollAnimation = null;
         this.scrollPosition = 0;
         this.preventScrollKeys = null;
         this.placesManager = placesManager;
+    }
+
+    setupOverlayListeners() {
+        const overlays = ['portfolio', 'showcase'];
+        overlays.forEach(overlayName => {
+            const overlay = this.getElement(`${overlayName}Overlay`);
+            if (!overlay) return;
+
+            // Handle close button click
+            // Both overlays use the .close-portfolio class for their close buttons
+            const closeBtn = overlay.querySelector('.close-portfolio');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    if (Date.now() - this.lastOverlayToggleTime < 500) return;
+                    this.setActiveOverlay('none');
+                });
+            }
+
+            // Handle background click (clicking outside the content)
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    if (Date.now() - this.lastOverlayToggleTime < 500) return;
+                    this.setActiveOverlay('none');
+                }
+            });
+        });
     }
 
     // Element getters
@@ -81,6 +113,12 @@ export class UIManager {
 
     // Scroll management
     lockScroll() {
+        if (this.state.isScrollLocked) {
+            console.log('Scroll is already locked, ignoring lockScroll() to prevent losing scrollPosition.');
+            return;
+        }
+
+        this.setState('isScrollLocked', true);
         this.scrollPosition = window.pageYOffset;
         
         document.body.style.position = 'fixed';
@@ -99,6 +137,7 @@ export class UIManager {
     }
 
     unlockScroll() {
+        this.setState('isScrollLocked', false);
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.width = '';
@@ -193,30 +232,77 @@ export class UIManager {
         }
     }
 
-    // Portfolio management
-    showPortfolio() {
-        console.log('Showing portfolio overlay');
-        this.showElement('portfolioOverlay');
-        this.setState('portfolioIsVisible', true);
+    // State Machine Overlay Controller
+    setActiveOverlay(overlayName) {
+        console.log(`Setting active overlay from '${this.state.activeOverlay}' to '${overlayName}'`);
         
-        this.hideElement('reopenPortfolioBtn');
-        this.hideElement('backToBeginningBtn');
-        
-        // Hide places list when portfolio is shown
-        if (this.placesManager) {
-            this.placesManager.setPlacesListVisibility(false);
+        // Hide currently active overlay if any
+        if (this.state.activeOverlay === 'portfolio') {
+            this.hideElement('portfolioOverlay');
+            this.setState('portfolioManuallyDismissed', true);
+        } else if (this.state.activeOverlay === 'showcase') {
+            this.hideElement('showcaseOverlay');
         }
-        
-        this.lockScroll();
-    }
 
-    hidePortfolio() {
-        console.log('Hiding portfolio overlay');
-        this.hideElement('portfolioOverlay');
-        this.setState('portfolioIsVisible', false);
-        this.setState('portfolioManuallyDismissed', true);
-        
-        this.unlockScroll();
+        this.lastOverlayToggleTime = Date.now();
+        this.setState('activeOverlay', overlayName);
+
+        if (overlayName === 'none') {
+            this.unlockScroll();
+            
+            // Restore UI based on journey state
+            if (this.getState('journeyState') === 'arrived') {
+                
+                // Show Reopen Portfolio & Showcase buttons if manually dismissed
+                if (this.getState('portfolioHasBeenShown') && this.getState('portfolioManuallyDismissed')) {
+                    this.showElement('reopenPortfolioBtn');
+                    this.showElement('showcaseBtn');
+                }
+                // We are at the map (arrived), so unconditionally restore MapTiler map
+                const googleEarthContainer = this.getElement('googleEarthContainer');
+                if (googleEarthContainer) {
+                    googleEarthContainer.style.opacity = '1';
+                    googleEarthContainer.style.zIndex = '2';
+                    googleEarthContainer.classList.add('visible');
+                }
+                
+                if (this.placesManager) {
+                    this.placesManager.setPlacesListVisibility(true);
+                }
+            } else {
+                // If we are not arrived (e.g. at the top of the page), restore the top buttons
+                // Only if we haven't scrolled down
+                if (window.pageYOffset <= 10) {
+                    this.showElement('scrollIndicator');
+                    this.showElement('skipButton');
+                    this.showElement('showcaseBtn');
+                }
+            }
+        } else {
+            // An overlay is active, lock the UI
+            this.lockScroll();
+            this.hideElement('reopenPortfolioBtn');
+            this.hideElement('backToBeginningBtn');
+            this.hideElement('showcaseBtn');
+            
+            if (this.placesManager) {
+                this.placesManager.setPlacesListVisibility(false);
+            }
+            
+            // Hide MapTiler map underneath to avoid pointer-events conflicts
+            const googleEarthContainer = this.getElement('googleEarthContainer');
+            if (googleEarthContainer) {
+                googleEarthContainer.style.opacity = '0';
+                googleEarthContainer.style.zIndex = '0';
+                googleEarthContainer.classList.remove('visible');
+            }
+
+            if (overlayName === 'portfolio') {
+                this.showElement('portfolioOverlay');
+            } else if (overlayName === 'showcase') {
+                this.showElement('showcaseOverlay');
+            }
+        }
     }
 
     // Beginning state management

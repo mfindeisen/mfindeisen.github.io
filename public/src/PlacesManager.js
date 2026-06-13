@@ -217,7 +217,7 @@ export class PlacesManager {
             
             // Add click handlers for photos after popup is added
             setTimeout(() => {
-                this.addPhotoClickHandlers(place);
+                this.addPhotoClickHandlers(place, popup.getElement());
             }, 100);
         });
 
@@ -299,9 +299,11 @@ export class PlacesManager {
     /**
      * Add click handlers for photos in the popup
      */
-    addPhotoClickHandlers(place) {
+    addPhotoClickHandlers(place, containerElement = document) {
+        if (!containerElement) return;
+        
         // Handle preview thumbnail clicks
-        const photoPreviews = document.querySelectorAll('.photo-preview');
+        const photoPreviews = containerElement.querySelectorAll('.photo-preview');
         photoPreviews.forEach((preview, index) => {
             preview.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent popup from closing
@@ -317,7 +319,7 @@ export class PlacesManager {
         });
         
         // Handle "View All Photos" button click
-        const viewAllBtn = document.querySelector('.view-all-photos-btn');
+        const viewAllBtn = containerElement.querySelector('.view-all-photos-btn');
         if (viewAllBtn) {
             viewAllBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent popup from closing
@@ -911,7 +913,8 @@ export class PlacesManager {
         console.log('Initializing photosphere viewer with:', { photoSrc, placeName, container });
         
         try {
-            // Import Viewer dynamically to avoid bundle size issues
+            // Import Viewer and its CSS dynamically to avoid bundle size issues
+            await import('@photo-sphere-viewer/core/index.css');
             const { Viewer } = await import('@photo-sphere-viewer/core');
             this.photosphereViewer = new Viewer({
             container: container,

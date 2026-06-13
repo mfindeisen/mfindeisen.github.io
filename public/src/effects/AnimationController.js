@@ -209,30 +209,7 @@ export class AnimationController {
         earthScene.camera.position.set(0, 0, cameraZ);
     }
 
-    /**
-     * Update UI elements based on scroll progress
-     */
-    updateUI(uiManager, progress) {
-        // Update scroll progress display
-        const scrollProgressElement = uiManager.getElement('scrollProgress');
-        if (scrollProgressElement) {
-            scrollProgressElement.textContent = `Progress: ${Math.round(progress * 100)}%`;
-        }
-        
-        // Handle scroll indicator and skip button visibility
-        if (!uiManager.getState('isAutoScrolling')) {
-            if (window.pageYOffset > 50) {
-                uiManager.hideElement('scrollIndicator');
-                uiManager.hideElement('skipButton');
-                uiManager.hideElement('showcaseBtn');
-            } else if (window.pageYOffset <= 10 && !uiManager.getState('hasCompletedMapJourney')) {
-                uiManager.showElement('scrollIndicator');
-                uiManager.showElement('skipButton');
-                uiManager.showElement('showcaseBtn');
-                uiManager.hideElement('backToBeginningBtn');
-            }
-        }
-    }
+
 
     /**
      * Easing function for smooth animations

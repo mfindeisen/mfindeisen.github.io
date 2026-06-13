@@ -153,17 +153,17 @@ export class MapManager {
         }
 
         return new Promise((resolve) => {
+            // Listen for the moveend event which triggers when flyTo finishes
+            this.mapTilerMap.once('moveend', () => {
+                resolve();
+            });
+
             this.mapTilerMap.flyTo({
                 center: center,
                 zoom: zoom,
                 duration: duration,
                 essential: true
             });
-
-            // Resolve after animation completes
-            setTimeout(() => {
-                resolve();
-            }, duration + 500); // Add buffer time
         });
     }
 
