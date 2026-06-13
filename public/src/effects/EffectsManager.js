@@ -32,7 +32,6 @@ export class EffectsManager {
         ripple.style.zIndex = '1000';
         ripple.style.animation = 'rippleEffect 1s ease-out forwards';
         
-        this.addRippleStyles();
         document.body.appendChild(ripple);
         this.activeEffects.add(ripple);
         
@@ -203,28 +202,7 @@ export class EffectsManager {
     addRippleStyles() {
         if (document.querySelector('#ripple-styles')) return;
         
-        const style = document.createElement('style');
-        style.id = 'ripple-styles';
-        style.textContent = `
-            @keyframes rippleEffect {
-                0% {
-                    transform: translate(-50%, -50%) scale(1);
-                    opacity: 0.8;
-                }
-                100% {
-                    transform: translate(-50%, -50%) scale(8);
-                    opacity: 0;
-                }
-            }
-            
-            @keyframes sparkleEffect {
-                0% { transform: scale(0) rotate(0deg); opacity: 1; }
-                50% { transform: scale(1) rotate(180deg); opacity: 1; }
-                100% { transform: scale(0) rotate(360deg); opacity: 0; }
-            }
-        `;
         
-        document.head.appendChild(style);
     }
 
     /**

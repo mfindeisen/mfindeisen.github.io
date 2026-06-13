@@ -124,81 +124,9 @@ export class Tooltip {
     }
 
     /**
-     * Add tooltip styles to the document
-     */
-    static addStyles() {
-        if (document.querySelector('#tooltip-styles')) return;
-        
-        const style = document.createElement('style');
-        style.id = 'tooltip-styles';
-        style.textContent = `
-            .tooltip {
-                position: fixed;
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                padding: 10px 20px;
-                border-radius: 20px;
-                font-size: 16px;
-                z-index: 1001;
-                animation: fadeInOut 3s ease forwards;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                max-width: 300px;
-                text-align: center;
-                word-wrap: break-word;
-            }
-            
-            @keyframes fadeInOut {
-                0% { 
-                    opacity: 0; 
-                    transform: translateX(-50%) translateY(-20px); 
-                }
-                20% { 
-                    opacity: 1; 
-                    transform: translateX(-50%) translateY(0); 
-                }
-                80% { 
-                    opacity: 1; 
-                    transform: translateX(-50%) translateY(0); 
-                }
-                100% { 
-                    opacity: 0; 
-                    transform: translateX(-50%) translateY(-20px); 
-                }
-            }
-            
-            .tooltip[style*="transform: none"] {
-                animation: fadeInOutNoTransform 3s ease forwards;
-            }
-            
-            @keyframes fadeInOutNoTransform {
-                0% { 
-                    opacity: 0; 
-                    transform: translateY(-20px); 
-                }
-                20% { 
-                    opacity: 1; 
-                    transform: translateY(0); 
-                }
-                80% { 
-                    opacity: 1; 
-                    transform: translateY(0); 
-                }
-                100% { 
-                    opacity: 0; 
-                    transform: translateY(-20px); 
-                }
-            }
-        `;
-        
-        document.head.appendChild(style);
-    }
-
-    /**
      * Initialize tooltip system
      */
     static init() {
-        Tooltip.addStyles();
+        // Styles are now handled externally in public/style.css
     }
 }
