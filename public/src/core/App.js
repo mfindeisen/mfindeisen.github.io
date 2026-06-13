@@ -251,11 +251,15 @@ export class App {
         const scrollProgress = this.scrollController.getScrollProgress();
         this.uiManager.getElement('scrollProgress').textContent = `Progress: ${Math.round(scrollProgress * 100)}%`;
 
+        // Determine scroll direction
+        const scrollingDown = scrollProgress > (this.lastScrollProgress || 0);
+        this.lastScrollProgress = scrollProgress;
+
         // Update earth transformation
         this.earthScene.updateTransformation(scrollProgress);
 
         // Control Google Earth fade-in
-        this.updateGoogleEarthVisibility(scrollProgress);
+        this.updateGoogleEarthVisibility(scrollProgress, scrollingDown);
 
         // Update UI based on scroll progress
         this.updateUIOnScroll(scrollProgress);
@@ -378,7 +382,7 @@ export class App {
     }
 
     
-    updateGoogleEarthVisibility(progress) {
+    updateGoogleEarthVisibility(progress, scrollingDown = true) {
         const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
 
         if (progress > 0.5) {
@@ -403,7 +407,9 @@ export class App {
                 }
 
                 const animationThreshold = isMobile ? 0.95 : 0.99;
-                if (fadeProgress >= animationThreshold && !this.uiManager.getState('hasZoomedToErbil')) {
+                // Only trigger the final flyTo animation if we are actively scrolling DOWN
+                // This prevents re-triggering it during the "Back to beginning" smooth scroll UP
+                if (scrollingDown && fadeProgress >= animationThreshold && !this.uiManager.getState('hasZoomedToErbil')) {
                     this.zoomToErbil();
                     this.uiManager.setState('hasZoomedToErbil', true);
                 }
