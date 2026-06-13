@@ -293,32 +293,41 @@
             pointer-events: auto;
         }
 
-        .portfolio-content {
+        .portfolio-wrapper {
             max-width: 800px;
             width: 90%;
             max-height: 80vh;
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 40px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
             transform: translateY(50px);
             transition: transform 0.8s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0; /* Vertical padding keeps the inner scrollbar away from the 20px corners */
+        }
+
+        #portfolio-overlay.visible .portfolio-wrapper,
+        #showcase-overlay.visible .portfolio-wrapper {
+            transform: translateY(0);
+        }
+
+        .portfolio-content {
+            flex: 1;
+            padding: 0 40px; /* Horizontal padding for the text */
             overflow-y: auto;
             position: relative;
-            overscroll-behavior-y: contain;
+            overscroll-behavior: none;
             -webkit-overflow-scrolling: touch;
+            border-radius: 8px; /* Inner rounding for the scrollbar track itself */
         }
 
         .portfolio-content::after {
             content: '';
             display: block;
-            height: 40px; /* Extra space at bottom to prevent cutoff */
-        }
-
-        #portfolio-overlay.visible .portfolio-content,
-        #showcase-overlay.visible .portfolio-content {
-            transform: translateY(0);
+            height: 20px; /* Space at the very bottom of the scrollable content */
         }
 
         .portfolio-header {
@@ -433,7 +442,7 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: none;
+            background: rgba(0, 0, 0, 0.05);
             border: none;
             font-size: 1.5rem;
             color: #7f8c8d;
@@ -445,6 +454,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            z-index: 10;
         }
 
         .close-portfolio:hover {
@@ -704,23 +714,17 @@
         .portfolio-content::-webkit-scrollbar {
             width: 8px;
         }
-
         .portfolio-content::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-            margin: 25px 0;
-            background-clip: padding-box;
-            border: 4px solid transparent;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
         }
-
         .portfolio-content::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #3498db, #2980b9);
-            border-radius: 4px;
-            transition: background 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
         }
-
         .portfolio-content::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, #2980b9, #1f5f99);
+            background-color: rgba(0, 0, 0, 0.5);
         }
 
         /* Firefox scrollbar styling */
@@ -1605,6 +1609,7 @@
             .photo-gallery-content {
                 flex: 1;
                 overflow-y: auto;
+                overscroll-behavior: none;
                 padding: 20px;
             }
             
@@ -1883,6 +1888,7 @@
             .places-list {
                 flex: 1;
                 overflow-y: auto;
+                overscroll-behavior: none;
                 background: transparent;
             }
             
@@ -2144,7 +2150,7 @@
                     max-height: calc(70vh - 60px);
                     overflow-y: auto;
                     -webkit-overflow-scrolling: touch;
-                    overscroll-behavior: contain;
+                    overscroll-behavior: none;
                 }
                 
                 /* Improve mobile touch targets */
