@@ -25,11 +25,12 @@
         <div id="scroll-progress">Progress: 0%</div>
     </div>
 
-    <button id="skip-button">Skip to Portfolio →</button>
-    <button id="skip-showcase-btn">✨ Skip to Showcase</button>
-
-    <button id="reopen-portfolio-btn">👤 View Portfolio</button>
-    <button id="reopen-showcase-btn">✨ View Showcase</button>
+    <div id="top-toolbar">
+        <button id="skip-showcase-btn">Showcase →</button>
+        <button id="skip-button">Portfolio →</button>
+        <button id="reopen-showcase-btn">Showcase →</button>
+        <button id="reopen-portfolio-btn">Portfolio →</button>
+    </div>
 
     <button id="back-to-beginning-btn" class="hidden">↑ Back to Beginning</button>
 
@@ -62,156 +63,168 @@
             <button class="close-portfolio">&times;</button>
             <div class="portfolio-content">
 
-            <div class="portfolio-header">
-                <img src="profile-photo.jpg" alt="Matthias Findeisen" class="profile-photo">
-                <div class="header-text">
-                    <h1 class="portfolio-title">Matthias Findeisen</h1>
-                    <p class="portfolio-subtitle">Full Stack Developer & Creative Technologist</p>
-                    <div class="contact-links">
-                        <a href="mailto:findeisen.matthias@gmail.com" class="contact-link">
-                            <span>📧</span>
-                            <span>Email</span>
-                        </a>
-                        <a href="https://linkedin.com/in/matthias-findeisen" class="contact-link" target="_blank">
-                            <span>💼</span>
-                            <span>LinkedIn</span>
-                        </a>
-                        <a href="https://github.com/mfindeisen" class="contact-link" target="_blank">
-                            <span>💻</span>
-                            <span>GitHub</span>
-                        </a>
-                    </div>
-                    <!-- <div class="location-badge">
+                <div class="portfolio-header">
+                    <img src="profile-photo.jpg" alt="Matthias Findeisen" class="profile-photo">
+                    <div class="header-text">
+                        <h1 class="portfolio-title">Matthias Findeisen</h1>
+                        <p class="portfolio-subtitle">Full Stack Developer & Creative Technologist</p>
+                        <div class="contact-links">
+                            <a href="mailto:findeisen.matthias@gmail.com" class="contact-link">
+                                <span>📧</span>
+                                <span>Email</span>
+                            </a>
+                            <a href="https://linkedin.com/in/matthias-findeisen" class="contact-link" target="_blank">
+                                <span>💼</span>
+                                <span>LinkedIn</span>
+                            </a>
+                            <a href="https://github.com/mfindeisen" class="contact-link" target="_blank">
+                                <span>💻</span>
+                                <span>GitHub</span>
+                            </a>
+                        </div>
+                        <!-- <div class="location-badge">
                  <span>📍</span>
                  <span>Based in Erbil, Iraq</span>
                </div> -->
-                </div>
-            </div>
-
-            <div class="portfolio-section">
-                <h2 class="section-title">About Me</h2>
-                <p>
-                    I’m a passionate full-stack developer combining technical craftsmanship and creative vision. I
-                    specialize in immersive web experiences, 3D visualisation (Three.js/WebGL), and bridging UI/UX with
-                    performant, maintainable backends.
-                    My background as an archaeologist has shaped the way I approach technology: working in complex,
-                    intercultural environments taught me precision, resilience, and a fascination for uncovering hidden
-                    structures, skills I now channel into building digital systems.
-                    Beyond development, I’m driven by curiosity for geospatial technologies, creative coding, and
-                    exploring how storytelling, data, and design can merge into meaningful interactive experiences.
-                </p>
-            </div>
-
-
-            <div class="portfolio-section">
-                <h2 class="section-title">Skills</h2>
-                <div class="skills-grid">
-                    <div class="skill-tag">JavaScript / TypeScript</div>
-                    <div class="skill-tag">Node.js / Express</div>
-                    <div class="skill-tag">Three.js / WebGL</div>
-                    <div class="skill-tag">React / Vue / Svelte</div>
-                    <div class="skill-tag">Python</div>
-                    <div class="skill-tag">Java</div>
-                    <div class="skill-tag">GIS / Geospatial</div>
-                    <div class="skill-tag">Docker / DevOps basics</div>
-                    <div class="skill-tag">UX / UI Collaboration</div>
-                </div>
-            </div>
-
-            <div class="portfolio-section">
-                <h2 class="section-title">Experience</h2>
-
-                <div class="experience-item">
-                    <div class="experience-title">System Engineer</div>
-                    <div class="experience-company">ESCRIBA AG • Apr 2021 – Present • Berlin, Germany</div>
-                    <div class="experience-description">
-                        <ul style="margin-top: 8px; padding-left: 20px;">
-                            <li>Requirements management in agile software development using low-code/no-code technology</li>
-                            <li>Backend development with Java and frontend with JavaScript</li>
-                            <li>Process modeling with UML &amp; BPMN 2.0</li>
-                            <li>API analysis and implementation (REST, JSON, XML)</li>
-                            <li>Configuration of Tomcat servers and web services</li>
-                        </ul>
                     </div>
                 </div>
 
-                <div class="experience-item">
-                    <div class="experience-title">Graduate Student Assistant (Surveyor & Developer)</div>
-                    <div class="experience-company">University of Tübingen / Freie Universität Berlin / German
-                        Archaeological Institute • 2012 – 2019 • West Asia & Europe</div>
-                    <div class="experience-description">
-                        Worked on multiple international archaeological projects in West Asia (Iran, Iraq, Jordan, Saudi Arabia) and contemporary archaeology excavations in Germany.
-                        <ul style="margin-top: 8px; padding-left: 20px;">
-                            <li>Conducted field surveys, supervised excavations, and coordinated data collection in challenging environments</li>
-                            <li>Participated in critical contemporary archaeology excavations in Berlin uncovering the material realities of the National Socialist era (forced labor camps at Tempelhofer Feld and investigations near the former Kaiser Wilhelm Institute for Anthropology, Human Heredity, and Eugenics)</li>
-                            <li>Designed and managed research databases, developed custom digital tools (Python, Django, JavaScript) for data processing and visualization</li>
-                            <li>Combined cultural heritage expertise with technical development to support large-scale research projects</li>
-                        </ul>
+                <div class="portfolio-section">
+                    <h2 class="section-title">About Me</h2>
+                    <p>
+                        I’m a passionate full-stack developer combining technical craftsmanship and creative vision. I
+                        specialize in immersive web experiences, 3D visualisation (Three.js/WebGL), and bridging UI/UX
+                        with
+                        performant, maintainable backends.
+                        My background as an archaeologist has shaped the way I approach technology: working in complex,
+                        intercultural environments taught me precision, resilience, and a fascination for uncovering
+                        hidden
+                        structures, skills I now channel into building digital systems.
+                        Beyond development, I’m driven by curiosity for geospatial technologies, creative coding, and
+                        exploring how storytelling, data, and design can merge into meaningful interactive experiences.
+                    </p>
+                </div>
+
+
+                <div class="portfolio-section">
+                    <h2 class="section-title">Skills</h2>
+                    <div class="skills-grid">
+                        <div class="skill-tag">JavaScript / TypeScript</div>
+                        <div class="skill-tag">Node.js / Express</div>
+                        <div class="skill-tag">Three.js / WebGL</div>
+                        <div class="skill-tag">React / Vue / Svelte</div>
+                        <div class="skill-tag">Python</div>
+                        <div class="skill-tag">Java</div>
+                        <div class="skill-tag">GIS / Geospatial</div>
+                        <div class="skill-tag">Docker / DevOps basics</div>
+                        <div class="skill-tag">UX / UI Collaboration</div>
                     </div>
                 </div>
 
-                <div class="experience-item">
-                    <div class="experience-title">Graduate Student Assistant</div>
-                    <div class="experience-company">Topoi Excellence Cluster • Dec 2016 – Dec 2018 • Berlin, Germany
+                <div class="portfolio-section">
+                    <h2 class="section-title">Experience</h2>
+
+                    <div class="experience-item">
+                        <div class="experience-title">System Engineer</div>
+                        <div class="experience-company">ESCRIBA AG • Apr 2021 – Present • Berlin, Germany</div>
+                        <div class="experience-description">
+                            <ul style="margin-top: 8px; padding-left: 20px;">
+                                <li>Requirements management in agile software development using low-code/no-code
+                                    technology</li>
+                                <li>Backend development with Java and frontend with JavaScript</li>
+                                <li>Process modeling with UML &amp; BPMN 2.0</li>
+                                <li>API analysis and implementation (REST, JSON, XML)</li>
+                                <li>Configuration of Tomcat servers and web services</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="experience-description">
-                        <ul style="margin-top: 8px; padding-left: 20px;">
-                            <li>Database design and management</li>
-                            <li>Development of research applications with Python, JavaScript, CSS, Shell, Django</li>
-                            <li>Supported digital humanities initiatives with custom technical solutions</li>
-                        </ul>
+
+                    <div class="experience-item">
+                        <div class="experience-title">Graduate Student Assistant (Surveyor & Developer)</div>
+                        <div class="experience-company">University of Tübingen / Freie Universität Berlin / German
+                            Archaeological Institute • 2012 – 2019 • West Asia & Europe</div>
+                        <div class="experience-description">
+                            Worked on multiple international archaeological projects in West Asia (Iran, Iraq, Jordan,
+                            Saudi Arabia) and contemporary archaeology excavations in Germany.
+                            <ul style="margin-top: 8px; padding-left: 20px;">
+                                <li>Conducted field surveys, supervised excavations, and coordinated data collection in
+                                    challenging environments</li>
+                                <li>Participated in critical contemporary archaeology excavations in Berlin uncovering
+                                    the material realities of the National Socialist era (forced labor camps at
+                                    Tempelhofer Feld and investigations near the former Kaiser Wilhelm Institute for
+                                    Anthropology, Human Heredity, and Eugenics)</li>
+                                <li>Designed and managed research databases, developed custom digital tools (Python,
+                                    Django, JavaScript) for data processing and visualization</li>
+                                <li>Combined cultural heritage expertise with technical development to support
+                                    large-scale research projects</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="experience-item">
+                        <div class="experience-title">Graduate Student Assistant</div>
+                        <div class="experience-company">Topoi Excellence Cluster • Dec 2016 – Dec 2018 • Berlin, Germany
+                        </div>
+                        <div class="experience-description">
+                            <ul style="margin-top: 8px; padding-left: 20px;">
+                                <li>Database design and management</li>
+                                <li>Development of research applications with Python, JavaScript, CSS, Shell, Django
+                                </li>
+                                <li>Supported digital humanities initiatives with custom technical solutions</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
 
 
-            <div class="portfolio-section">
-                <h2 class="section-title">Education & Certifications</h2>
-                <div class="experience-item">
-                    <div class="experience-title">Freie Universität Berlin / History and Cultures of Ancient Western
-                        Asia: Focus on Archaeology of Ancient Western Asia</div>
-                    <div class="experience-company">2017-2021 (incomplete)</div>
-                    <div class="experience-description">
-                        Extensive focus on the intersection of archaeology, politics, and sociology.
-                        <ul style="margin-top: 8px; padding-left: 20px;">
-                            <li><strong>Theoretical Approaches:</strong> Theories of Subjectivation, Power Dynamics,
-                                Post-Colonialism, Orientalism, and Feminism.</li>
-                            <li><strong>Socio-Political Archaeology:</strong> Social Inequality in Early Complex
-                                Societies, Imperialism, and the Problems of Ideology.</li>
-                            <li><strong>Contemporary Context:</strong> The Political Dimension of Archaeology Today.
-                            </li>
-                        </ul>
+                <div class="portfolio-section">
+                    <h2 class="section-title">Education & Certifications</h2>
+                    <div class="experience-item">
+                        <div class="experience-title">Freie Universität Berlin / History and Cultures of Ancient Western
+                            Asia: Focus on Archaeology of Ancient Western Asia</div>
+                        <div class="experience-company">2017-2021 (incomplete)</div>
+                        <div class="experience-description">
+                            Extensive focus on the intersection of archaeology, politics, and sociology.
+                            <ul style="margin-top: 8px; padding-left: 20px;">
+                                <li><strong>Theoretical Approaches:</strong> Theories of Subjectivation, Power Dynamics,
+                                    Post-Colonialism, Orientalism, and Feminism.</li>
+                                <li><strong>Socio-Political Archaeology:</strong> Social Inequality in Early Complex
+                                    Societies, Imperialism, and the Problems of Ideology.</li>
+                                <li><strong>Contemporary Context:</strong> The Political Dimension of Archaeology Today.
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-                <div class="experience-item">
-                    <div class="experience-title">Freie Universität Berlin / Studies in Ancient Civilisations
-                        (Concentration: Ancient Near Eastern Archaeology)</div>
-                    <div class="experience-company">2015</div>
-                    <div class="experience-description">
-                        Foundational studies in Ancient Western Asian Archaeology, material culture, and field
-                        methods.<br><br>
-                        <strong>Bachelor Thesis ("Open Access und Open Data in der Archäologie"):</strong>
-                        Explored the application of Semantic Web technologies (Linked Open Data, JSON-LD, RDF) to
-                        archaeological research. Developed a conceptual WebGIS for the contemporary archaeology
-                        excavations of National Socialist forced labor camps at the Tempelhofer Feld. This work was
-                        subsequently cited in Reinhard Bernbeck's publication <em>"Materielle Spuren des
-                            nationalsozialistischen Terrors: Zu einer Archäologie der Zeitgeschichte"</em>.
+                    <div class="experience-item">
+                        <div class="experience-title">Freie Universität Berlin / Studies in Ancient Civilisations
+                            (Concentration: Ancient Near Eastern Archaeology)</div>
+                        <div class="experience-company">2015</div>
+                        <div class="experience-description">
+                            Foundational studies in Ancient Western Asian Archaeology, material culture, and field
+                            methods.<br><br>
+                            <strong>Bachelor Thesis ("Open Access und Open Data in der Archäologie"):</strong>
+                            Explored the application of Semantic Web technologies (Linked Open Data, JSON-LD, RDF) to
+                            archaeological research. Developed a conceptual WebGIS for the contemporary archaeology
+                            excavations of National Socialist forced labor camps at the Tempelhofer Feld. This work was
+                            subsequently cited in Reinhard Bernbeck's publication <em>"Materielle Spuren des
+                                nationalsozialistischen Terrors: Zu einer Archäologie der Zeitgeschichte"</em>.
+                        </div>
                     </div>
+                    <!-- Add certifications if you have, e.g. AWS, GIS, etc. -->
                 </div>
-                <!-- Add certifications if you have, e.g. AWS, GIS, etc. -->
-            </div>
 
-            <div class="portfolio-section">
-                <h2 class="section-title">Interests & Side Projects</h2>
-                <p>
-                    Aside from professional work, I enjoy building experimental 3D visualizations, exploring geospatial
-                    data, contributing to open-source, and continually learning new interactive web technologies.
-                </p>
-                <p style="margin-top: 10px;">
-                    <strong>Personal Research & Reading:</strong> Deeply interested in Theories of Power
-                    (Machttheorien), as well as the history, culture, and geopolitics of Kurdistan.
-                </p>
-            </div>
+                <div class="portfolio-section">
+                    <h2 class="section-title">Interests & Side Projects</h2>
+                    <p>
+                        Aside from professional work, I enjoy building experimental 3D visualizations, exploring
+                        geospatial
+                        data, contributing to open-source, and continually learning new interactive web technologies.
+                    </p>
+                    <p style="margin-top: 10px;">
+                        <strong>Personal Research & Reading:</strong> Deeply interested in Theories of Power
+                        (Machttheorien), as well as the history, culture, and geopolitics of Kurdistan.
+                    </p>
+                </div>
 
 
 
@@ -224,20 +237,20 @@
             <button class="close-portfolio" id="close-showcase">&times;</button>
             <div class="portfolio-content">
 
-            <div class="portfolio-header">
-                <div class="header-text">
-                    <h1 class="portfolio-title">Showcase</h1>
-                    <p class="portfolio-subtitle">Coming Soon</p>
+                <div class="portfolio-header">
+                    <div class="header-text">
+                        <h1 class="portfolio-title">Showcase</h1>
+                        <p class="portfolio-subtitle">Coming Soon</p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="portfolio-section" style="text-align: center; padding: 40px 0;">
-                <p style="font-size: 1.2rem; color: #666;">
-                    I'm currently curating my best interactive 3D and geospatial web projects.<br>
-                    Check back soon to explore them!
-                </p>
-                <div style="font-size: 3rem; margin-top: 20px;">🚧 ✨ 🚀</div>
-            </div>
+                <div class="portfolio-section" style="text-align: center; padding: 40px 0;">
+                    <p style="font-size: 1.2rem; color: #666;">
+                        I'm currently curating my best interactive 3D and geospatial web projects.<br>
+                        Check back soon to explore them!
+                    </p>
+                    <div style="font-size: 3rem; margin-top: 20px;">🚧 ✨ 🚀</div>
+                </div>
             </div>
         </div>
     </div>
