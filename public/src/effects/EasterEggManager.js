@@ -37,6 +37,8 @@ export class EasterEggManager {
                     this.triggerShootingStarShower();
                     break;
 
+
+
                 case 'KeyT':
                     // 'T' for Time warp (speed up everything)
                     this.toggleTimeWarp();
