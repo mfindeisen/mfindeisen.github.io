@@ -1,14 +1,52 @@
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+:root {
+    /* Colors */
+    --color-primary: #3498db;
+    --color-primary-dark: #2980b9;
+    --color-accent: #667eea;
+    --color-accent-dark: #764ba2;
+    --color-accent-purple: #9b59b6;
+    --color-success: #2e7d32;
+    --color-text-dark: #2c3e50;
+    --color-text-muted: #7f8c8d;
+    --color-surface: #f8f9fa;
+    --color-place-type: #64b5f6;
+    --color-google-blue: #1a73e8;
 
-        body {
-            overflow-x: hidden;
-            background: #000;
-            font-family: 'Arial', sans-serif;
-        }
+    /* Fonts */
+    --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+    /* Spacing / Layout */
+    --btn-top: 20px;
+    --btn-top-mobile: 10px;
+    --sidebar-width: 320px;
+    --sidebar-collapsed: 60px;
+    --modal-radius: 12px;
+    --portfolio-radius: 20px;
+
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.3s ease;
+    --transition-slow: 0.8s ease;
+    --transition-spring: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Glassmorphism */
+    --glass-bg: rgba(0, 0, 0, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-blur: blur(16px) saturate(180%);
+    --overlay-bg: rgba(0, 0, 0, 0.4);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow-x: hidden;
+    background: #000;
+    font-family: var(--font-system);
+}
 
         #canvas-container {
             position: fixed;
@@ -82,25 +120,23 @@
                 font-size: 12px;
             }
 
-            #skip-button {
-                top: 10px;
+            #top-toolbar {
+                top: var(--btn-top-mobile);
                 right: 10px;
-                padding: 12px 20px;
-                font-size: 13px;
+                gap: 8px;
+                max-width: calc(100% - 20px);
             }
 
-            #reopen-portfolio-btn {
-                top: 10px;
-                right: 10px;
-                padding: 10px 18px;
-                font-size: 13px;
+            #top-toolbar button {
+                font-size: 12px !important;
             }
 
-            #showcase-btn {
-                top: 10px;
-                right: 160px;
-                padding: 10px 18px;
-                font-size: 13px;
+            #skip-button, #skip-showcase-btn {
+                padding: 12px 20px !important;
+            }
+
+            #reopen-portfolio-btn.visible, #reopen-showcase-btn.visible {
+                padding: 10px 18px !important;
             }
         }
 
@@ -156,7 +192,7 @@
             gap: 8px;
             cursor: pointer;
             opacity: 1;
-            transition: all 0.3s ease;
+            transition: all var(--transition-base);
         }
 
         #scroll-indicator.hidden {
@@ -176,7 +212,7 @@
             font-weight: 500;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
             margin-bottom: 4px;
-            transition: all 0.3s ease;
+            transition: all var(--transition-base);
         }
 
         .scroll-arrow {
@@ -189,7 +225,7 @@
             justify-content: center;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            transition: all var(--transition-base);
             animation: bounce 2s infinite;
         }
 
@@ -349,7 +385,7 @@
             height: 120px;
             border-radius: 50%;
             object-fit: cover;
-            border: 4px solid #3498db;
+            border: 4px solid var(--color-primary);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
             transition: transform 0.3s ease;
         }
@@ -365,13 +401,13 @@
         .portfolio-title {
             font-size: 2.5rem;
             font-weight: 700;
-            color: #2c3e50;
+            color: var(--color-text-dark);
             margin-bottom: 10px;
         }
 
         .portfolio-subtitle {
             font-size: 1.2rem;
-            color: #7f8c8d;
+            color: var(--color-text-muted);
             margin-bottom: 20px;
         }
 
@@ -394,9 +430,9 @@
         .section-title {
             font-size: 1.4rem;
             font-weight: 600;
-            color: #2c3e50;
+            color: var(--color-text-dark);
             margin-bottom: 15px;
-            border-bottom: 2px solid #3498db;
+            border-bottom: 2px solid var(--color-primary);
             padding-bottom: 5px;
         }
 
@@ -409,30 +445,33 @@
 
         .skill-tag {
             background: #ecf0f1;
-            color: #2c3e50;
+            color: var(--color-text-dark);
             padding: 8px 12px;
             border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
             font-size: 0.9rem;
             font-weight: 500;
         }
 
         .experience-item {
-            background: #f8f9fa;
+            background: var(--color-surface);
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 15px;
-            border-left: 4px solid #3498db;
+            border-left: 4px solid var(--color-primary);
         }
 
         .experience-title {
             font-weight: 600;
-            color: #2c3e50;
+            color: var(--color-text-dark);
             font-size: 1.1rem;
         }
 
         .experience-company {
-            color: #7f8c8d;
+            color: var(--color-text-muted);
             font-size: 0.95rem;
             margin-bottom: 8px;
         }
@@ -450,7 +489,7 @@
             background: rgba(0, 0, 0, 0.05);
             border: none;
             font-size: 1.5rem;
-            color: #7f8c8d;
+            color: var(--color-text-muted);
             cursor: pointer;
             width: 40px;
             height: 40px;
@@ -458,13 +497,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            transition: all var(--transition-base);
             z-index: 10;
         }
 
         .close-portfolio:hover {
             background: #ecf0f1;
-            color: #2c3e50;
+            color: var(--color-text-dark);
         }
 
         .contact-links {
@@ -479,46 +518,77 @@
             align-items: center;
             gap: 8px;
             padding: 10px 20px;
-            background: #3498db;
+            background: var(--color-primary);
             color: white;
             text-decoration: none;
             border-radius: 25px;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: all var(--transition-base);
         }
 
         .contact-link:hover {
-            background: #2980b9;
+            background: var(--color-primary-dark);
             transform: translateY(-2px);
         }
 
-        #skip-button, #skip-showcase-btn {
-            position: fixed !important;
-            top: 20px !important;
-            right: 20px !important;
-            left: auto !important;
+        #top-toolbar {
+            position: fixed;
+            top: var(--btn-top);
+            right: 20px;
             z-index: 12;
+            display: flex;
+            gap: 12px;
+            pointer-events: none;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        #top-toolbar button {
+            pointer-events: auto;
+            position: relative !important;
+            top: auto !important;
+            right: auto !important;
+            left: auto !important;
+            margin: 0 !important;
+            transition: opacity var(--transition-base),
+                        transform var(--transition-base),
+                        max-width var(--transition-base),
+                        padding var(--transition-base),
+                        margin var(--transition-base),
+                        border-width var(--transition-base),
+                        background var(--transition-base),
+                        border-color var(--transition-base),
+                        box-shadow var(--transition-base);
+            max-width: 250px;
+            min-width: auto !important;
+            opacity: 1;
+            transform: translateY(0);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            font-family: var(--font-system);
+            flex-shrink: 1;
+        }
+
+        #skip-button, #skip-showcase-btn {
             padding: 16px 32px;
-            background: rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
             color: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            border: 1px solid var(--glass-border);
             border-radius: 30px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 1;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25),
                 0 4px 16px rgba(0, 0, 0, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2),
                 inset 0 -1px 0 rgba(0, 0, 0, 0.2);
             letter-spacing: 0.6px;
-            position: relative;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
         #skip-button::before, #skip-showcase-btn::before {
@@ -557,21 +627,23 @@
                 inset 0 -1px 0 rgba(0, 0, 0, 0.25);
         }
 
-        #skip-button.hidden, #skip-showcase-btn.hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(-10px);
-        }
-
-        #skip-showcase-btn {
-            right: 250px !important;
+        /* Unified hidden rule for all top-toolbar buttons to prevent gaps and mobile layout issues */
+        #top-toolbar button.hidden,
+        #reopen-portfolio-btn:not(.visible),
+        #reopen-showcase-btn:not(.visible) {
+            max-width: 0 !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            border-width: 0 !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateY(-10px) !important;
+            margin: 0 !important;
+            box-shadow: none !important;
         }
 
         #reopen-portfolio-btn, #reopen-showcase-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 12;
             padding: 12px 24px;
             background: rgba(52, 152, 219, 0.9);
             backdrop-filter: blur(10px);
@@ -581,22 +653,22 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(-10px);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
             box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
         }
 
         #reopen-portfolio-btn.visible, #reopen-showcase-btn.visible {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
+            max-width: 250px !important;
+            padding: 12px 24px !important;
+            border-left-width: 1px !important;
+            border-right-width: 1px !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: translateY(0) !important;
         }
 
-        #reopen-portfolio-btn:hover, #reopen-showcase-btn:hover {
-            background: rgba(52, 152, 219, 1);
+        #reopen-portfolio-btn:hover {
+            background: var(--color-primary-dark);
             border-color: rgba(52, 152, 219, 0.8);
             transform: translateY(-1px);
             box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
@@ -607,7 +679,6 @@
         }
 
         #reopen-showcase-btn {
-            right: 200px;
             background: rgba(155, 89, 182, 0.9);
             border-color: rgba(155, 89, 182, 0.6);
             box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
@@ -633,10 +704,10 @@
             font-size: 16px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--transition-base);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: var(--font-system);
             z-index: 1000;
             box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
             pointer-events: auto;
@@ -715,7 +786,7 @@
         /* Firefox scrollbar styling */
         .portfolio-content {
             scrollbar-width: thin;
-            scrollbar-color: #3498db rgba(0, 0, 0, 0.1);
+            scrollbar-color: var(--color-primary) rgba(0, 0, 0, 0.1);
         }
 
         /* Smooth scrolling behavior */
@@ -746,8 +817,17 @@
             }
 
             .contact-links {
-                flex-direction: column;
-                gap: 10px;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .contact-link {
+                padding: 8px 16px !important;
+                font-size: 13px;
+                flex: 0 1 auto;
             }
 
             /* Slightly wider scrollbar on mobile for easier touch interaction */
@@ -865,7 +945,7 @@
             align-items: center;
             padding: 16px 20px;
             border-bottom: 1px solid #eee;
-            background: #f8f9fa;
+            background: var(--color-surface);
         }
 
         .photo-modal-header h3 {
@@ -923,7 +1003,7 @@
             width: 40px;
             height: 40px;
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #1a73e8;
+            border-top: 4px solid var(--color-google-blue);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 16px;
@@ -1327,7 +1407,7 @@
 
         .place-popup {
             padding: 16px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: var(--font-system);
         }
 
         .popup-title {
@@ -1431,7 +1511,7 @@
         }
 
         .view-all-photos-btn {
-            background: #1a73e8;
+            background: var(--color-google-blue);
             color: white;
             border: none;
             padding: 8px 16px;
@@ -1506,7 +1586,7 @@
             align-items: center;
             padding: 16px 20px;
             border-bottom: 1px solid #eee;
-            background: #f8f9fa;
+            background: var(--color-surface);
         }
 
         .photo-gallery-header h3 {
@@ -1666,14 +1746,14 @@
             left: 0;
             height: 100vh;
             z-index: 1000;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: var(--font-system);
             background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(16px) saturate(180%);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
             color: rgba(255, 255, 255, 0.9);
-            border-right: 1px solid rgba(255, 255, 255, 0.25);
+            border-right: 1px solid var(--glass-border);
             box-shadow: 2px 0 16px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all var(--transition-spring);
             display: flex;
             flex-direction: column;
         }
@@ -1874,7 +1954,7 @@
 
         .place-type {
             font-size: 12px;
-            color: #64b5f6;
+            color: var(--color-place-type);
             font-weight: 400;
         }
 
@@ -2280,7 +2360,7 @@
             align-items: center;
             padding: 16px 20px;
             border-bottom: 1px solid #eee;
-            background: #f8f9fa;
+            background: var(--color-surface);
         }
 
         .photo-modal-header h3 {
