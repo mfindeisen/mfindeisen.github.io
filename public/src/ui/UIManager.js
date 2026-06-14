@@ -304,8 +304,16 @@ export class UIManager {
 
             if (overlayName === 'portfolio') {
                 this.showElement('portfolioOverlay');
+                const content = this.getElement('portfolioOverlay')?.querySelector('.portfolio-content');
+                if (content) {
+                    content.scrollTop = 0;
+                }
             } else if (overlayName === 'showcase') {
                 this.showElement('showcaseOverlay');
+                const content = this.getElement('showcaseOverlay')?.querySelector('.portfolio-content');
+                if (content) {
+                    content.scrollTop = 0;
+                }
             }
         }
     }
