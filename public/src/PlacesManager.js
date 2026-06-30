@@ -11,6 +11,7 @@ export class PlacesManager {
         this.places = this.initializePlaces();
         this.placesListElement = null; // Reference to the places list sidebar
         this.isListVisible = false;
+        this.activePopup = null; // Track the currently open popup
         
         // Initialize the places list UI
         this.createPlacesList();
@@ -213,7 +214,14 @@ export class PlacesManager {
         // Use MapTiler's native event handling
         marker.getElement().addEventListener('click', () => {
             console.log('Marker clicked!', place.name);
+            
+            // Close any previously opened popup
+            if (this.activePopup) {
+                this.activePopup.remove();
+            }
+            
             popup.setLngLat(place.coordinates).addTo(this.mapTilerMap);
+            this.activePopup = popup;
             
             // Add click handlers for photos after popup is added
             setTimeout(() => {
@@ -1326,9 +1334,15 @@ export class PlacesManager {
     openMarkerPopup(place) {
         const marker = this.markers.get(place.id);
         if (marker) {
+            // Close any previously opened popup
+            if (this.activePopup) {
+                this.activePopup.remove();
+            }
+            
             // Create and show the popup
             const popup = this.createNativePopup(place);
             popup.setLngLat(place.coordinates).addTo(this.mapTilerMap);
+            this.activePopup = popup;
             
             // Add photo click handlers after popup is shown
             setTimeout(() => {
