@@ -275,7 +275,7 @@ export class UIManager {
             } else {
                 // If we are not arrived (e.g. at the top of the page), restore the top buttons
                 // Only if we haven't scrolled down
-                if (window.pageYOffset <= 10) {
+                if (window.pageYOffset <= 50) {
                     this.showElement('scrollIndicator');
                     this.showElement('skipButton');
                     this.showElement('skipShowcaseBtn');

@@ -1,7 +1,7 @@
 export class EasterEggManager {
     constructor(app) {
         this.app = app;
-        
+
         // Initialize easter egg state
         this.timeWarpActive = false;
         this.colorModeIndex = 0;
@@ -36,8 +36,6 @@ export class EasterEggManager {
                     // 'S' for Shooting star shower
                     this.triggerShootingStarShower();
                     break;
-
-
 
                 case 'KeyT':
                     // 'T' for Time warp (speed up everything)
@@ -77,7 +75,7 @@ export class EasterEggManager {
         this.createClickRipple(x, y);
 
         // Random chance for special effects on click
-        if (Math.random() < 0.1) { // 10% chance
+        if (Math.random() < 0.33) { // 33% chance
             const effects = ['sparkles', 'colorBurst', 'miniStar'];
             const effect = effects[Math.floor(Math.random() * effects.length)];
             this.triggerClickEffect(effect, x, y);
@@ -101,7 +99,7 @@ export class EasterEggManager {
 
         // Add CSS animation if not already added
         if (!document.querySelector('#ripple-styles')) {
-            
+
         }
 
         document.body.appendChild(ripple);

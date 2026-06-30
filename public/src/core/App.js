@@ -122,7 +122,7 @@ export class App {
 
             // Initialize places manager
             this.placesManager = new PlacesManager(this.mapTilerMap);
-            
+
             // Set places manager reference in UI manager
             this.uiManager.setPlacesManager(this.placesManager);
 
@@ -281,6 +281,13 @@ export class App {
         }
 
         console.log('Starting smooth flyTo animation to Erbil, Iraq');
+
+        // Force hide all scroll-related UI during the flight animation
+        this.uiManager.hideElement('scrollIndicator');
+        this.uiManager.hideElement('skipButton');
+        this.uiManager.hideElement('skipShowcaseBtn');
+        this.uiManager.hideElement('footer');
+
         // 36.1892566,44.0100967
         const targetLng = 44.0100967;
         const targetLat = 36.1892566;
@@ -341,20 +348,30 @@ export class App {
         this.renderer.render(this.earthScene.scene, this.earthScene.camera);
     }
 
-        updateUIOnScroll(progress) {
-        // Handle scroll indicator and skip button visibility
-        if (!this.uiManager.getState('isAutoScrolling')) {
-            if (window.pageYOffset > 50 && this.uiManager.getState('journeyState') !== 'arrived') {
+    updateUIOnScroll(progress) {
+        const journeyState = this.uiManager.getState('journeyState');
+        
+        // Never show UI elements while flying or after arrived
+        if (journeyState === 'flying' || journeyState === 'arrived') {
+            this.uiManager.hideElement('scrollIndicator');
+            this.uiManager.hideElement('skipButton');
+            this.uiManager.hideElement('skipShowcaseBtn');
+            this.uiManager.hideElement('footer');
+        } else {
+            if (window.pageYOffset > 50) {
                 this.uiManager.hideElement('scrollIndicator');
                 this.uiManager.hideElement('skipButton');
                 this.uiManager.hideElement('skipShowcaseBtn');
                 this.uiManager.hideElement('footer');
-            } else if (window.pageYOffset <= 10 && this.uiManager.getState('journeyState') !== 'arrived') {
-                this.uiManager.showElement('scrollIndicator');
-                this.uiManager.showElement('skipButton');
-                this.uiManager.showElement('skipShowcaseBtn');
-                this.uiManager.showElement('footer');
-                this.uiManager.hideElement('backToBeginningBtn');
+            } else if (window.pageYOffset <= 10) {
+                // Only show them if we are not currently auto-scrolling (e.g. smooth scrolling to top)
+                if (!this.uiManager.getState('isAutoScrolling')) {
+                    this.uiManager.showElement('scrollIndicator');
+                    this.uiManager.showElement('skipButton');
+                    this.uiManager.showElement('skipShowcaseBtn');
+                    this.uiManager.showElement('footer');
+                    this.uiManager.hideElement('backToBeginningBtn');
+                }
             }
         }
 
@@ -370,11 +387,16 @@ export class App {
         this.uiManager.checkBeginningState(progress);
     }
 
-    
+
     updateGoogleEarthVisibility(progress, scrollingDown = true) {
         const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
 
         if (progress > 0.5) {
+            console.log("Progress is greater than 0.5");
+            // Force hide scroll indicator and skip button on the map view
+            this.uiManager.hideElement('scrollIndicator');
+            this.uiManager.hideElement('skipButton');
+
             googleEarthContainer.style.zIndex = '0';
             googleEarthContainer.style.opacity = 0;
 
@@ -395,6 +417,17 @@ export class App {
                     this.uiManager.getElement('footer').style.marginBottom = window.innerWidth <= 768 ? '45px' : '25px';
                 }
 
+                // Map UI visibility check - ensure places list and buttons are shown if we arrived
+                if (this.uiManager.getState('journeyState') === 'arrived' && this.uiManager.getState('activeOverlay') === 'none') {
+                    if (this.placesManager) {
+                        this.placesManager.setPlacesListVisibility(true);
+                    }
+                    if (this.uiManager.getState('portfolioHasBeenShown') && this.uiManager.getState('portfolioManuallyDismissed')) {
+                        this.uiManager.showElement('reopenPortfolioBtn');
+                        this.uiManager.showElement('reopenShowcaseBtn');
+                    }
+                }
+
                 const animationThreshold = isMobile ? 0.95 : 0.99;
                 // Only trigger the final flyTo animation if we are actively scrolling DOWN
                 // This prevents re-triggering it during the "Back to beginning" smooth scroll UP
@@ -410,14 +443,25 @@ export class App {
             this.showBackgroundElements();
             this.uiManager.getElement('footer').style.marginBottom = '';
 
+            // Force hide all map-specific UI when map is not visible
+            this.uiManager.hideElement('reopenPortfolioBtn');
+            this.uiManager.hideElement('reopenShowcaseBtn');
+            if (this.placesManager) {
+                this.placesManager.setPlacesListVisibility(false);
+            }
+
             if (this.uiManager.getState('journeyState') !== 'idle' && progress < 0.3 && this.uiManager.getState('activeOverlay') === 'none') {
                 this.resetMapTileMap();
+                if (this.placesManager) {
+                    this.placesManager.removeAllMarkers();
+                    this.placesManager.resetAllStates();
+                }
                 this.uiManager.setState('journeyState', 'idle');
             }
         }
     }
 
-    
+
     hideBackgroundElements(fadeProgress) {
         const container = this.uiManager.getElement('container');
         if (container) {
@@ -443,7 +487,7 @@ export class App {
         }
     }
 
-    
+
     showBackgroundElements() {
         const container = this.uiManager.getElement('container');
         if (container) {
@@ -457,9 +501,9 @@ export class App {
         }
     }
 
-    
 
-    
+
+
 
     resetMapTileMap() {
         console.log('🟡 resetMapTileMap() called - THIS SHOULD NOT HAPPEN WHEN PORTFOLIO IS CLOSED');
@@ -469,7 +513,7 @@ export class App {
         this.uiManager.setState('journeyState', 'idle');
     }
 
-    
+
     skipToOverlay(overlayName) {
         console.log(`Skipping directly to ${overlayName}`);
 
@@ -491,7 +535,7 @@ export class App {
         this.uiManager.setActiveOverlay(overlayName);
     }
 
-    
+
     backToBeginning() {
         console.log('🟢 backToBeginning() called - RESETTING TO COMPLETE BEGINNING');
 
@@ -538,23 +582,23 @@ export class App {
         this.uiManager.setState('portfolioHasBeenShown', false);
         this.uiManager.setState('portfolioManuallyDismissed', false);
         this.uiManager.setState('activeOverlay', 'none');
-        
+
         // Protect the scroll up with isAutoScrolling
         this.uiManager.setState('isAutoScrolling', true);
-        
+
         let scrollTimeout;
         const finishAutoScroll = () => {
             this.uiManager.setState('isAutoScrolling', false);
             window.removeEventListener('scroll', checkScrollComplete);
             clearTimeout(scrollTimeout);
         };
-        
+
         const checkScrollComplete = () => {
             if (window.pageYOffset <= 5) {
                 finishAutoScroll();
             }
         };
-        
+
         window.addEventListener('scroll', checkScrollComplete);
         scrollTimeout = setTimeout(finishAutoScroll, 2000); // Fallback
 
@@ -573,17 +617,19 @@ export class App {
             reopenShowcaseBtn.classList.remove('visible');
         }
 
-        // Show the initial UI elements after a delay
+        // Show the initial UI elements after a delay ONLY IF we are still at the top and not locked
         setTimeout(() => {
-            const scrollIndicator = this.uiManager.getElement('scrollIndicator');
-            const skipButton = this.uiManager.getElement('skipButton');
-            const skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
-            const footer = this.uiManager.getElement('footer');
-            
-            if (scrollIndicator) scrollIndicator.classList.remove('hidden');
-            if (skipButton) skipButton.classList.remove('hidden');
-            if (skipShowcaseBtn) skipShowcaseBtn.classList.remove('hidden');
-            if (footer) footer.classList.remove('hidden');
+            if (window.pageYOffset <= 50 && !this.uiManager.getState('isScrollLocked')) {
+                const scrollIndicator = this.uiManager.getElement('scrollIndicator');
+                const skipButton = this.uiManager.getElement('skipButton');
+                const skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
+                const footer = this.uiManager.getElement('footer');
+
+                if (scrollIndicator) scrollIndicator.classList.remove('hidden');
+                if (skipButton) skipButton.classList.remove('hidden');
+                if (skipShowcaseBtn) skipShowcaseBtn.classList.remove('hidden');
+                if (footer) footer.classList.remove('hidden');
+            }
         }, 1000); // Give time for scroll animation to complete
     }
 }
