@@ -50,10 +50,13 @@ export class UIManager {
             const scrollProgress = currentScroll / maxScroll;
             
             if (scrollProgress > 0.5) {
-                // If it's a UI element (not map and not canvas)
-                if (!e.target.closest('#google-earth-container') && !e.target.closest('#canvas-container')) {
+                // If it's a UI element (not the actual map canvas and not the earth canvas)
+                const isMapCanvas = e.target.closest('.maplibregl-canvas');
+                const isEarthCanvas = e.target.closest('#canvas-container');
+                
+                if (!isMapCanvas && !isEarthCanvas) {
                     // Check if it's inside a scrollable container
-                    const scrollable = e.target.closest('.portfolio-content, .places-list, .photo-modal-content');
+                    const scrollable = e.target.closest('.portfolio-content, .places-list, .photo-modal-content, .maplibregl-popup-content');
                     if (scrollable) {
                         const deltaY = e.type === 'wheel' ? e.deltaY : (this.lastTouchY ? this.lastTouchY - e.touches[0].clientY : 0);
                         const isAtTop = scrollable.scrollTop <= 0;
