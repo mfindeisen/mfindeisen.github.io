@@ -1033,29 +1033,6 @@ export class PlacesManager {
             this.adjustBackButtonPosition();
         }
         
-        // Prevent scroll chaining on desktop (wheel events)
-        this.placesListElement.addEventListener('wheel', (e) => {
-            const listContent = this.placesListElement.querySelector('.places-list');
-            
-            // If hovering over header, prevent scrolling the body
-            if (e.target.closest('.places-list-header')) {
-                e.preventDefault();
-                return;
-            }
-            
-            // If hovering over the list content, prevent scroll chaining at boundaries
-            if (listContent && listContent.contains(e.target)) {
-                const deltaY = e.deltaY;
-                const isAtTop = listContent.scrollTop <= 0;
-                const isAtBottom = listContent.scrollTop + listContent.clientHeight >= listContent.scrollHeight - 1;
-                
-                // e.deltaY < 0 means scrolling up, e.deltaY > 0 means scrolling down
-                if ((isAtTop && deltaY < 0) || (isAtBottom && deltaY > 0)) {
-                    e.preventDefault();
-                }
-            }
-        }, { passive: false });
-
         // Add to the page
         document.body.appendChild(this.placesListElement);
         

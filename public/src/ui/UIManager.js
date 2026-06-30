@@ -37,6 +37,45 @@ export class UIManager {
         this.scrollPosition = 0;
         this.preventScrollKeys = null;
         this.placesManager = placesManager;
+
+        // Global scroll interceptor to prevent UI overlays from scrolling the document in map view
+        const preventOverlayScroll = (e) => {
+            // Only apply if map view is active (heuristic: check if scroll is near bottom)
+            const documentHeight = document.documentElement.scrollHeight;
+            const windowHeight = window.innerHeight;
+            const maxScroll = documentHeight - windowHeight;
+            if (maxScroll <= 0) return;
+            
+            const currentScroll = window.pageYOffset;
+            const scrollProgress = currentScroll / maxScroll;
+            
+            if (scrollProgress > 0.5) {
+                // If it's a UI element (not map and not canvas)
+                if (!e.target.closest('#google-earth-container') && !e.target.closest('#canvas-container')) {
+                    // Check if it's inside a scrollable container
+                    const scrollable = e.target.closest('.portfolio-content, .places-list, .photo-modal-content');
+                    if (scrollable) {
+                        const deltaY = e.type === 'wheel' ? e.deltaY : (this.lastTouchY ? this.lastTouchY - e.touches[0].clientY : 0);
+                        const isAtTop = scrollable.scrollTop <= 0;
+                        const isAtBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
+                        
+                        if ((isAtTop && deltaY < 0) || (isAtBottom && deltaY > 0)) {
+                            if (e.cancelable) e.preventDefault();
+                        }
+                    } else {
+                        // Not a scrollable container, prevent document scrolling
+                        if (e.cancelable) e.preventDefault();
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('wheel', preventOverlayScroll, { passive: false });
+        window.addEventListener('touchmove', preventOverlayScroll, { passive: false });
+        
+        window.addEventListener('touchstart', (e) => {
+            this.lastTouchY = e.touches[0].clientY;
+        }, { passive: true });
     }
 
     setupOverlayListeners() {
