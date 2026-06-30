@@ -40,6 +40,31 @@ export class MobileTouchHandler {
                 }
                 return;
             }
+            
+            // Allow places list sidebar to handle its own scrolling without chaining to body
+            const placesListContainer = document.querySelector('.places-list-container');
+            if (placesListContainer && placesListContainer.contains(e.target)) {
+                const listContent = document.querySelector('.places-list');
+                if (listContent && listContent.contains(e.target)) {
+                    const currentY = e.touches[0].clientY;
+                    const deltaY = currentY - touchStartY;
+                    const isAtTop = listContent.scrollTop <= 0;
+                    const isAtBottom = listContent.scrollTop + listContent.clientHeight >= listContent.scrollHeight - 1;
+                    
+                    // Prevent scroll chaining to the body if at boundary
+                    if ((isAtTop && deltaY > 0) || (isAtBottom && deltaY < 0)) {
+                        if (e.cancelable) e.preventDefault();
+                    }
+                } else if (e.target.closest('.places-list-header')) {
+                    // Do nothing for header, let it handle its own touch events for dragging
+                    // Wait, actually PlacesManager handles drag on header, we shouldn't preventDefault here,
+                    // but we also shouldn't let it scroll the main body.
+                    // PlacesManager uses touchstart/touchmove on header and calls e.preventDefault() there.
+                    // So we can just return.
+                }
+                return;
+            }
+
             const showcaseOverlay = document.getElementById('showcase-overlay');
             if (showcaseOverlay && showcaseOverlay.classList.contains('visible')) {
                 return;
