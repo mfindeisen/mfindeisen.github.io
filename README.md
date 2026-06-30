@@ -1,129 +1,93 @@
-# Earth Unwrap Visualization 🌍
+# Interactive Earth Portfolio 🌍
 
-A stunning Three.js visualization that transforms a realistic rotating Earth sphere into a flat world map through scroll-driven animation. Watch as the Earth naturally "peels apart" like an orange, revealing the complete world map!
+A stunning, interactive 3D visualization that transforms a realistic rotating Earth sphere into a flat, highly detailed interactive map (powered by MapTiler) through a smooth scroll-driven animation. Watch as the Earth naturally "peels apart", revealing an interactive map that flies directly to Erbil, Iraq, before presenting a full portfolio experience!
 
 ## ✨ Features
 
-- 🌍 **Realistic Earth Sphere** - High-quality NASA Earth texture with natural rotation
-- 🍊 **Natural Orange-Peel Unwrapping** - Earth splits from the back and spreads apart naturally
-- 📜 **Scroll-Driven Animation** - Smooth morphing controlled by page scroll
-- 🌟 **Dynamic Lighting** - Realistic sun lighting with starfield background
-- 🎯 **Smart Final Rotation** - Automatically rotates to optimal viewing angle
-- 🚀 **Optimized Performance** - Morph targets for smooth 60fps animation
+- 🌍 **Realistic 3D Earth Sphere** - High-quality NASA Earth texture with natural rotation, dynamic clouds, and atmosphere using Three.js.
+- 🍊 **Natural Orange-Peel Unwrapping** - Scroll down to watch the Earth split and spread apart naturally into a flat plane.
+- 🗺️ **Seamless Map Integration** - Morphs seamlessly into a fully interactive MapLibre/MapTiler vector map.
+- ✈️ **Cinematic FlyTo Animation** - Automatically transitions into a smooth camera flight to Erbil, Iraq.
+- 🎨 **Interactive Overlays** - Features a sleek Portfolio and Showcase overlay system that slides in after the journey.
+- 🌟 **Dynamic Lighting & Effects** - Realistic sun lighting, an immersive starfield background, and hidden easter eggs (like a meteor strike!).
+- 🚀 **Optimized Performance** - Powered by Vite, utilizing morph targets for smooth 60fps animations.
 
 ## 🚀 Quick Start
 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd portfolio2
+   cd portfolio_earth
    ```
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
+   *(Note: This project uses `pnpm` instead of `npm` or `yarn`)*
 
 3. **Start the development server**
    ```bash
-   npm start
+   pnpm run dev
    ```
 
 4. **Open your browser**
    ```
-   http://localhost:3000
+   http://localhost:5173
    ```
 
-5. **Scroll down** to watch the Earth unwrap! 🌍➡️🗺️
+5. **Explore!**
+   - Click **"Scroll to explore"** or simply scroll down to watch the Earth unwrap.
+   - Use the **Skip** buttons to instantly jump to the interactive map or portfolio overlays.
+   - Click **"Back to Beginning"** to seamlessly animate back to the 3D globe.
 
 ## 🎮 How It Works
 
-### The Animation Phases:
-1. **Sphere Mode (0%)** - Realistic rotating Earth with natural day/night lighting
-2. **Unwrapping (0-90%)** - Earth splits at the Pacific Ocean and spreads apart like peeling an orange
-3. **Final Rotation (90-100%)** - Plane rotates to face the camera for optimal viewing
+### The Animation Journey:
+1. **Sphere Mode (Top of page)** - Realistic rotating Earth with natural day/night lighting.
+2. **Unwrapping (Scrolling down)** - Earth splits at the Pacific Ocean and spreads apart into a flat plane.
+3. **Map Transition** - The 3D plane seamlessly crossfades into an interactive MapLibre instance.
+4. **Cinematic Flight** - The map automatically flies to the target destination (Erbil).
+5. **Portfolio Reveal** - Once arrived, the interactive overlays slide into view.
 
 ### Technical Implementation:
-- **Dual Geometry System** - Separate left and right halves for natural spreading motion
-- **Morph Targets** - Smooth transition between sphere and plane geometries
-- **UV Coordinate Mapping** - Maintains texture consistency during transformation
-- **Shortest Path Rotation** - Intelligent final rotation that never exceeds 180°
+- **Three.js to MapLibre Handoff** - Complex state management to synchronize the 3D WebGL scene with the 2D vector map layer.
+- **Dual Geometry System** - Custom shader and geometry morph targets for the natural spreading motion.
+- **Vite Ecosystem** - Fast HMR (Hot Module Replacement) and optimized production builds.
 
 ## 📁 Project Structure
 
 ```
-portfolio2/
-├── server.js                 # Express server for development
-├── package.json             # Dependencies and npm scripts
+portfolio_earth/
+├── index.html                 # Main HTML entry point
+├── package.json               # Dependencies and Vite scripts
+├── vite.config.js             # Vite configuration
 ├── public/
-│   ├── index.html           # Main HTML file
-│   ├── textures/
-│   │   └── world.topo.bathy.200407.3x5400x2700.jpg  # NASA Earth texture
+│   ├── style.css              # Global styles and UI animations
+│   ├── textures/              # Earth textures and assets
 │   └── src/
-│       ├── main.js          # Application entry point & scroll reset
-│       ├── EarthScene.js    # Three.js scene, Earth geometry & lighting
-│       └── ScrollController.js  # Scroll progress calculation
+│       ├── main.js            # App initialization
+│       ├── core/App.js        # Main application orchestrator & state machine
+│       ├── earth/             # Three.js globe, stars, clouds, and atmosphere
+│       ├── effects/           # Animations, Scroll controllers, Easter eggs
+│       ├── ui/UIManager.js    # DOM manipulation and overlay state
+│       ├── MapManager.js      # MapTiler/MapLibre integration
+│       └── PlacesManager.js   # Map markers and interactive places
 └── README.md
 ```
 
 ## 🛠️ Technical Stack
 
-- **Backend**: Node.js + Express
+- **Frontend Build Tool**: Vite
 - **3D Graphics**: Three.js
-- **Textures**: NASA Blue Marble Earth imagery
-- **Animation**: Morph targets with easing functions
-- **Geometry**: Custom sphere-to-plane transformation
-
-## 🎨 Key Features Explained
-
-### Natural Orange-Peel Effect
-Unlike traditional map projections, this visualization splits the Earth at its natural seam (Pacific Ocean) and spreads the halves apart like peeling an orange - no artificial stretching or distortion during the unwrapping process.
-
-### Realistic Lighting
-- **Sun Lighting** - Directional light simulating the sun's position
-- **Ambient Lighting** - Ensures Earth remains visible without harsh shadows  
-- **Starfield Background** - Thousands of stars for spatial context
-- **Dynamic Sun Object** - Visible sun with glow effect
-
-### Smart Rotation System
-- **Natural Rotation** - Earth rotates west-to-east when in sphere mode
-- **Smooth Stops** - Rotation pauses naturally when scrolling begins
-- **Intelligent Final Rotation** - Calculates shortest path to optimal viewing angle
-
-## 🔧 Customization Options
-
-### Modify Earth Appearance
-```javascript
-// In EarthScene.js - adjust lighting
-this.sunLight.intensity = 2.0;  // Sun brightness
-const ambientLight = new THREE.AmbientLight(0x404040, 0.4);  // Ambient light
-```
-
-### Adjust Animation Timing
-```javascript
-// In EarthScene.js - change rotation phases
-if (progress >= 0.9) {  // When final rotation starts (90% vs 85%, etc.)
-```
-
-### Change Scroll Sensitivity
-```javascript
-// In ScrollController.js - modify scroll calculation
-const progress = Math.min(Math.max(currentScroll / this.maxScroll, 0), 1);
-```
-
-## 🌟 Browser Support
-
-- Chrome 80+
-- Firefox 75+
-- Safari 13+
-- Edge 80+
-
-Requires WebGL support for 3D rendering.
+- **Interactive Maps**: MapLibre GL JS & MapTiler
+- **Styling**: Vanilla CSS with modern animations and transitions
+- **Package Manager**: pnpm
 
 ## 📝 License
 
-This project is open source. Feel free to use and modify for your own projects!
+This project is open source. Feel free to use and modify it for your own projects!
 
 ---
 
-**Experience the Earth like never before - watch our planet transform from a 3D sphere into the familiar flat world map! 🌍✨**
+**Experience the Earth like never before - watch our planet transform from a 3D sphere into a fully interactive portfolio! 🌍✨**
