@@ -21,6 +21,7 @@ export class AltScene {
     targetMouseY: number = 0;
     isActive: boolean = false;
     animationFrameId: number | null = null;
+    isMobile: boolean = window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
     constructor(canvasId: string) {
         const element = document.getElementById(canvasId);
@@ -45,15 +46,16 @@ export class AltScene {
         this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
         this.camera.position.z = 15;
 
-        // WebGL Renderer
+        // WebGL Renderer – reduced quality on mobile for better performance
         this.renderer = new THREE.WebGLRenderer({
             canvas: this.canvas,
-            antialias: true,
+            antialias: !this.isMobile,
             alpha: false,
-            powerPreference: "high-performance"
+            powerPreference: this.isMobile ? 'default' : 'high-performance'
         });
         this.renderer.setSize(width, height, false);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // Cap pixel ratio to 1 on mobile to halve fill rate
+        this.renderer.setPixelRatio(this.isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
 
         // Add soft ambient light
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
@@ -88,7 +90,13 @@ export class AltScene {
     private createFloatingShapes() {
         if (!this.scene) return;
 
-        const geometries = [
+        // On mobile: use simpler low-poly geometries to reduce GPU load
+        const geometries = this.isMobile ? [
+            new THREE.IcosahedronGeometry(1.1, 0),
+            new THREE.SphereGeometry(1.0, 10, 10),
+            new THREE.ConeGeometry(0.9, 1.6, 8),
+            new THREE.TorusGeometry(0.9, 0.35, 6, 20),
+        ] : [
             new THREE.TorusKnotGeometry(1.0, 0.35, 80, 12),
             new THREE.SphereGeometry(1.2, 24, 24),
             new THREE.IcosahedronGeometry(1.3, 0),
@@ -116,26 +124,37 @@ export class AltScene {
             new THREE.Vector3(-2, -5.0, 1)
         ];
 
-        // Spawn 6 floating glass meshes
-        for (let i = 0; i < 6; i++) {
-            const geom = geometries[i].clone();
+        const count = this.isMobile ? 4 : 6;
+
+        for (let i = 0; i < count; i++) {
+            const geom = geometries[i % geometries.length].clone();
             const color = colors[i];
             const basePos = positions[i];
 
-            // Material giving a physical clear glass bubble appearance
-            const material = new THREE.MeshPhysicalMaterial({
-                color: color,
-                roughness: 0.08,
-                metalness: 0.1,
-                transmission: 0.65, // Let ambient light and background grid pass through
-                transparent: true,
-                opacity: 0.95,
-                ior: 1.55,
-                thickness: 2.5,
-                clearcoat: 1.0,
-                clearcoatRoughness: 0.08,
-                side: THREE.DoubleSide
-            });
+            // On desktop: expensive physical glass with transmission.
+            // On mobile: cheap standard material with transparency only — no second render pass.
+            const material = this.isMobile
+                ? new THREE.MeshStandardMaterial({
+                    color: color,
+                    roughness: 0.2,
+                    metalness: 0.15,
+                    transparent: true,
+                    opacity: 0.75,
+                    side: THREE.FrontSide
+                })
+                : new THREE.MeshPhysicalMaterial({
+                    color: color,
+                    roughness: 0.08,
+                    metalness: 0.1,
+                    transmission: 0.65,
+                    transparent: true,
+                    opacity: 0.95,
+                    ior: 1.55,
+                    thickness: 2.5,
+                    clearcoat: 1.0,
+                    clearcoatRoughness: 0.08,
+                    side: THREE.DoubleSide
+                });
 
             const mesh = new THREE.Mesh(geom, material);
             mesh.position.copy(basePos);
