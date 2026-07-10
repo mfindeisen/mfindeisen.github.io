@@ -484,6 +484,18 @@ body {
             font-size: 0.95rem;
         }
 
+        .experience-description ul,
+        .portfolio-section ul {
+            list-style: disc;
+            padding-left: 1.4rem;
+            margin-top: 0.5rem;
+        }
+
+        .experience-description li,
+        .portfolio-section li {
+            margin-bottom: 0.3rem;
+        }
+
         .close-portfolio {
             position: absolute;
             top: 20px;
