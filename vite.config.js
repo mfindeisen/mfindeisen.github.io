@@ -1,10 +1,15 @@
 import { defineConfig } from 'vite';
 import { copyFileSync, mkdirSync, existsSync } from 'fs';
+import tailwindcss from '@tailwindcss/vite';
 import { join } from 'path';
 
 export default defineConfig({
   // Set the root directory to 'public' since that's where your HTML and assets are
   root: 'public',
+  
+  plugins: [
+    tailwindcss()
+  ],
   
   // Configure the development server
   server: {

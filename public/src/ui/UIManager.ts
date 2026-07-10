@@ -2,7 +2,18 @@
  * UIManager - Handles general UI state and interactions
  */
 export class UIManager {
-    constructor(placesManager = null) {
+    elements: { [key: string]: HTMLElement | null };
+    state: { [key: string]: any };
+    lastOverlayToggleTime: number;
+    beginningTimer: any;
+    autoScrollAnimation: any;
+    scrollPosition: number;
+    preventScrollKeys: any;
+    placesManager: any;
+    lastTouchY: number;
+
+    constructor(placesManager: any = null) {
+        this.lastTouchY = 0;
         this.elements = {
             container: document.getElementById('canvas-container'),
             scrollProgress: document.getElementById('scroll-progress'),
@@ -15,7 +26,9 @@ export class UIManager {
             reopenShowcaseBtn: document.getElementById('reopen-showcase-btn'),
             showcaseOverlay: document.getElementById('showcase-overlay'),
             backToBeginningBtn: document.getElementById('back-to-beginning-btn'),
-            footer: document.getElementById('footer')
+            footer: document.getElementById('footer'),
+            altDesignBtn: document.getElementById('alt-design-btn'),
+            altPortfolioPage: document.getElementById('alt-portfolio-page')
         };
         
         this.state = {
@@ -26,7 +39,8 @@ export class UIManager {
             isScrollLocked: false,
             isAutoScrolling: false,
             activeOverlay: 'none', // 'none' | 'portfolio' | 'showcase'
-            journeyState: 'idle' // 'idle' | 'scrolling' | 'flying' | 'arrived'
+            journeyState: 'idle', // 'idle' | 'scrolling' | 'flying' | 'arrived'
+            isAltPortfolioActive: false
         };
 
         this.lastOverlayToggleTime = 0;
@@ -233,8 +247,7 @@ export class UIManager {
         const duration = 12000;
         const startTime = Date.now();
         const startScroll = window.pageYOffset;
-        
-        const progressFill = document.querySelector('.progress-fill');
+         const progressFill = document.querySelector('.progress-fill') as HTMLDivElement;
         
         const animateScroll = () => {
             const elapsed = Date.now() - startTime;
@@ -258,7 +271,7 @@ export class UIManager {
         
         this.autoScrollAnimation = requestAnimationFrame(animateScroll);
     }
-
+ 
     completeAutoScroll() {
         console.log('Auto-scroll animation completed');
         this.setState('isAutoScrolling', false);
@@ -266,7 +279,7 @@ export class UIManager {
         this.hideElement('scrollIndicator');
         this.showElement('scrollIndicator', 'animating');
         
-        const progressFill = document.querySelector('.progress-fill');
+        const progressFill = document.querySelector('.progress-fill') as HTMLDivElement;
         if (progressFill) {
             progressFill.style.width = '0%';
         }

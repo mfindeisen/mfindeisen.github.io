@@ -1,5 +1,7 @@
 export class MobileTouchHandler {
-    constructor(app) {
+    app: any;
+
+    constructor(app: any) {
         this.app = app;
     }
 
@@ -24,7 +26,7 @@ export class MobileTouchHandler {
             if (this.app.uiManager && this.app.uiManager.getState('portfolioIsVisible')) {
                 const portfolioContent = document.querySelector('#portfolio-overlay .portfolio-content');
                 if (portfolioContent) {
-                    if (!portfolioContent.contains(e.target)) {
+                    if (!portfolioContent.contains(e.target as Node)) {
                         e.preventDefault();
                     } else {
                         const currentY = e.touches[0].clientY;

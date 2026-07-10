@@ -2,7 +2,11 @@
  * Lighting - Handles all lighting setup and management for the Earth scene
  */
 export class Lighting {
-    constructor(scene, THREE) {
+    scene: any;
+    THREE: any;
+    lights: { [key: string]: any };
+
+    constructor(scene: any, THREE: any) {
         this.scene = scene;
         this.THREE = THREE;
         this.lights = {};
@@ -108,7 +112,7 @@ export class Lighting {
      * Remove all lights from scene
      */
     destroy() {
-        Object.values(this.lights).forEach(light => {
+        Object.values(this.lights).forEach((light: any) => {
             if (light.target) {
                 this.scene.remove(light.target);
             }

@@ -4,11 +4,66 @@ import * as THREE from 'three';
  * EasterEggs - Handles astronaut, shooting stars, and satellites
  */
 export class EasterEggs {
-    constructor(scene) {
+    scene: any;
+    astronaut: any;
+    shootingStars: any[];
+    satellites: any[];
+    astronautLeftLeg: any;
+    astronautRightLeg: any;
+    astronautThrusters: any[];
+    astronautVisible: boolean;
+    astronautJourneyStarted: boolean;
+    astronautNextAppearanceTime: number;
+    jetpackThrusting: boolean;
+    jetpackThrustCycle: number;
+    jetpackThrustDuration: number;
+    jetpackRestDuration: number;
+    jetpackCycleStart: number;
+    jetpackFlames: any[];
+    legMovementTime: number;
+    legMovementSpeed: number;
+    lastLegMovement: number;
+    legMovementInterval: number;
+    jetpackLights: any[];
+    lastShootingStarTime: number;
+    shootingStarCooldown: number;
+    shootingStarMaterial: any;
+    astronautJourneySpeed: number;
+    astronautJourneyProgress: number;
+    astronautStartPos: any;
+    astronautEndPos: any;
+
+    constructor(scene: any) {
         this.scene = scene;
         this.astronaut = null;
         this.shootingStars = [];
         this.satellites = [];
+        
+        this.astronautLeftLeg = null;
+        this.astronautRightLeg = null;
+        this.astronautThrusters = [];
+        this.astronautVisible = false;
+        this.astronautJourneyStarted = false;
+        this.astronautNextAppearanceTime = 0;
+        this.jetpackThrusting = false;
+        this.jetpackThrustCycle = 0;
+        this.jetpackThrustDuration = 0;
+        this.jetpackRestDuration = 0;
+        this.jetpackCycleStart = 0;
+        this.jetpackFlames = [];
+        this.legMovementTime = 0;
+        this.legMovementSpeed = 0;
+        this.lastLegMovement = 0;
+        this.legMovementInterval = 0;
+        this.jetpackLights = [];
+        this.lastShootingStarTime = 0;
+        this.shootingStarCooldown = 0;
+        this.shootingStarMaterial = null;
+        this.astronautJourneySpeed = 0;
+        this.astronautJourneyProgress = 0;
+        this.astronautStartPos = null;
+        this.astronautEndPos = null;
+
         this.init();
     }
 

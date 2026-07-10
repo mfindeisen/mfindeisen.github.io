@@ -3,19 +3,36 @@ import { EarthScene } from '../earth/EarthScene.js';
 import { PlacesManager } from '../PlacesManager.js';
 import { ScrollController } from '../ScrollController.js';
 import { UIManager } from '../ui/UIManager.js';
-import { Modal } from '../ui/Modal.js';
 import { Tooltip } from '../ui/Tooltip.js';
-import { EffectsManager } from '../effects/EffectsManager.js';
-import { AnimationController } from '../effects/AnimationController.js';
 import { MapManager } from '../map/MapManager.js';
 import { AlignmentTool } from '../map/AlignmentTool.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { MobileTouchHandler } from '../ui/MobileTouchHandler.js';
 
 import { EasterEggManager } from '../effects/EasterEggManager.js';
+import { AltScene } from '../effects/AltScene.js';
 
 export class App {
+    uiManager: UIManager;
+    tooltip: Tooltip;
+    scrollController: ScrollController;
+    mapManager: MapManager;
+    earthScene: EarthScene;
+    renderer: THREE.WebGLRenderer;
+    mapTilerMap: any;
+    alignmentTool: AlignmentTool;
+    placesManager: PlacesManager;
+    mobileTouchHandler: MobileTouchHandler;
+    easterEggManager: EasterEggManager;
+    altScene: AltScene | null = null;
+    scrollIndicator: any;
+    skipButton: any;
+    skipShowcaseBtn: any;
+    backToBeginningBtn: any;
+    lastScrollProgress: number;
+
     constructor() {
+        this.lastScrollProgress = 0;
         this.resetScrollPosition();
         this.init();
     }
@@ -44,16 +61,7 @@ export class App {
         this.uiManager = new UIManager();
 
         // Initialize tooltip system
-        Tooltip.init();
-
-        // Initialize modal system
-        this.modal = new Modal();
-
-        // Initialize effects manager
-        this.effectsManager = new EffectsManager();
-
-        // Initialize animation controller
-        this.animationController = new AnimationController(THREE);
+        this.tooltip = new Tooltip();
 
         // Initialize scroll controller
         this.scrollController = new ScrollController();
@@ -72,6 +80,9 @@ export class App {
 
         // Setup event listeners
         this.setupEventListeners();
+
+        // Initialize alternative portfolio Three.js scene
+        this.altScene = new AltScene('alt-three-canvas');
 
         // Start animation loop
         this.animate();
@@ -144,7 +155,6 @@ export class App {
 
         // Scroll events
         window.addEventListener('scroll', this.onScroll.bind(this));
-        window.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
 
         // UI events
         this.setupUIEvents();
@@ -207,15 +217,43 @@ export class App {
                 this.uiManager.setActiveOverlay('showcase');
             });
         }
+
+        // Alternative design transition listeners
+        const altDesignBtn = document.getElementById('alt-design-btn');
+        const altBackBtn = document.getElementById('alt-back-btn');
+        const altPortfolioPage = document.getElementById('alt-portfolio-page');
+
+        if (altDesignBtn && altPortfolioPage) {
+            altDesignBtn.addEventListener('click', () => {
+                this.uiManager.setState('isAltPortfolioActive', true);
+                document.body.classList.add('alt-mode-active');
+                altPortfolioPage.classList.add('visible');
+                altDesignBtn.style.display = 'none';
+                this.tooltip.removeAll(); // Hide all active tooltips
+                
+                // Start alternative Three.js rendering
+                this.altScene?.start();
+            });
+        }
+
+        if (altBackBtn && altPortfolioPage && altDesignBtn) {
+            altBackBtn.addEventListener('click', () => {
+                this.uiManager.setState('isAltPortfolioActive', false);
+                document.body.classList.remove('alt-mode-active');
+                altPortfolioPage.classList.remove('visible');
+                
+                // Stop alternative Three.js rendering to save performance
+                this.altScene?.stop();
+
+                setTimeout(() => {
+                    altDesignBtn.style.display = 'flex';
+                }, 800); // Match transition duration
+            });
+        }
     }
 
     showTooltip(message, duration = 2000) {
-        const tooltip = document.createElement('div');
-        tooltip.className = 'tooltip';
-        tooltip.textContent = message;
-        document.body.appendChild(tooltip);
-
-        setTimeout(() => tooltip.remove(), duration);
+        this.tooltip.show(message, duration);
     }
 
     onWindowResize() {
@@ -230,7 +268,7 @@ export class App {
 
     onScroll() {
         // Prevent fake scroll events caused by CSS position: fixed from ruining the state
-        if (this.uiManager && this.uiManager.getState('isScrollLocked')) {
+        if (this.uiManager && (this.uiManager.getState('isScrollLocked') || this.uiManager.getState('isAltPortfolioActive'))) {
             return;
         }
 
@@ -251,12 +289,6 @@ export class App {
         this.updateUIOnScroll(scrollProgress);
     }
 
-    /**
-     * Handle wheel event
-     */
-    onWheel(e) {
-        this.animationController.handleScroll(e, this.earthScene, this.uiManager);
-    }
 
     /**
      * Update UI based on scroll progress
@@ -350,19 +382,22 @@ export class App {
 
     updateUIOnScroll(progress) {
         const journeyState = this.uiManager.getState('journeyState');
+        const isAltActive = this.uiManager.getState('isAltPortfolioActive');
         
         // Never show UI elements while flying or after arrived
-        if (journeyState === 'flying' || journeyState === 'arrived') {
+        if (journeyState === 'flying' || journeyState === 'arrived' || isAltActive) {
             this.uiManager.hideElement('scrollIndicator');
             this.uiManager.hideElement('skipButton');
             this.uiManager.hideElement('skipShowcaseBtn');
             this.uiManager.hideElement('footer');
+            this.uiManager.hideElement('altDesignBtn');
         } else {
             if (window.pageYOffset > 50) {
                 this.uiManager.hideElement('scrollIndicator');
                 this.uiManager.hideElement('skipButton');
                 this.uiManager.hideElement('skipShowcaseBtn');
                 this.uiManager.hideElement('footer');
+                this.uiManager.hideElement('altDesignBtn');
             } else if (window.pageYOffset <= 10) {
                 // Only show them if we are not currently auto-scrolling (e.g. smooth scrolling to top)
                 if (!this.uiManager.getState('isAutoScrolling')) {
@@ -370,6 +405,7 @@ export class App {
                     this.uiManager.showElement('skipButton');
                     this.uiManager.showElement('skipShowcaseBtn');
                     this.uiManager.showElement('footer');
+                    this.uiManager.showElement('altDesignBtn');
                     this.uiManager.hideElement('backToBeginningBtn');
                 }
             }
@@ -398,7 +434,7 @@ export class App {
             this.uiManager.hideElement('skipButton');
 
             googleEarthContainer.style.zIndex = '0';
-            googleEarthContainer.style.opacity = 0;
+            googleEarthContainer.style.opacity = '0';
 
             const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
             const activationThreshold = isMobile ? 0.90 : 0.968;
@@ -408,7 +444,7 @@ export class App {
                 const fadeProgress = Math.min((progress - activationThreshold) / fadeRange, 1.0);
 
                 googleEarthContainer.style.zIndex = '2';
-                googleEarthContainer.style.opacity = fadeProgress;
+                googleEarthContainer.style.opacity = fadeProgress.toString();
                 googleEarthContainer.classList.add('visible');
 
                 this.hideBackgroundElements(fadeProgress);
@@ -437,7 +473,7 @@ export class App {
             }
         } else {
             googleEarthContainer.style.zIndex = '0';
-            googleEarthContainer.style.opacity = 0;
+            googleEarthContainer.style.opacity = '0';
             googleEarthContainer.classList.remove('visible');
 
             this.showBackgroundElements();
@@ -465,7 +501,7 @@ export class App {
     hideBackgroundElements(fadeProgress) {
         const container = this.uiManager.getElement('container');
         if (container) {
-            container.style.opacity = Math.max(0, 1 - fadeProgress * 2);
+            container.style.opacity = Math.max(0, 1 - fadeProgress * 2).toString();
             container.style.pointerEvents = 'none';
         }
 
@@ -481,9 +517,9 @@ export class App {
 
         this.uiManager.showElement('backToBeginningBtn');
 
-        const infoPanel = document.querySelector('.info');
+        const infoPanel = document.querySelector('.info') as HTMLElement;
         if (infoPanel) {
-            infoPanel.style.opacity = Math.max(0, 1 - fadeProgress * 2);
+            infoPanel.style.opacity = Math.max(0, 1 - fadeProgress * 2).toString();
         }
     }
 
@@ -495,7 +531,7 @@ export class App {
             container.style.pointerEvents = 'auto';
         }
 
-        const infoPanel = document.querySelector('.info');
+        const infoPanel = document.querySelector('.info') as HTMLElement;
         if (infoPanel) {
             infoPanel.style.opacity = '1';
         }

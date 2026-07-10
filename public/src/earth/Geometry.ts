@@ -2,7 +2,13 @@
  * Geometry - Handles Earth geometry creation and morphing
  */
 export class Geometry {
-    constructor(scene, THREE) {
+    scene: any;
+    THREE: any;
+    spherePlane: any;
+    cloudLayer: any;
+    atmosphere: any;
+
+    constructor(scene: any, THREE: any) {
         this.scene = scene;
         this.THREE = THREE;
         this.spherePlane = null;

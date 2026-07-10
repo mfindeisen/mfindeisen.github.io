@@ -16,6 +16,11 @@
     <script src="https://unpkg.com/maplibre-gl@4.1.1/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@4.1.1/dist/maplibre-gl.css" rel="stylesheet" />
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="/style.css">
 </head>
 
@@ -63,22 +68,46 @@
             <button class="close-portfolio">&times;</button>
             <div class="portfolio-content">
 
-                <div class="portfolio-header">
-                    <img src="profile-photo.jpg" alt="Matthias Findeisen" class="profile-photo">
+                <div class="portfolio-header flex flex-col items-center gap-5 text-center">
+                    <img src="profile-photo.jpg" alt="Matthias Findeisen"
+                        class="profile-photo w-[120px] h-[120px] rounded-full object-cover border-4 border-[#3498db] shadow-md hover:scale-105 transition-transform duration-300">
                     <div class="header-text">
-                        <h1 class="portfolio-title">Matthias Findeisen</h1>
-                        <p class="portfolio-subtitle">Full Stack Developer & Creative Technologist</p>
-                        <div class="contact-links">
-                            <a href="mailto:findeisen.matthias@gmail.com" class="contact-link">
-                                <span>📧</span>
+                        <h1 class="portfolio-title text-4xl font-bold text-slate-800 mb-2">Matthias Findeisen</h1>
+                        <p class="portfolio-subtitle text-lg text-slate-500 mb-5">Full Stack Developer & Creative
+                            Technologist</p>
+                        <div class="contact-links flex justify-center gap-4 mt-6 flex-wrap">
+                            <a href="mailto:findeisen.matthias@gmail.com"
+                                class="contact-link inline-flex items-center gap-2 px-5 py-2.5 bg-[#3498db] hover:bg-[#2980b9] text-white font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                                </svg>
                                 <span>Email</span>
                             </a>
-                            <a href="https://linkedin.com/in/matthias-findeisen" class="contact-link" target="_blank">
-                                <span>💼</span>
+                            <a href="https://linkedin.com/in/matthias-findeisen"
+                                class="contact-link inline-flex items-center gap-2 px-5 py-2.5 bg-[#3498db] hover:bg-[#2980b9] text-white font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                                target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" class="w-5 h-5">
+                                    <path
+                                        d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                                    <rect width="4" height="12" x="2" y="9" />
+                                    <circle cx="4" cy="4" r="2" />
+                                </svg>
                                 <span>LinkedIn</span>
                             </a>
-                            <a href="https://github.com/mfindeisen" class="contact-link" target="_blank">
-                                <span>💻</span>
+                            <a href="https://github.com/mfindeisen"
+                                class="contact-link inline-flex items-center gap-2 px-5 py-2.5 bg-[#3498db] hover:bg-[#2980b9] text-white font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                                target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" class="w-5 h-5">
+                                    <path
+                                        d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+                                    <path d="M9 18c-4.51 2-5-2-7-2" />
+                                </svg>
                                 <span>GitHub</span>
                             </a>
                         </div>
@@ -233,96 +262,222 @@
     </div>
 
     <div id="showcase-overlay">
-    <div class="portfolio-wrapper">
-        <button class="close-portfolio" id="close-showcase">&times;</button>
-        <div class="portfolio-content">
+        <div class="portfolio-wrapper">
+            <button
+                class="close-portfolio absolute top-5 right-5 bg-black/5 hover:bg-slate-200 text-slate-500 hover:text-slate-800 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 z-10 text-xl font-bold"
+                id="close-showcase">&times;</button>
+            <div class="portfolio-content">
 
-            <div class="portfolio-header">
-                <div class="header-text">
-                    <h1 class="portfolio-title">Showcase</h1>
-                    <p class="portfolio-subtitle">Reflectance Transformation Imaging (RTI) Toolset</p>
-                </div>
-            </div>
-
-            <div class="portfolio-section">
-                <p>
-                    An open-source toolset for Reflectance Transformation Imaging, a technique used in
-                    cultural heritage to capture and reveal fine surface detail. It spans the full pipeline,
-                    from preparing raw captures to rendering them interactively in the browser.
-                </p>
-
-                <div class="experience-item">
-                    <div class="experience-title">
-                        <a href="https://github.com/mfindeisen/modernRtiViewer" target="_blank" rel="noopener">modernRtiViewer</a>
+                <div class="portfolio-header flex flex-col items-center gap-2 text-center mb-6">
+                    <div class="header-text">
+                        <h1 class="portfolio-title text-4xl font-bold text-slate-800 mb-2">Showcase</h1>
+                        <p class="portfolio-subtitle text-lg text-slate-500 mb-4">Reflectance Transformation Imaging
+                            (RTI) Toolset</p>
                     </div>
-                    <div class="experience-company">WebGL Viewer • Vue • Three.js</div>
-                    <div class="experience-description">
-                        A modern, WebGL-based viewer for RTI data. Renders image-pyramid folders, tiled
-                        pyramidal TIFFs (Cloud Optimized GeoTIFF / COG), and Neural RTI decoders directly
-                        in the browser.
-                        <div class="skills-grid" style="margin-top: 10px;">
-                            <div class="skill-tag">TypeScript</div>
-                            <div class="skill-tag">Vue</div>
-                            <div class="skill-tag">Three.js</div>
-                            <div class="skill-tag">WebGL</div>
+                </div>
+
+                <div class="portfolio-section text-slate-600 leading-relaxed text-sm">
+                    <p class="mb-6">
+                        An open-source toolset for Reflectance Transformation Imaging, a technique used in
+                        cultural heritage to capture and reveal fine surface detail. It spans the full pipeline,
+                        from preparing raw captures to rendering them interactively in the browser.
+                    </p>
+                    </br>
+                    <div
+                        class="experience-item bg-slate-50 rounded-xl p-5 mb-5 border-l-4 border-[#3498db] shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div
+                            class="experience-title font-semibold text-slate-800 text-lg hover:text-[#2980b9] transition-colors">
+                            <a href="https://github.com/mfindeisen/modernRtiViewer" target="_blank"
+                                rel="noopener">modernRtiViewer</a>
+                        </div>
+                        <div class="experience-company text-slate-500 text-sm mb-2 font-medium">WebGL Viewer • Vue •
+                            Three.js</div>
+                        <div class="experience-description text-slate-600 leading-relaxed text-sm">
+                            A modern, WebGL-based viewer for RTI data. Renders image-pyramid folders, tiled
+                            pyramidal TIFFs (Cloud Optimized GeoTIFF / COG), and Neural RTI decoders directly
+                            in the browser.
+                            <div class="skills-grid grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    TypeScript</div>
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    Vue</div>
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    Three.js</div>
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    WebGL</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="experience-item">
-                    <div class="experience-title">
-                        <a href="https://github.com/mfindeisen/rtiDb" target="_blank" rel="noopener">rtiDb</a>
-                    </div>
-                    <div class="experience-company">Database & Web Interface</div>
-                    <div class="experience-description">
-                        A database management system and web interface for cataloguing, uploading, and
-                        managing RTI records and assets.
-                        <div class="skills-grid" style="margin-top: 10px;">
-                            <div class="skill-tag">TypeScript</div>
-                            <div class="skill-tag">Database</div>
-                            <div class="skill-tag">Web</div>
+                    <div
+                        class="experience-item bg-slate-50 rounded-xl p-5 mb-5 border-l-4 border-[#3498db] shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div
+                            class="experience-title font-semibold text-slate-800 text-lg hover:text-[#2980b9] transition-colors">
+                            <a href="https://github.com/mfindeisen/rtiDb" target="_blank" rel="noopener">rtiDb</a>
+                        </div>
+                        <div class="experience-company text-slate-500 text-sm mb-2 font-medium">Database & Web Interface
+                        </div>
+                        <div class="experience-description text-slate-600 leading-relaxed text-sm">
+                            A database management system and web interface for cataloguing, uploading, and
+                            managing RTI records and assets.
+                            <div class="skills-grid grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    TypeScript</div>
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    Database</div>
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    Web</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="experience-item">
-                    <div class="experience-title">
-                        <a href="https://github.com/mfindeisen/rtiprep" target="_blank" rel="noopener">rtiprep</a>
-                    </div>
-                    <div class="experience-company">Command-line Utility • Go</div>
-                    <div class="experience-description">
-                        A fast command-line utility in Go for preparing PTM, HSH, and standard images into
-                        hierarchical image-pyramid folders or tiled pyramidal TIFFs (COG) for web
-                        visualization.
-                        <div class="skills-grid" style="margin-top: 10px;">
-                            <div class="skill-tag">Go</div>
-                            <div class="skill-tag">CLI</div>
-                            <div class="skill-tag">Imaging</div>
+                    <div
+                        class="experience-item bg-slate-50 rounded-xl p-5 mb-5 border-l-4 border-[#3498db] shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div
+                            class="experience-title font-semibold text-slate-800 text-lg hover:text-[#2980b9] transition-colors">
+                            <a href="https://github.com/mfindeisen/rtiprep" target="_blank" rel="noopener">rtiprep</a>
+                        </div>
+                        <div class="experience-company text-slate-500 text-sm mb-2 font-medium">Command-line Utility •
+                            Go</div>
+                        <div class="experience-description text-slate-600 leading-relaxed text-sm">
+                            A fast command-line utility in Go for preparing PTM, HSH, and standard images into
+                            hierarchical image-pyramid folders or tiled pyramidal TIFFs (COG) for web
+                            visualization.
+                            <div class="skills-grid grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    Go</div>
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    CLI</div>
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    Imaging</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="experience-item">
-                    <div class="experience-title">
-                        <a href="https://github.com/mfindeisen/neural_rti" target="_blank" rel="noopener">neural_rti</a>
-                    </div>
-                    <div class="experience-company">Experimental ML Pipeline • PyTorch</div>
-                    <div class="experience-description">
-                        An experimental PyTorch pipeline to train and evaluate Neural RTI models,
-                        compressing spatial reflectance data into 4-channel latent maps and lightweight
-                        MLP decoders.
-                        <div class="skills-grid" style="margin-top: 10px;">
-                            <div class="skill-tag">Python</div>
-                            <div class="skill-tag">PyTorch</div>
-                            <div class="skill-tag">ML</div>
+                    <div
+                        class="experience-item bg-slate-50 rounded-xl p-5 mb-5 border-l-4 border-[#3498db] shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div
+                            class="experience-title font-semibold text-slate-800 text-lg hover:text-[#2980b9] transition-colors">
+                            <a href="https://github.com/mfindeisen/neural_rti" target="_blank"
+                                rel="noopener">neural_rti</a>
+                        </div>
+                        <div class="experience-company text-slate-500 text-sm mb-2 font-medium">Experimental ML Pipeline
+                            • PyTorch</div>
+                        <div class="experience-description text-slate-600 leading-relaxed text-sm">
+                            An experimental PyTorch pipeline to train and evaluate Neural RTI models,
+                            compressing spatial reflectance data into 4-channel latent maps and lightweight
+                            MLP decoders.
+                            <div class="skills-grid grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    Python</div>
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    PyTorch</div>
+                                <div
+                                    class="skill-tag bg-slate-200/60 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-xl flex items-center justify-center text-center text-xs font-semibold transition-colors">
+                                    ML</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <button id="alt-design-btn" class="alt-design-nav-btn" title="Switch Design">
+        <span class="btn-text">Alternative Design</span>
+        <span class="btn-arrow">→</span>
+    </button>
+
+    <div id="alt-portfolio-page" class="hidden-alt">
+        <canvas id="alt-three-canvas"></canvas>
+        <button id="alt-back-btn" class="alt-design-nav-btn back" title="Go Back">
+            <span class="btn-arrow">←</span>
+            <span class="btn-text">Original Design</span>
+        </button>
+
+        <div class="alt-portfolio-container">
+            <!-- Typographic Layout -->
+            <header class="alt-portfolio-header">
+                <div class="alt-title-wrapper">
+                    <span class="alt-eyebrow">CREATIVE TECHNOLOGIST &amp; DEVELOPER</span>
+                    <h1 class="alt-hero-title">Matthias Findeisen</h1>
+                </div>
+                <div class="alt-quick-bio">
+                    <p>Blending technical precision with creative technology. Crafting immersive WebGL/3D interfaces, robust systems, and interactive storytelling platforms.</p>
+                </div>
+            </header>
+
+            <main class="alt-portfolio-grid">
+                <!-- Info cards with graphic look -->
+                <div class="alt-card alt-card-about">
+                    <span class="alt-card-num">01</span>
+                    <h3 class="alt-card-title">Archaeological Precision meets Digital Craft</h3>
+                    <p class="alt-card-text">
+                        Transitioning from archaeological survey databases and international field studies to modern systems engineering, my work is driven by structural rigor, curiosity, and a passion for immersive digital landscapes.
+                    </p>
+                </div>
+
+                <div class="alt-card alt-card-skills">
+                    <span class="alt-card-num">02</span>
+                    <h3 class="alt-card-title">Core Capability Stack</h3>
+                    <div class="alt-skills-list">
+                        <div class="alt-skill-group">
+                            <span class="alt-skill-group-title">WebGL &amp; Graphics</span>
+                            <span>Three.js / WebGL / Custom Shaders / GLSL</span>
+                        </div>
+                        <div class="alt-skill-group">
+                            <span class="alt-skill-group-title">Software Engineering</span>
+                            <span>TypeScript / Java / Python / CLI Tools in Go</span>
+                        </div>
+                        <div class="alt-skill-group">
+                            <span class="alt-skill-group-title">Geospatial</span>
+                            <span>WebGIS / MapLibre GL / GIS Coordinates &amp; Projection</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alt-card alt-card-showcase">
+                    <span class="alt-card-num">03</span>
+                    <h3 class="alt-card-title">Creative Innovations</h3>
+                    <p class="alt-card-text">
+                        Designing the <strong>RTI Toolset</strong> (Reflectance Transformation Imaging) for cultural heritage archiving: compiling raw sensor captures to high-performance Neural RTI models and pyramidal WebGL rendering.
+                    </p>
+                </div>
+
+                <div class="alt-card alt-card-connect">
+                    <span class="alt-card-num">04</span>
+                    <h3 class="alt-card-title">Connect / Links</h3>
+                    <div class="alt-links-grid">
+                        <a href="mailto:findeisen.matthias@gmail.com" class="alt-link-item">
+                            <span>Email</span>
+                            <span class="alt-link-arrow">↗</span>
+                        </a>
+                        <a href="https://linkedin.com/in/matthias-findeisen" target="_blank" class="alt-link-item">
+                            <span>LinkedIn</span>
+                            <span class="alt-link-arrow">↗</span>
+                        </a>
+                        <a href="https://github.com/mfindeisen" target="_blank" class="alt-link-item">
+                            <span>GitHub</span>
+                            <span class="alt-link-arrow">↗</span>
+                        </a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
 
     <div id="footer">
         <div class="footer-content">
@@ -334,7 +489,7 @@
         </div>
     </div>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/main.ts"></script>
 </body>
 
 </html>

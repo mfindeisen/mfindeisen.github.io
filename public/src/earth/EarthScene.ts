@@ -2,16 +2,59 @@ import { Lighting } from './Lighting.js';
 import { Geometry } from './Geometry.js';
 import { Starfield } from './Starfield.js';
 import { EasterEggs } from './EasterEggs.js';
-import { MouseController } from '../utils/MouseController.js';
 import { MathUtils } from '../utils/MathUtils.js';
 
 /**
  * EarthScene - Main class for managing the 3D Earth scene
  */
 export class EarthScene {
-    constructor(THREE) {
+    THREE: any;
+    isInitialized: boolean;
+    scene: any;
+    camera: any;
+    lighting: any;
+    geometry: any;
+    starfield: any;
+    easterEggs: any;
+    scrollProgress: number;
+    isScrolling: boolean;
+    hasStartedMorphing: boolean;
+    currentRotationY: number;
+    targetRotationY: number;
+    rotationSpeed: number;
+    cloudRotationY: number;
+    sunAngle: number;
+
+    // Morphing rotation tracking fields
+    _morphRotationInitialized: boolean;
+    _morphStartRotationY: number;
+    _morphTargetRotationY: number;
+    _morphStartCloudRotationY: number;
+    _morphTargetCloudRotationY: number;
+    _morphStartSunAngle: number;
+    _morphTargetSunAngle: number;
+
+    constructor(THREE: any) {
         this.THREE = THREE;
         this.isInitialized = false;
+        
+        // Initialize fields to avoid TS type warnings
+        this.scrollProgress = 0;
+        this.isScrolling = false;
+        this.hasStartedMorphing = false;
+        this.currentRotationY = 0;
+        this.targetRotationY = 0;
+        this.rotationSpeed = 0;
+        this.cloudRotationY = 0;
+        this.sunAngle = 0;
+        this._morphRotationInitialized = false;
+        this._morphStartRotationY = 0;
+        this._morphTargetRotationY = 0;
+        this._morphStartCloudRotationY = 0;
+        this._morphTargetCloudRotationY = 0;
+        this._morphStartSunAngle = 0;
+        this._morphTargetSunAngle = 0;
+
         this.init();
     }
 
@@ -30,7 +73,6 @@ export class EarthScene {
         this.geometry = new Geometry(this.scene, this.THREE);
         this.starfield = new Starfield(this.scene, this.THREE);
         this.easterEggs = new EasterEggs(this.scene);
-        this.mouseController = new MouseController(this.THREE);
         
         // Initialize state
         this.scrollProgress = 1; // 1 = sphere, 0 = flat
@@ -133,9 +175,6 @@ export class EarthScene {
      */
     update() {
         if (!this.geometry.getEarthMesh()) return;
-        
-        // Update mouse controller
-        this.mouseController.update();
         
         // Handle natural Earth rotation vs morphing animation
         const shouldRotate = !this.isScrolling && (!this.hasStartedMorphing || this.scrollProgress === 1);
@@ -267,12 +306,6 @@ export class EarthScene {
         return this.lighting;
     }
 
-    /**
-     * Get mouse controller
-     */
-    getMouseController() {
-        return this.mouseController;
-    }
 
     /**
      * Get scroll progress
@@ -303,7 +336,6 @@ export class EarthScene {
         this.geometry.destroy();
         this.starfield.destroy();
         this.easterEggs.destroy();
-        this.mouseController.destroy();
         
         this.isInitialized = false;
         console.log('EarthScene destroyed');

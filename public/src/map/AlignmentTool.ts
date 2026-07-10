@@ -2,7 +2,16 @@
  * AlignmentTool - Handles map alignment and positioning tools
  */
 export class AlignmentTool {
-    constructor(mapManager) {
+    mapManager: any;
+    toolElement: HTMLDivElement | null;
+    isVisible: boolean;
+    settings: {
+        lng: number;
+        lat: number;
+        zoom: number;
+    };
+
+    constructor(mapManager: any) {
         this.mapManager = mapManager;
         this.toolElement = null;
         this.isVisible = false;
@@ -73,9 +82,9 @@ export class AlignmentTool {
      * Setup event listeners for the alignment tool
      */
     setupEventListeners() {
-        const lngSlider = document.getElementById('lng-slider');
-        const latSlider = document.getElementById('lat-slider');
-        const zoomSlider = document.getElementById('zoom-slider');
+        const lngSlider = document.getElementById('lng-slider') as HTMLInputElement;
+        const latSlider = document.getElementById('lat-slider') as HTMLInputElement;
+        const zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement;
         const lngValue = document.getElementById('lng-value');
         const latValue = document.getElementById('lat-value');
         const zoomValue = document.getElementById('zoom-value');
@@ -112,9 +121,9 @@ export class AlignmentTool {
         
         // Reset to original values
         resetBtn.addEventListener('click', () => {
-            lngSlider.value = 0;
-            latSlider.value = 0;
-            zoomSlider.value = 4.11;
+            lngSlider.value = '0';
+            latSlider.value = '0';
+            zoomSlider.value = '4.11';
             updateMap();
         });
         
@@ -202,9 +211,9 @@ export class AlignmentTool {
                 console.log('Loading saved alignment settings:', settings);
                 
                 // Apply saved settings to sliders
-                const lngSlider = document.getElementById('lng-slider');
-                const latSlider = document.getElementById('lat-slider');
-                const zoomSlider = document.getElementById('zoom-slider');
+                const lngSlider = document.getElementById('lng-slider') as HTMLInputElement;
+                const latSlider = document.getElementById('lat-slider') as HTMLInputElement;
+                const zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement;
                 
                 if (lngSlider && latSlider && zoomSlider) {
                     lngSlider.value = settings.lng || 0;
@@ -254,9 +263,9 @@ export class AlignmentTool {
         
         // Update sliders if tool is visible
         if (this.isVisible) {
-            const lngSlider = document.getElementById('lng-slider');
-            const latSlider = document.getElementById('lat-slider');
-            const zoomSlider = document.getElementById('zoom-slider');
+            const lngSlider = document.getElementById('lng-slider') as HTMLInputElement;
+            const latSlider = document.getElementById('lat-slider') as HTMLInputElement;
+            const zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement;
             
             if (lngSlider && latSlider && zoomSlider) {
                 lngSlider.value = settings.lng;

@@ -2,6 +2,11 @@
  * MapManager - Handles MapTiler map initialization and management
  */
 export class MapManager {
+    mapTilerMap: any;
+    isInitialized: boolean;
+    originalCenter: [number, number];
+    originalZoom: number;
+
     constructor() {
         this.mapTilerMap = null;
         this.isInitialized = false;
@@ -54,7 +59,7 @@ export class MapManager {
     /**
      * Calculate the center point of the 3D Earth model for perfect alignment
      */
-    calculateEarthCenter() {
+    calculateEarthCenter(): [number, number] {
         // The 3D Earth model uses equirectangular projection
         // When morphed to flat plane, it covers a specific geographic area
 
@@ -146,13 +151,13 @@ export class MapManager {
     /**
      * Fly to specific coordinates with animation
      */
-    flyTo(center, zoom, duration = 8000) {
+    flyTo(center: any, zoom: any, duration = 8000) {
         if (!this.mapTilerMap) {
             console.warn('MapTiler map not initialized');
             return Promise.reject('Map not initialized');
         }
 
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             // Listen for the moveend event which triggers when flyTo finishes
             this.mapTilerMap.once('moveend', () => {
                 resolve();

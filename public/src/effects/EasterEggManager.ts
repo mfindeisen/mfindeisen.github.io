@@ -1,5 +1,15 @@
+import { getIcon } from '../utils/Icons.js';
+
 export class EasterEggManager {
-    constructor(app) {
+    app: any;
+    timeWarpActive: boolean;
+    colorModeIndex: number;
+    colorModes: any[];
+    originalAstronautSpeed: number;
+    originalSatelliteSpeeds: number[];
+    closeHelp: (() => void) | null;
+
+    constructor(app: any) {
         this.app = app;
 
         // Initialize easter egg state
@@ -12,20 +22,25 @@ export class EasterEggManager {
             { name: 'Matrix', filter: 'hue-rotate(90deg) saturate(2) brightness(0.8)' },
             { name: 'Warm', filter: 'hue-rotate(-20deg) saturate(1.3) brightness(1.1)' }
         ];
+        
+        this.originalAstronautSpeed = 0;
+        this.originalSatelliteSpeeds = [];
+        this.closeHelp = null;
     }
 
     setup() {
         // Keyboard shortcuts for fun features
         document.addEventListener('keydown', (e) => {
             // Only trigger if not typing in an input
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            const target = e.target as HTMLElement;
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
 
             switch (e.code) {
                 case 'KeyA':
                     // 'A' for Astronaut speed boost
                     if (this.app.earthScene.astronaut) {
                         this.app.earthScene.astronautOrbitSpeed *= 2;
-                        this.app.showTooltip('🚀 Astronaut speed boost!', 2000);
+                        this.app.showTooltip(`${getIcon('Rocket')} Astronaut speed boost!`, 2000);
                         setTimeout(() => {
                             this.app.earthScene.astronautOrbitSpeed /= 2; // Reset after 5 seconds
                         }, 5000);
@@ -138,7 +153,7 @@ export class EasterEggManager {
             document.body.appendChild(sparkle);
             setTimeout(() => sparkle.remove(), 1500);
         }
-        this.app.showTooltip('✨ Sparkles!', 1500);
+        this.app.showTooltip(`${getIcon('Sparkles')} Sparkles!`, 1500);
     }
 
     createColorBurst(x, y) {
@@ -151,14 +166,14 @@ export class EasterEggManager {
             canvas.style.filter = originalFilter;
         }, 500);
 
-        this.app.showTooltip('🌈 Color burst!', 1500);
+        this.app.showTooltip(`${getIcon('Rainbow')} Color burst!`, 1500);
     }
 
     createMiniStar(x, y) {
         // Add a temporary star to the 3D scene at the click location
         if (this.app.earthScene.shootingStars) {
             this.app.earthScene.createShootingStar();
-            this.app.showTooltip('⭐ Mini shooting star!', 2000);
+            this.app.showTooltip(`${getIcon('Star')} Mini shooting star!`, 2000);
         }
     }
 
@@ -170,7 +185,7 @@ export class EasterEggManager {
                     this.app.earthScene.createShootingStar();
                 }, i * 200);
             }
-            this.app.showTooltip('🌠 Shooting star shower!', 3000);
+            this.app.showTooltip(`${getIcon('Sparkles')} Shooting star shower!`, 3000);
         }
     }
 
@@ -187,7 +202,7 @@ export class EasterEggManager {
                 this.originalSatelliteSpeeds = this.app.earthScene.satellites.map(sat => sat.orbitSpeed);
                 this.app.earthScene.satellites.forEach(sat => sat.orbitSpeed *= 3);
             }
-            this.app.showTooltip('⚡ Time warp activated!', 2000);
+            this.app.showTooltip(`${getIcon('Zap')} Time warp activated!`, 2000);
         } else {
             // Reset speeds
             if (this.app.earthScene.astronaut && this.originalAstronautSpeed) {
@@ -198,7 +213,7 @@ export class EasterEggManager {
                     sat.orbitSpeed = this.originalSatelliteSpeeds[i];
                 });
             }
-            this.app.showTooltip('🕒 Time warp deactivated', 2000);
+            this.app.showTooltip(`${getIcon('Clock')} Time warp deactivated`, 2000);
         }
     }
 
@@ -209,7 +224,7 @@ export class EasterEggManager {
         const canvas = this.app.renderer.domElement;
         canvas.style.filter = mode.filter;
 
-        this.app.showTooltip(`🎨 Color mode: ${mode.name}`, 2000);
+        this.app.showTooltip(`${getIcon('Palette')} Color mode: ${mode.name}`, 2000);
     }
 
     triggerFireworks() {
@@ -221,7 +236,7 @@ export class EasterEggManager {
                 this.createFirework(x, y);
             }, i * 500);
         }
-        this.app.showTooltip('🎆 Fireworks!', 3000);
+        this.app.showTooltip(`${getIcon('Sparkles')} Fireworks!`, 3000);
     }
 
     createFirework(x, y) {
@@ -264,33 +279,64 @@ export class EasterEggManager {
             return;
         }
 
-        const helpText = `
-            🎮 Easter Egg Controls:
-            A - Astronaut speed boost 🚀
-            S - Shooting star shower 🌠
-            T - Toggle time warp ⚡
-            C - Change color mode 🎨
-            F - Fireworks show 🎆
-            H - Show this help 💡
-            Click anywhere for surprises! ✨
-                    `;
-
         const helpDiv = document.createElement('div');
         helpDiv.style.position = 'fixed';
         helpDiv.style.top = '50%';
         helpDiv.style.left = '50%';
         helpDiv.style.transform = 'translate(-50%, -50%)';
-        helpDiv.style.background = 'rgba(0, 0, 0, 0.9)';
+        helpDiv.style.background = 'rgba(0, 0, 0, 0.95)';
         helpDiv.style.color = 'white';
         helpDiv.style.padding = '30px';
         helpDiv.style.borderRadius = '15px';
         helpDiv.style.zIndex = '1002';
-        helpDiv.style.fontSize = '16px';
+        helpDiv.style.fontSize = '15px';
         helpDiv.style.lineHeight = '1.6';
         helpDiv.style.textAlign = 'center';
-        helpDiv.style.whiteSpace = 'pre-line';
-        helpDiv.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5)';
-        helpDiv.textContent = helpText;
+        helpDiv.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.6)';
+        helpDiv.style.backdropFilter = 'blur(10px)';
+        helpDiv.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+        helpDiv.style.minWidth = '280px';
+        
+        helpDiv.innerHTML = `
+            <div style="font-weight: 600; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                ${getIcon('Gamepad')} <span>Easter Egg Controls</span>
+            </div>
+            <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left; display: flex; flex-direction: column; gap: 10px;">
+                <li style="display: flex; align-items: center; gap: 10px;">
+                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">A</kbd>
+                    <span>Astronaut speed boost</span>
+                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Rocket')}</span>
+                </li>
+                <li style="display: flex; align-items: center; gap: 10px;">
+                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">S</kbd>
+                    <span>Shooting star shower</span>
+                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Star')}</span>
+                </li>
+                <li style="display: flex; align-items: center; gap: 10px;">
+                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">T</kbd>
+                    <span>Toggle time warp</span>
+                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Zap')}</span>
+                </li>
+                <li style="display: flex; align-items: center; gap: 10px;">
+                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">C</kbd>
+                    <span>Change color mode</span>
+                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Palette')}</span>
+                </li>
+                <li style="display: flex; align-items: center; gap: 10px;">
+                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">F</kbd>
+                    <span>Fireworks show</span>
+                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Sparkles')}</span>
+                </li>
+                <li style="display: flex; align-items: center; gap: 10px;">
+                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">H</kbd>
+                    <span>Show this help</span>
+                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Help')}</span>
+                </li>
+            </ul>
+            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;">
+                ${getIcon('Mouse')} <span>Click anywhere for surprises!</span>
+            </div>
+        `;
 
         this.closeHelp = () => {
             if (helpDiv.parentNode) {

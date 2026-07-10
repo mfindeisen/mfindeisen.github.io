@@ -1,4 +1,6 @@
 export class ScrollController {
+    maxScroll: number;
+
     constructor() {
         this.maxScroll = this.calculateMaxScroll();
         this.updateMaxScroll();

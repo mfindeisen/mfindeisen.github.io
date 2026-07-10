@@ -2,6 +2,8 @@
  * Tooltip - Handles temporary tooltip messages and notifications
  */
 export class Tooltip {
+    activeTooltips: Set<HTMLDivElement>;
+
     constructor() {
         this.activeTooltips = new Set();
     }
@@ -12,7 +14,7 @@ export class Tooltip {
     show(message, duration = 2000, position = 'center') {
         const tooltip = document.createElement('div');
         tooltip.className = 'tooltip';
-        tooltip.textContent = message;
+        tooltip.innerHTML = message;
         
         // Position the tooltip
         this.setTooltipPosition(tooltip, position);

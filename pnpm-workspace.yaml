@@ -4,5 +4,5 @@ packages:
 allowBuilds:
   '0': esbuild
   '1': sharp
-  esbuild: set this to true or false
-  sharp: set this to true or false
+  esbuild: true
+  sharp: true

@@ -2,7 +2,13 @@
  * Starfield - Handles starfield creation and animation
  */
 export class Starfield {
-    constructor(scene, THREE) {
+    scene: any;
+    THREE: any;
+    layers: any[];
+    starMaterial: any;
+    time: number;
+
+    constructor(scene: any, THREE: any) {
         this.scene = scene;
         this.THREE = THREE;
         this.layers = [];
