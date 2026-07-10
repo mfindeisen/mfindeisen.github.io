@@ -3102,36 +3102,67 @@ body.alt-mode-active {
         padding: 1.8rem;
     }
 
+    /* Mobile nav button: small, right edge, arrow only */
     .alt-design-nav-btn {
-        top: auto;
-        bottom: 1.5rem;
-        right: 50%;
-        transform: translateX(50%);
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        padding: 0.7rem 0.6rem;
+        gap: 0;
+        border-right: none;
+        border-radius: 6px 0 0 6px;
+        box-shadow: -3px 3px 0px #000000;
+    }
+
+    .alt-design-nav-btn .btn-text {
+        display: none;
+    }
+
+    .alt-design-nav-btn .btn-arrow {
+        font-size: 1.2rem;
     }
 
     .alt-design-nav-btn.hidden {
-        transform: translateX(50%) scale(0.8) !important;
+        transform: translateY(-50%) scale(0.8) !important;
         opacity: 0 !important;
         pointer-events: none !important;
     }
 
     .alt-design-nav-btn.visible {
-        transform: translateX(50%) scale(1) !important;
+        transform: translateY(-50%) scale(1) !important;
         opacity: 1 !important;
         pointer-events: auto !important;
     }
 
     .alt-design-nav-btn:hover {
-        transform: translateX(50%) translateY(-2px);
+        transform: translateY(-50%) translateX(-2px);
     }
 
+    /* Back button: small, left edge, arrow only */
     .alt-design-nav-btn.back {
-        top: 1rem;
-        left: 1rem;
-        transform: none;
+        top: 50%;
+        left: 0;
+        right: auto;
+        transform: translateY(-50%);
+        padding: 0.7rem 0.6rem;
+        border-left: none;
+        border-radius: 0 6px 6px 0;
+        box-shadow: 3px 3px 0px #000000;
     }
-    
+
+    .alt-design-nav-btn.back.hidden {
+        transform: translateY(-50%) scale(0.8) !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    .alt-design-nav-btn.back.visible {
+        transform: translateY(-50%) scale(1) !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
     .alt-design-nav-btn.back:hover {
-        transform: translateX(-2px);
+        transform: translateY(-50%) translateX(2px);
     }
 }
