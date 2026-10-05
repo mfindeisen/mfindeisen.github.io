@@ -10,7 +10,7 @@
     --accent: #5aa9ff;
     --accent-strong: #2f8cf5;
     --accent-soft: rgba(90, 169, 255, 0.16);
-    --panel-bg: rgba(10, 14, 24, 0.82);
+    --panel-bg: rgba(10, 14, 24, 0.6);
     --panel-border: rgba(255, 255, 255, 0.1);
     --surface-1: rgba(255, 255, 255, 0.04);
     --surface-2: rgba(255, 255, 255, 0.08);
@@ -466,8 +466,9 @@ body {
             height: 100%;
             /* Fallback */
             height: 100dvh;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
             z-index: 15;
             opacity: 0;
             visibility: hidden;
@@ -491,8 +492,8 @@ body {
             width: 90%;
             max-height: 84vh;
             background: var(--panel-bg);
-            backdrop-filter: blur(24px) saturate(140%);
-            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            backdrop-filter: blur(12px) saturate(140%);
+            -webkit-backdrop-filter: blur(12px) saturate(140%);
             border: 1px solid var(--panel-border);
             border-radius: var(--portfolio-radius);
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -3300,30 +3301,6 @@ body.alt-mode-active {
 
     .alt-design-nav-btn.back:hover {
         transform: translateY(-50%) translateX(2px);
-    }
-}
-
-/* Desktop: keep the design switch in the bottom-right corner, clear of the globe and the footer */
-@media (min-width: 769px) {
-    #alt-design-btn {
-        top: auto;
-        bottom: 84px;
-        right: 32px;
-        transform: none;
-        padding: 0.7rem 1.2rem;
-        font-size: 0.75rem;
-    }
-
-    #alt-design-btn.hidden {
-        transform: scale(0.8) !important;
-    }
-
-    #alt-design-btn.visible {
-        transform: none !important;
-    }
-
-    #alt-design-btn:hover {
-        transform: translate(-2px, -2px);
     }
 }
 

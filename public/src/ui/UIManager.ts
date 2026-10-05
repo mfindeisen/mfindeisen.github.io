@@ -30,7 +30,6 @@ export class UIManager {
             backToBeginningBtn: document.getElementById('back-to-beginning-btn'),
             footer: document.getElementById('footer'),
             hero: document.getElementById('hero'),
-            altDesignBtn: document.getElementById('alt-design-btn'),
             altPortfolioPage: document.getElementById('alt-portfolio-page')
         };
         
@@ -389,7 +388,6 @@ export class UIManager {
                     this.showElement('skipButton');
                     this.showElement('skipShowcaseBtn');
                     this.showElement('footer');
-                    this.showElement('altDesignBtn');
                 }
             }
         } else {
@@ -399,18 +397,9 @@ export class UIManager {
             this.hideElement('backToBeginningBtn');
             this.hideElement('skipShowcaseBtn');
             this.hideElement('reopenShowcaseBtn');
-            this.hideElement('altDesignBtn');
             
             if (this.placesManager) {
                 this.placesManager.setPlacesListVisibility(false);
-            }
-            
-            // Hide MapTiler map underneath to avoid pointer-events conflicts
-            const googleEarthContainer = this.getElement('googleEarthContainer');
-            if (googleEarthContainer) {
-                googleEarthContainer.style.opacity = '0';
-                googleEarthContainer.style.zIndex = '0';
-                googleEarthContainer.classList.remove('visible');
             }
 
             const overlay = this.getElement(`${overlayName}Overlay`);
