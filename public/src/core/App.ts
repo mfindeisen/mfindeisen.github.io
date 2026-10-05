@@ -8,6 +8,7 @@ import { MapManager } from '../map/MapManager.js';
 import { AlignmentTool } from '../map/AlignmentTool.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { MobileTouchHandler } from '../ui/MobileTouchHandler.js';
+import { prefersReducedMotion } from '../utils/motion.js';
 
 import { EasterEggManager } from '../effects/EasterEggManager.js';
 import { AltScene } from '../effects/AltScene.js';
@@ -72,8 +73,16 @@ export class App {
         // Initialize Three.js renderer
         this.initRenderer();
 
+        this.setupLoader();
+
         // Initialize Earth scene
         this.earthScene = new EarthScene(THREE);
+
+        // Start rendering the globe right away instead of waiting for the map style to load
+        this.animate();
+
+        // Buttons must work before the map has finished loading
+        this.setupUIEvents();
 
         // Initialize MapTiler
         await this.initMapTiler();
@@ -83,11 +92,6 @@ export class App {
 
         // Initialize alternative portfolio Three.js scene
         this.altScene = new AltScene('alt-three-canvas');
-
-        // Start animation loop
-        this.animate();
-
-        console.log('App initialized successfully');
     }
 
     /**
@@ -110,6 +114,30 @@ export class App {
     }
 
     /**
+     * Show load progress of the Earth textures and fade the loader out once they are ready
+     */
+    setupLoader() {
+        const loader = document.getElementById('loader');
+        const progressLabel = document.getElementById('loader-progress');
+        if (!loader) return;
+
+        const hide = () => {
+            loader.classList.add('done');
+            setTimeout(() => loader.remove(), 800);
+        };
+
+        const manager = THREE.DefaultLoadingManager;
+        manager.onProgress = (_url, loaded, total) => {
+            if (progressLabel) progressLabel.textContent = `${Math.round((loaded / total) * 100)}%`;
+        };
+        manager.onLoad = hide;
+        manager.onError = hide;
+
+        // Never keep visitors waiting on a stalled texture request
+        setTimeout(hide, 15000);
+    }
+
+    /**
      * Initialize MapTiler
      */
     async initMapTiler() {
@@ -127,9 +155,10 @@ export class App {
             // Start with interactions disabled
             this.enableMapInteractions(false);
 
-            // Initialize alignment tool
-            this.alignmentTool = new AlignmentTool(this.mapManager);
-            this.alignmentTool.create();
+            if (import.meta.env.DEV) {
+                this.alignmentTool = new AlignmentTool(this.mapManager);
+                this.alignmentTool.create();
+            }
 
             // Initialize places manager
             this.placesManager = new PlacesManager(this.mapTilerMap);
@@ -137,7 +166,6 @@ export class App {
             // Set places manager reference in UI manager
             this.uiManager.setPlacesManager(this.placesManager);
 
-            console.log('MapTiler initialized successfully');
         } catch (error) {
             console.error('Failed to initialize MapTiler:', error);
         }
@@ -155,9 +183,6 @@ export class App {
 
         // Scroll events
         window.addEventListener('scroll', this.onScroll.bind(this));
-
-        // UI events
-        this.setupUIEvents();
 
         // Mobile touch handling
         this.mobileTouchHandler = new MobileTouchHandler(this);
@@ -225,6 +250,7 @@ export class App {
 
         if (altDesignBtn && altPortfolioPage) {
             altDesignBtn.addEventListener('click', () => {
+                this.loadAltDesignFonts();
                 this.uiManager.setState('isAltPortfolioActive', true);
                 document.body.classList.add('alt-mode-active');
                 altPortfolioPage.classList.add('visible');
@@ -252,6 +278,15 @@ export class App {
         }
     }
 
+    loadAltDesignFonts() {
+        if (document.getElementById('alt-design-fonts')) return;
+        const link = document.createElement('link');
+        link.id = 'alt-design-fonts';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap';
+        document.head.appendChild(link);
+    }
+
     showTooltip(message, duration = 2000) {
         this.tooltip.show(message, duration);
     }
@@ -273,7 +308,6 @@ export class App {
         }
 
         const scrollProgress = this.scrollController.getScrollProgress();
-        this.uiManager.getElement('scrollProgress').textContent = `Progress: ${Math.round(scrollProgress * 100)}%`;
 
         // Determine scroll direction
         const scrollingDown = scrollProgress > (this.lastScrollProgress || 0);
@@ -332,8 +366,7 @@ export class App {
 
             this.uiManager.setState('journeyState', 'flying');
 
-            // Reduced duration from 8000ms to 4000ms for a much faster direct flight
-            await this.mapManager.flyTo([targetLng, targetLat], targetZoom, 4000);
+            await this.mapManager.flyTo([targetLng, targetLat], targetZoom, prefersReducedMotion() ? 0 : 4000);
 
             this.uiManager.setState('journeyState', 'arrived');
             this.mapManager.setInteractions(true);
@@ -428,7 +461,6 @@ export class App {
         const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
 
         if (progress > 0.5) {
-            console.log("Progress is greater than 0.5");
             // Force hide scroll indicator and skip button on the map view
             this.uiManager.hideElement('scrollIndicator');
             this.uiManager.hideElement('skipButton');
@@ -464,10 +496,9 @@ export class App {
                     }
                 }
 
-                const animationThreshold = isMobile ? 0.95 : 0.99;
                 // Only trigger the final flyTo animation if we are actively scrolling DOWN
                 // This prevents re-triggering it during the "Back to beginning" smooth scroll UP
-                if (scrollingDown && fadeProgress >= animationThreshold && this.uiManager.getState('journeyState') === 'idle') {
+                if (scrollingDown && fadeProgress >= 0.5 && this.uiManager.getState('journeyState') === 'idle') {
                     this.zoomToErbil();
                 }
             }
@@ -516,11 +547,6 @@ export class App {
         }
 
         this.uiManager.showElement('backToBeginningBtn');
-
-        const infoPanel = document.querySelector('.info') as HTMLElement;
-        if (infoPanel) {
-            infoPanel.style.opacity = Math.max(0, 1 - fadeProgress * 2).toString();
-        }
     }
 
 
@@ -530,11 +556,6 @@ export class App {
             container.style.opacity = '1';
             container.style.pointerEvents = 'auto';
         }
-
-        const infoPanel = document.querySelector('.info') as HTMLElement;
-        if (infoPanel) {
-            infoPanel.style.opacity = '1';
-        }
     }
 
 
@@ -542,17 +563,12 @@ export class App {
 
 
     resetMapTileMap() {
-        console.log('🟡 resetMapTileMap() called - THIS SHOULD NOT HAPPEN WHEN PORTFOLIO IS CLOSED');
-        console.trace('🟡 resetMapTileMap() call stack:');
-
         this.mapManager.reset();
         this.uiManager.setState('journeyState', 'idle');
     }
 
 
     skipToOverlay(overlayName) {
-        console.log(`Skipping directly to ${overlayName}`);
-
         // Reset the maptile map to its original state since user is skipping the journey
         this.resetMapTileMap();
 
@@ -573,8 +589,6 @@ export class App {
 
 
     backToBeginning() {
-        console.log('🟢 backToBeginning() called - RESETTING TO COMPLETE BEGINNING');
-
         // Hide the back to beginning button immediately
         const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
         if (backToBeginningBtn) {
@@ -659,12 +673,12 @@ export class App {
                 const scrollIndicator = this.uiManager.getElement('scrollIndicator');
                 const skipButton = this.uiManager.getElement('skipButton');
                 const skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
-                const footer = this.uiManager.getElement('footer');
 
                 if (scrollIndicator) scrollIndicator.classList.remove('hidden');
                 if (skipButton) skipButton.classList.remove('hidden');
                 if (skipShowcaseBtn) skipShowcaseBtn.classList.remove('hidden');
-                if (footer) footer.classList.remove('hidden');
+                this.uiManager.showElement('footer');
+                this.uiManager.showElement('altDesignBtn');
             }
         }, 1000); // Give time for scroll animation to complete
     }

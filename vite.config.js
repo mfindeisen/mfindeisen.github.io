@@ -3,7 +3,7 @@ import { copyFileSync, mkdirSync, existsSync } from 'fs';
 import tailwindcss from '@tailwindcss/vite';
 import { join } from 'path';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   // Set the root directory to 'public' since that's where your HTML and assets are
   root: 'public',
   
@@ -18,6 +18,9 @@ export default defineConfig({
     open: true
   },
   
+  // Strip debug logging from production bundles; warnings and errors are kept
+  esbuild: command === 'build' ? { pure: ['console.log', 'console.trace'] } : {},
+
   // Build configuration
   build: {
     outDir: '../dist',
@@ -80,7 +83,7 @@ export default defineConfig({
   
   // Optimize dependencies
   optimizeDeps: {
-    include: ['three', 'maplibregl'],
+    include: ['three'],
     exclude: ['@photo-sphere-viewer/core'] // Exclude from pre-bundling to allow dynamic imports
   }
-});
+}));

@@ -57,7 +57,7 @@ export class Geometry {
         const loader = new this.THREE.TextureLoader();
         const earthTexture = loader.load(
             'textures/world.topo.bathy.200407.3x5400x2700.jpg',
-            () => console.log('Earth texture loaded'),
+            undefined,
             undefined,
             (e) => console.error('Earth texture load error', e)
         );
@@ -159,8 +159,8 @@ export class Geometry {
 
         const loader = new this.THREE.TextureLoader();
         const cloudTexture = loader.load(
-            'textures/Clouds.png',
-            () => console.log('Cloud texture loaded'),
+            'textures/Clouds.webp',
+            undefined,
             undefined,
             (e) => console.error('Cloud texture load error', e)
         );

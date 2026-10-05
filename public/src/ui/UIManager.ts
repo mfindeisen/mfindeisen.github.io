@@ -1,3 +1,5 @@
+import { prefersReducedMotion } from '../utils/motion.js';
+
 /**
  * UIManager - Handles general UI state and interactions
  */
@@ -11,12 +13,12 @@ export class UIManager {
     preventScrollKeys: any;
     placesManager: any;
     lastTouchY: number;
+    focusBeforeOverlay: HTMLElement | null = null;
 
     constructor(placesManager: any = null) {
         this.lastTouchY = 0;
         this.elements = {
             container: document.getElementById('canvas-container'),
-            scrollProgress: document.getElementById('scroll-progress'),
             googleEarthContainer: document.getElementById('google-earth-container'),
             scrollIndicator: document.getElementById('scroll-indicator'),
             portfolioOverlay: document.getElementById('portfolio-overlay'),
@@ -27,6 +29,7 @@ export class UIManager {
             showcaseOverlay: document.getElementById('showcase-overlay'),
             backToBeginningBtn: document.getElementById('back-to-beginning-btn'),
             footer: document.getElementById('footer'),
+            hero: document.getElementById('hero'),
             altDesignBtn: document.getElementById('alt-design-btn'),
             altPortfolioPage: document.getElementById('alt-portfolio-page')
         };
@@ -119,6 +122,45 @@ export class UIManager {
                 }
             });
         });
+
+        document.addEventListener('keydown', (e) => {
+            const overlay = this.getActiveOverlayElement();
+            if (!overlay) return;
+
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                this.setActiveOverlay('none');
+            } else if (e.key === 'Tab') {
+                this.trapFocus(overlay, e);
+            }
+        });
+    }
+
+    getActiveOverlayElement(): HTMLElement | null {
+        const name = this.state.activeOverlay;
+        return name === 'none' ? null : this.getElement(`${name}Overlay`);
+    }
+
+    trapFocus(container: HTMLElement, e: KeyboardEvent) {
+        const focusable = Array.from(container.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ));
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+
+        if (!container.contains(active)) {
+            e.preventDefault();
+            first.focus();
+        } else if (e.shiftKey && active === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && active === last) {
+            e.preventDefault();
+            first.focus();
+        }
     }
 
     // Element getters
@@ -147,6 +189,10 @@ export class UIManager {
             element.classList.add(className);
             element.classList.remove('hidden');
         }
+        // The hero belongs to the start screen chrome, which always appears together with the footer
+        if (elementName === 'footer' && className === 'visible') {
+            this.elements.hero?.classList.remove('hidden');
+        }
     }
 
     hideElement(elementName, className = 'hidden') {
@@ -154,6 +200,9 @@ export class UIManager {
         if (element) {
             element.classList.add(className);
             element.classList.remove('visible');
+        }
+        if (elementName === 'footer') {
+            this.elements.hero?.classList.add('hidden');
         }
     }
 
@@ -184,6 +233,8 @@ export class UIManager {
         document.body.style.overflow = 'hidden';
         
         this.preventScrollKeys = (e) => {
+            // Keyboard scrolling and button activation must keep working inside the open overlay
+            if (e.target instanceof Element && e.target.closest('.portfolio-content')) return;
             if ([32, 33, 34, 35, 36, 37, 38, 39, 40].includes(e.keyCode)) {
                 e.preventDefault();
             }
@@ -216,19 +267,12 @@ export class UIManager {
         const maxScroll = documentHeight - windowHeight;
         const scrollProgress = maxScroll > 0 ? currentScroll / maxScroll : 0;
         
-        console.log('🔵 UIManager unlockScroll() - scroll progress:', scrollProgress, 'current scroll:', currentScroll, 'stored scroll:', this.scrollPosition);
-        
         if (scrollProgress <= 0.5) {
             // Restore scroll position only if we're not in the MapTiler view
             // If stored scroll position is undefined, use current position
             const targetScroll = this.scrollPosition !== undefined ? this.scrollPosition : currentScroll;
-            console.log('🔵 UIManager unlockScroll() - restoring scroll to:', targetScroll);
             window.scrollTo(0, targetScroll);
-        } else {
-            console.log('🔵 UIManager unlockScroll() - staying at current position:', currentScroll, '(MapTiler view)');
         }
-        
-        console.log('Background scroll unlocked');
     }
 
     // Auto-scroll functionality
@@ -244,14 +288,14 @@ export class UIManager {
         this.hideElement('footer');
         
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        const duration = 12000;
+        const duration = prefersReducedMotion() ? 0 : 12000;
         const startTime = Date.now();
         const startScroll = window.pageYOffset;
          const progressFill = document.querySelector('.progress-fill') as HTMLDivElement;
         
         const animateScroll = () => {
             const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
+            const progress = duration ? Math.min(elapsed / duration, 1) : 1;
             
             if (progressFill) {
                 progressFill.style.width = `${progress * 100}%`;
@@ -292,8 +336,8 @@ export class UIManager {
 
     // State Machine Overlay Controller
     setActiveOverlay(overlayName) {
-        console.log(`Setting active overlay from '${this.state.activeOverlay}' to '${overlayName}'`);
-        
+        const previousOverlay = this.getActiveOverlayElement();
+
         // Hide currently active overlay if any
         if (this.state.activeOverlay === 'portfolio') {
             this.hideElement('portfolioOverlay');
@@ -301,12 +345,22 @@ export class UIManager {
         } else if (this.state.activeOverlay === 'showcase') {
             this.hideElement('showcaseOverlay');
         }
+        previousOverlay?.setAttribute('aria-hidden', 'true');
+
+        if (!previousOverlay && overlayName !== 'none') {
+            this.focusBeforeOverlay = document.activeElement as HTMLElement | null;
+        }
 
         this.lastOverlayToggleTime = Date.now();
         this.setState('activeOverlay', overlayName);
 
         if (overlayName === 'none') {
             this.unlockScroll();
+
+            if (this.focusBeforeOverlay?.isConnected) {
+                this.focusBeforeOverlay.focus({ preventScroll: true });
+            }
+            this.focusBeforeOverlay = null;
             
             // Restore UI based on journey state
             if (this.getState('journeyState') === 'arrived') {
@@ -335,6 +389,7 @@ export class UIManager {
                     this.showElement('skipButton');
                     this.showElement('skipShowcaseBtn');
                     this.showElement('footer');
+                    this.showElement('altDesignBtn');
                 }
             }
         } else {
@@ -344,6 +399,7 @@ export class UIManager {
             this.hideElement('backToBeginningBtn');
             this.hideElement('skipShowcaseBtn');
             this.hideElement('reopenShowcaseBtn');
+            this.hideElement('altDesignBtn');
             
             if (this.placesManager) {
                 this.placesManager.setPlacesListVisibility(false);
@@ -357,18 +413,17 @@ export class UIManager {
                 googleEarthContainer.classList.remove('visible');
             }
 
-            if (overlayName === 'portfolio') {
-                this.showElement('portfolioOverlay');
-                const content = this.getElement('portfolioOverlay')?.querySelector('.portfolio-content');
+            const overlay = this.getElement(`${overlayName}Overlay`);
+            if (overlay) {
+                this.showElement(`${overlayName}Overlay`);
+                overlay.setAttribute('aria-hidden', 'false');
+                const content = overlay.querySelector('.portfolio-content');
                 if (content) {
                     content.scrollTop = 0;
                 }
-            } else if (overlayName === 'showcase') {
-                this.showElement('showcaseOverlay');
-                const content = this.getElement('showcaseOverlay')?.querySelector('.portfolio-content');
-                if (content) {
-                    content.scrollTop = 0;
-                }
+                requestAnimationFrame(() => {
+                    overlay.querySelector<HTMLElement>('.close-portfolio')?.focus({ preventScroll: true });
+                });
             }
         }
     }

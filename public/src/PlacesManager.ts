@@ -84,6 +84,7 @@ export class PlacesManager {
             
             popup.setLngLat(place.coordinates).addTo(this.mapTilerMap);
             this.activePopup = popup;
+            this.keepPopupInView(popup);
             
             // Add click handlers for photos after popup is added
             setTimeout(() => {
@@ -152,6 +153,55 @@ export class PlacesManager {
         
         // Add custom CSS for the popup
         return popup;
+    }
+
+    /**
+     * Viewport area that is not covered by the places list, the toolbar or the bottom button
+     */
+    getFreeMapArea() {
+        const margin = 16;
+        const area = {
+            top: 80,
+            left: margin,
+            right: window.innerWidth - margin,
+            bottom: window.innerHeight - 90
+        };
+
+        const list = this.placesListElement;
+        if (list && list.style.display !== 'none') {
+            const rect = list.getBoundingClientRect();
+            if (this.isMobile) {
+                area.bottom = Math.min(area.bottom, rect.top - margin);
+            } else {
+                area.left = Math.max(area.left, rect.right + margin);
+            }
+        }
+        return area;
+    }
+
+    /**
+     * Pan the map so the popup is not hidden behind overlaid UI
+     */
+    keepPopupInView(popup) {
+        requestAnimationFrame(() => {
+            const el = popup.getElement();
+            if (!el || !popup.isOpen()) return;
+
+            const rect = el.getBoundingClientRect();
+            const area = this.getFreeMapArea();
+            let dx = 0;
+            let dy = 0;
+
+            if (rect.left < area.left) dx = rect.left - area.left;
+            else if (rect.right > area.right) dx = rect.right - area.right;
+
+            if (rect.top < area.top) dy = rect.top - area.top;
+            else if (rect.bottom > area.bottom) dy = Math.min(rect.bottom - area.bottom, rect.top - area.top);
+
+            if (dx || dy) {
+                this.mapTilerMap.panBy([dx, dy], { duration: 500 });
+            }
+        });
     }
 
     /**
@@ -614,6 +664,7 @@ export class PlacesManager {
             const popup = this.createNativePopup(place);
             popup.setLngLat(place.coordinates).addTo(this.mapTilerMap);
             this.activePopup = popup;
+            this.keepPopupInView(popup);
             
             // Add photo click handlers after popup is shown
             setTimeout(() => {

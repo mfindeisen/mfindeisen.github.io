@@ -1,93 +1,89 @@
 # Interactive Earth Portfolio 🌍
 
-A stunning, interactive 3D visualization that transforms a realistic rotating Earth sphere into a flat, highly detailed interactive map (powered by MapTiler) through a smooth scroll-driven animation. Watch as the Earth naturally "peels apart", revealing an interactive map that flies directly to Erbil, Iraq, before presenting a full portfolio experience!
+Live: [mfindeisen.github.io](https://mfindeisen.github.io)
+
+The portfolio of Matthias Findeisen. A realistic 3D Earth "peels apart" into a flat plane as you scroll, hands off to an interactive MapLibre/MapTiler vector map, and flies to Erbil, Iraq, where the portfolio and showcase overlays open.
 
 ## ✨ Features
 
-- 🌍 **Realistic 3D Earth Sphere** - High-quality NASA Earth texture with natural rotation, dynamic clouds, and atmosphere using Three.js.
-- 🍊 **Natural Orange-Peel Unwrapping** - Scroll down to watch the Earth split and spread apart naturally into a flat plane.
-- 🗺️ **Seamless Map Integration** - Morphs seamlessly into a fully interactive MapLibre/MapTiler vector map.
-- ✈️ **Cinematic FlyTo Animation** - Automatically transitions into a smooth camera flight to Erbil, Iraq.
-- 🎨 **Interactive Overlays** - Features a sleek Portfolio and Showcase overlay system that slides in after the journey.
-- 🌟 **Dynamic Lighting & Effects** - Realistic sun lighting, an immersive starfield background, and hidden easter eggs (like a meteor strike!).
-- 🚀 **Optimized Performance** - Powered by Vite, utilizing morph targets for smooth 60fps animations.
+- 🌍 **Realistic 3D Earth** - NASA textures, rotating clouds, atmosphere and sun lighting with Three.js.
+- 🍊 **Orange-peel unwrapping** - Scroll-driven morph targets turn the sphere into a flat plane.
+- 🗺️ **Seamless map handoff** - The flat plane crossfades into a MapLibre GL map aligned to the same projection.
+- ✈️ **Cinematic flyTo** - The map flies to Erbil and reveals places with photo galleries and 360° panoramas.
+- 🎨 **Portfolio & Showcase overlays** - About, experience and the open-source RTI toolset (modernRtiViewer, rtiDb, rtiprep, neural_rti).
+- 🌟 **Easter eggs** - Press `H` on the start screen.
+- ♿ **Accessible** - Keyboard navigable dialogs (Esc to close, focus trap) and `prefers-reduced-motion` support.
 
 ## 🚀 Quick Start
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd portfolio_earth
-   ```
+This project uses [pnpm](https://pnpm.io/).
 
-2. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
-   *(Note: This project uses `pnpm` instead of `npm` or `yarn`)*
+```bash
+git clone https://github.com/mfindeisen/mfindeisen.github.io.git
+cd mfindeisen.github.io
+pnpm install
+pnpm run dev        # http://127.0.0.1:4001
+```
 
-3. **Start the development server**
-   ```bash
-   pnpm run dev
-   ```
+Other scripts:
 
-4. **Open your browser**
-   ```
-   http://localhost:5173
-   ```
+```bash
+pnpm run build      # production build into dist/
+pnpm run preview    # serve the production build
+pnpm run typecheck  # TypeScript type check
+```
 
-5. **Explore!**
-   - Click **"Scroll to explore"** or simply scroll down to watch the Earth unwrap.
-   - Use the **Skip** buttons to instantly jump to the interactive map or portfolio overlays.
-   - Click **"Back to Beginning"** to seamlessly animate back to the 3D globe.
+### MapTiler API key
+
+The public MapTiler key in `App.ts` only works on `mfindeisen.github.io`. For local development, create `public/.env.local` (Vite reads env files from its root, `public/`) with your own key:
+
+```bash
+VITE_MAPTILER_LOCAL_API_KEY=your-key
+```
+
+Without it the 3D globe and overlays still work locally, but the map does not load.
 
 ## 🎮 How It Works
 
-### The Animation Journey:
-1. **Sphere Mode (Top of page)** - Realistic rotating Earth with natural day/night lighting.
-2. **Unwrapping (Scrolling down)** - Earth splits at the Pacific Ocean and spreads apart into a flat plane.
-3. **Map Transition** - The 3D plane seamlessly crossfades into an interactive MapLibre instance.
-4. **Cinematic Flight** - The map automatically flies to the target destination (Erbil).
-5. **Portfolio Reveal** - Once arrived, the interactive overlays slide into view.
+1. **Sphere mode (top of page)** - Rotating Earth with day/night lighting.
+2. **Unwrapping (scrolling down)** - The Earth splits at the Pacific and spreads into a flat plane.
+3. **Map transition** - The plane crossfades into the MapLibre map.
+4. **Flight** - The map flies to Erbil.
+5. **Portfolio reveal** - The overlays open and the places list becomes available.
 
-### Technical Implementation:
-- **Three.js to MapLibre Handoff** - Complex state management to synchronize the 3D WebGL scene with the 2D vector map layer.
-- **Dual Geometry System** - Custom shader and geometry morph targets for the natural spreading motion.
-- **Vite Ecosystem** - Fast HMR (Hot Module Replacement) and optimized production builds.
+The **Showcase** and **Portfolio** buttons skip the journey and open the overlays directly.
 
 ## 📁 Project Structure
 
 ```
-portfolio_earth/
-├── index.html                 # Main HTML entry point
-├── package.json               # Dependencies and Vite scripts
-├── vite.config.js             # Vite configuration
-├── public/
-│   ├── style.css              # Global styles and UI animations
-│   ├── textures/              # Earth textures and assets
-│   └── src/
-│       ├── main.js            # App initialization
-│       ├── core/App.js        # Main application orchestrator & state machine
-│       ├── earth/             # Three.js globe, stars, clouds, and atmosphere
-│       ├── effects/           # Animations, Scroll controllers, Easter eggs
-│       ├── ui/UIManager.js    # DOM manipulation and overlay state
-│       ├── MapManager.js      # MapTiler/MapLibre integration
-│       └── PlacesManager.js   # Map markers and interactive places
-└── README.md
+mfindeisen.github.io/
+├── vite.config.js             # Vite config (root is public/)
+├── package.json
+└── public/
+    ├── index.html             # Entry point, overlays and SEO meta tags
+    ├── style.css              # Global styles
+    ├── showcase/              # Media for the showcase cards
+    ├── textures/              # Earth textures and place photos (+ thumbnails)
+    └── src/
+        ├── main.ts            # App bootstrap
+        ├── core/App.ts        # Orchestrator and scroll/journey state machine
+        ├── earth/             # Globe, morph geometry, lighting, starfield, easter eggs
+        ├── map/               # MapLibre integration (+ dev-only alignment tool, press M)
+        ├── ui/                # UIManager, modals, tooltips, touch handling
+        ├── effects/           # Alternative design scene, easter egg controls
+        ├── data/places.ts     # Places and photos shown on the map
+        └── PlacesManager.ts   # Map markers, popups and places list
 ```
 
-## 🛠️ Technical Stack
+## 🛠️ Tech Stack
 
-- **Frontend Build Tool**: Vite
-- **3D Graphics**: Three.js
-- **Interactive Maps**: MapLibre GL JS & MapTiler
-- **Styling**: Vanilla CSS with modern animations and transitions
-- **Package Manager**: pnpm
+- **Build**: Vite, TypeScript
+- **3D**: Three.js
+- **Maps**: MapLibre GL JS with MapTiler
+- **Panoramas**: Photo Sphere Viewer
+- **Styling**: CSS (plus Tailwind for the alternative design)
+- **Deployment**: GitHub Pages via GitHub Actions on push to `main`
 
 ## 📝 License
 
-This project is open source. Feel free to use and modify it for your own projects!
-
----
-
-**Experience the Earth like never before - watch our planet transform from a 3D sphere into a fully interactive portfolio! 🌍✨**
+[GNU General Public License v3.0](LICENSE)

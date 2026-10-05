@@ -61,7 +61,7 @@ export const places: Place[] = [
     },
     {
         id: 'erbil-arab_quater',
-        name: 'Erbil Arab Quater',
+        name: 'Erbil Arab Quarter',
         coordinates: [44.0122778, 36.1893889],
         description: '',
         visitDate: 'October 2023',
@@ -71,12 +71,12 @@ export const places: Place[] = [
             {
                 src: 'textures/photos/erbil_arab_quarter_360_1.jpg',
                 isPhotosphere: true,
-                caption: '360° view of Erbil Arab Quater'
+                caption: '360° view of Erbil Arab Quarter'
             },
             {
                 src: 'textures/photos/erbil_arab_quarter_360_2.jpg',
                 isPhotosphere: true,
-                caption: '360° view of Erbil Arab Quater'
+                caption: '360° view of Erbil Arab Quarter'
             },
             {
                 src: 'textures/photos/erbil_arab_quarter_3.jpg',
