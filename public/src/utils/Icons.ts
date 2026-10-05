@@ -20,6 +20,11 @@ import bolt from 'heroicons/24/outline/bolt.svg?raw';
 import clock from 'heroicons/24/outline/clock.svg?raw';
 import swatch from 'heroicons/24/outline/swatch.svg?raw';
 import questionMarkCircle from 'heroicons/24/outline/question-mark-circle.svg?raw';
+import rocketLaunch from 'heroicons/24/outline/rocket-launch.svg?raw';
+import star from 'heroicons/24/outline/star.svg?raw';
+import paintBrush from 'heroicons/24/outline/paint-brush.svg?raw';
+import puzzlePiece from 'heroicons/24/outline/puzzle-piece.svg?raw';
+import fire from 'heroicons/24/outline/fire.svg?raw';
 
 // Map icon names used in the app to imported Heroicon SVGs
 const heroiconsRegistry = {
@@ -42,8 +47,13 @@ const heroiconsRegistry = {
     Sparkles: sparkles,
     Zap: bolt,
     Clock: clock,
-    Palette: swatch,
-    Help: questionMarkCircle
+    Palette: paintBrush,
+    Rainbow: swatch,
+    Help: questionMarkCircle,
+    Rocket: rocketLaunch,
+    Star: star,
+    Gamepad: puzzlePiece,
+    Fire: fire
 };
 
 /**
@@ -68,13 +78,6 @@ export function getIcon(iconName, classNames = '') {
     if (formattedName === 'TreePine') {
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-icon h-tree-pine ${classNames}"><path d="m12 2 10 10H2Z"/><path d="m12 8 8 8H4Z"/><path d="m12 14 6 6H6Z"/><path d="M12 20v2"/></svg>`;
     }
-    if (formattedName === 'Rocket') {
-        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-icon h-rocket ${classNames}"><path d="M4.5 16.5c-1.5 1.26-2 3.5-2 3.5s2.24-.5 3.5-2c1.47-1.72 2-4 2-4s-2.28-.5-3.5 2.5z"/><path d="M12 15c2.4 2.4 4.5 4.5 4.5 4.5M9 12c-2.4-2.4-4.5-4.5-4.5-4.5"/><path d="M11.5 12.5c-.75-.75-1.5-1.5-2.25-2.25M17.5 6.5c-.75-.75-1.5-1.5-2.25-2.25"/><path d="m12.5 11.5 6.3-6.3c1.4-1.4 3.7-.6 4.3 1.3l.9 2.7c.3.9.1 1.9-.5 2.5l-2.4 2.4c-.6.6-1.6.8-2.5.5l-2.7-.9c-1.9-.6-2.7-2.9-1.4-4.3z"/></svg>`;
-    }
-    if (formattedName === 'Gamepad') {
-        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-icon h-gamepad ${classNames}"><rect width="20" height="12" x="2" y="6" rx="3"/><path d="M6 12h4M8 10v4M15 11v.01M18 13v.01"/></svg>`;
-    }
-    
     // Fetch SVG string from registry
     const rawSvg = heroiconsRegistry[formattedName];
     

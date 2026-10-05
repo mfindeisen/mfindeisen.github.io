@@ -32,8 +32,12 @@ export class EasterEggs {
     astronautJourneyProgress: number;
     astronautStartPos: any;
     astronautEndPos: any;
+    timeScale: number;
+    astronautBoost: number;
 
     constructor(scene: any) {
+        this.timeScale = 1;
+        this.astronautBoost = 1;
         this.scene = scene;
         this.astronaut = null;
         this.shootingStars = [];
@@ -341,7 +345,7 @@ export class EasterEggs {
             this.updateJetpackThrust(currentTime);
             this.updateAstronautLegs(currentTime);
             
-            let currentSpeed = this.astronautJourneySpeed;
+            let currentSpeed = this.astronautJourneySpeed * this.astronautBoost * this.timeScale;
             if (this.jetpackThrusting) {
                 currentSpeed *= 2.5;
             } else {
@@ -438,6 +442,15 @@ export class EasterEggs {
         );
         
         this.astronaut.visible = true;
+    }
+
+    /**
+     * Bring the astronaut on screen right away unless it is already flying
+     */
+    summonAstronaut() {
+        if (this.astronaut && !this.astronautVisible) {
+            this.startAstronautJourney();
+        }
     }
 
     /**
@@ -652,7 +665,7 @@ export class EasterEggs {
         if (!this.satellites) return;
         
         this.satellites.forEach(satData => {
-            satData.orbitAngle += satData.orbitSpeed;
+            satData.orbitAngle += satData.orbitSpeed * this.timeScale;
             
             const x = Math.cos(satData.orbitAngle) * satData.orbitRadius;
             const y = Math.sin(satData.orbitInclination) * Math.sin(satData.orbitAngle) * satData.orbitRadius * 0.3;

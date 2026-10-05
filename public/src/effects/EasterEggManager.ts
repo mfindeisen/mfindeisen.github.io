@@ -6,8 +6,8 @@ export class EasterEggManager {
     timeWarpActive: boolean;
     colorModeIndex: number;
     colorModes: any[];
-    originalAstronautSpeed: number;
-    originalSatelliteSpeeds: number[];
+    astronautBoostTimer: ReturnType<typeof setTimeout> | undefined;
+    helpAutoCloseTimer: ReturnType<typeof setTimeout> | undefined;
     closeHelp: (() => void) | null;
 
     constructor(app: any) {
@@ -23,9 +23,7 @@ export class EasterEggManager {
             { name: 'Matrix', filter: 'hue-rotate(90deg) saturate(2) brightness(0.8)' },
             { name: 'Warm', filter: 'hue-rotate(-20deg) saturate(1.3) brightness(1.1)' }
         ];
-        
-        this.originalAstronautSpeed = 0;
-        this.originalSatelliteSpeeds = [];
+
         this.closeHelp = null;
     }
 
@@ -39,13 +37,7 @@ export class EasterEggManager {
             switch (e.code) {
                 case 'KeyA':
                     // 'A' for Astronaut speed boost
-                    if (this.app.earthScene.astronaut) {
-                        this.app.earthScene.astronautOrbitSpeed *= 2;
-                        this.app.showTooltip(`${getIcon('Rocket')} Astronaut speed boost!`, 2000);
-                        setTimeout(() => {
-                            this.app.earthScene.astronautOrbitSpeed /= 2; // Reset after 5 seconds
-                        }, 5000);
-                    }
+                    this.boostAstronaut();
                     break;
 
                 case 'KeyS':
@@ -170,50 +162,50 @@ export class EasterEggManager {
         this.app.showTooltip(`${getIcon('Rainbow')} Color burst!`, 1500);
     }
 
+    get easterEggs() {
+        return this.app.earthScene?.easterEggs;
+    }
+
+    boostAstronaut() {
+        const eggs = this.easterEggs;
+        if (!eggs) return;
+
+        eggs.summonAstronaut();
+        eggs.astronautBoost = 3;
+        clearTimeout(this.astronautBoostTimer);
+        this.astronautBoostTimer = setTimeout(() => {
+            eggs.astronautBoost = 1;
+        }, 5000);
+        this.app.showTooltip(`${getIcon('Rocket')} Astronaut speed boost!`, 2000);
+    }
+
     createMiniStar(x, y) {
-        // Add a temporary star to the 3D scene at the click location
-        if (this.app.earthScene.shootingStars) {
-            this.app.earthScene.createShootingStar();
+        if (this.easterEggs) {
+            this.easterEggs.createShootingStar();
             this.app.showTooltip(`${getIcon('Star')} Mini shooting star!`, 2000);
         }
     }
 
     triggerShootingStarShower() {
-        if (this.app.earthScene.shootingStars) {
-            // Create multiple shooting stars rapidly
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => {
-                    this.app.earthScene.createShootingStar();
-                }, i * 200);
-            }
-            this.app.showTooltip(`${getIcon('Sparkles')} Shooting star shower!`, 3000);
+        const eggs = this.easterEggs;
+        if (!eggs) return;
+
+        for (let i = 0; i < 8; i++) {
+            setTimeout(() => eggs.createShootingStar(), i * 200);
         }
+        this.app.showTooltip(`${getIcon('Star')} Shooting star shower!`, 3000);
     }
 
     toggleTimeWarp() {
-        this.timeWarpActive = !this.timeWarpActive;
+        const eggs = this.easterEggs;
+        if (!eggs) return;
 
+        this.timeWarpActive = !this.timeWarpActive;
+        eggs.timeScale = this.timeWarpActive ? 3 : 1;
         if (this.timeWarpActive) {
-            // Speed up all animations
-            if (this.app.earthScene.astronaut) {
-                this.originalAstronautSpeed = this.app.earthScene.astronautOrbitSpeed;
-                this.app.earthScene.astronautOrbitSpeed *= 3;
-            }
-            if (this.app.earthScene.satellites) {
-                this.originalSatelliteSpeeds = this.app.earthScene.satellites.map(sat => sat.orbitSpeed);
-                this.app.earthScene.satellites.forEach(sat => sat.orbitSpeed *= 3);
-            }
+            eggs.summonAstronaut();
             this.app.showTooltip(`${getIcon('Zap')} Time warp activated!`, 2000);
         } else {
-            // Reset speeds
-            if (this.app.earthScene.astronaut && this.originalAstronautSpeed) {
-                this.app.earthScene.astronautOrbitSpeed = this.originalAstronautSpeed;
-            }
-            if (this.app.earthScene.satellites && this.originalSatelliteSpeeds) {
-                this.app.earthScene.satellites.forEach((sat, i) => {
-                    sat.orbitSpeed = this.originalSatelliteSpeeds[i];
-                });
-            }
             this.app.showTooltip(`${getIcon('Clock')} Time warp deactivated`, 2000);
         }
     }
@@ -237,7 +229,7 @@ export class EasterEggManager {
                 this.createFirework(x, y);
             }, i * 500);
         }
-        this.app.showTooltip(`${getIcon('Sparkles')} Fireworks!`, 3000);
+        this.app.showTooltip(`${getIcon('Fire')} Fireworks!`, 3000);
     }
 
     createFirework(x, y) {
@@ -350,7 +342,7 @@ export class EasterEggManager {
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">F</kbd>
                     <span>Fireworks show</span>
-                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Sparkles')}</span>
+                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Fire')}</span>
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">H</kbd>
@@ -372,6 +364,7 @@ export class EasterEggManager {
         `;
 
         this.closeHelp = () => {
+            clearTimeout(this.helpAutoCloseTimer);
             if (helpDiv.parentNode) {
                 helpDiv.remove();
             }
@@ -400,11 +393,8 @@ export class EasterEggManager {
 
         document.body.appendChild(helpDiv);
 
-        // Auto-close after 12 seconds
-        setTimeout(() => {
-            if (this.closeHelp) {
-                this.closeHelp();
-            }
+        this.helpAutoCloseTimer = setTimeout(() => {
+            this.closeHelp?.();
         }, 12000);
     }
 }
