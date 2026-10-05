@@ -423,14 +423,12 @@ export class App {
             this.uiManager.hideElement('skipButton');
             this.uiManager.hideElement('skipShowcaseBtn');
             this.uiManager.hideElement('footer');
-            this.uiManager.hideElement('altDesignBtn');
         } else {
             if (window.pageYOffset > 50) {
                 this.uiManager.hideElement('scrollIndicator');
                 this.uiManager.hideElement('skipButton');
                 this.uiManager.hideElement('skipShowcaseBtn');
                 this.uiManager.hideElement('footer');
-                this.uiManager.hideElement('altDesignBtn');
             } else if (window.pageYOffset <= 10) {
                 // Only show them if we are not currently auto-scrolling (e.g. smooth scrolling to top)
                 if (!this.uiManager.getState('isAutoScrolling')) {
@@ -438,7 +436,6 @@ export class App {
                     this.uiManager.showElement('skipButton');
                     this.uiManager.showElement('skipShowcaseBtn');
                     this.uiManager.showElement('footer');
-                    this.uiManager.showElement('altDesignBtn');
                     this.uiManager.hideElement('backToBeginningBtn');
                 }
             }
@@ -677,7 +674,6 @@ export class App {
                 if (skipButton) skipButton.classList.remove('hidden');
                 if (skipShowcaseBtn) skipShowcaseBtn.classList.remove('hidden');
                 this.uiManager.showElement('footer');
-                this.uiManager.showElement('altDesignBtn');
             }
         }, 1000); // Give time for scroll animation to complete
     }
