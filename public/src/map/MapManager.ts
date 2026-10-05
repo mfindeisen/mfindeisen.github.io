@@ -50,6 +50,10 @@ export class MapManager {
 
                 this.mapTilerMap.on('load', () => {
                     console.log('MapTiler map loaded with center:', earthCenter);
+                    // The semi-transparent white road overlay washes out dense city imagery
+                    if (this.mapTilerMap.getLayer('Road')) {
+                        this.mapTilerMap.setLayoutProperty('Road', 'visibility', 'none');
+                    }
                     this.isInitialized = true;
                     resolve(this.mapTilerMap);
                 });

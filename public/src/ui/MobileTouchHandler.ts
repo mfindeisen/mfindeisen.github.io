@@ -22,33 +22,15 @@ export class MobileTouchHandler {
         }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
-            // Let modal overlays handle their own scrolling
-            if (this.app.uiManager && this.app.uiManager.getState('portfolioIsVisible')) {
-                const portfolioContent = document.querySelector('#portfolio-overlay .portfolio-content');
-                if (portfolioContent) {
-                    if (!portfolioContent.contains(e.target as Node)) {
-                        e.preventDefault();
-                    } else {
-                        const currentY = e.touches[0].clientY;
-                        const deltaY = currentY - touchStartY; // positive = dragging down (scrolling up)
-                        const isAtTop = portfolioContent.scrollTop <= 0;
-                        const isAtBottom = portfolioContent.scrollTop + portfolioContent.clientHeight >= portfolioContent.scrollHeight - 1;
-                        
-                        // Prevent scroll chaining if at boundary
-                        if ((isAtTop && deltaY > 0) || (isAtBottom && deltaY < 0)) {
-                            if (e.cancelable) e.preventDefault();
-                        }
-                    }
-                }
+            // Overlays lock the body and stop scroll chaining via overscroll-behavior,
+            // so their content must scroll natively in both directions.
+            const activeOverlay = this.app.uiManager?.getState('activeOverlay');
+            if (activeOverlay && activeOverlay !== 'none') {
                 return;
             }
-            
+
             // Allow places list sidebar to handle its own scrolling is now handled globally in UIManager.js
 
-            const showcaseOverlay = document.getElementById('showcase-overlay');
-            if (showcaseOverlay && showcaseOverlay.classList.contains('visible')) {
-                return;
-            }
             const photoModal = document.querySelector('.photo-modal-overlay, .photo-gallery-modal-overlay');
             if (photoModal) {
                 return;
