@@ -1,3 +1,6 @@
+import { CubeUnfold, getMorphStyle } from './CubeUnfold.js';
+import { MathUtils } from '../utils/MathUtils.js';
+
 /**
  * Geometry - Handles Earth geometry creation and morphing
  */
@@ -7,6 +10,7 @@ export class Geometry {
     spherePlane: any;
     cloudLayer: any;
     atmosphere: any;
+    cubeUnfold: CubeUnfold | null;
 
     constructor(scene: any, THREE: any) {
         this.scene = scene;
@@ -14,9 +18,15 @@ export class Geometry {
         this.spherePlane = null;
         this.cloudLayer = null;
         this.atmosphere = null;
+        this.cubeUnfold = null;
         this.createMorphingGeometry();
         this.createAtmosphere();
         this.createCloudLayer();
+
+        const style = getMorphStyle();
+        if (style !== 'classic') {
+            this.cubeUnfold = new CubeUnfold(scene, THREE, this.spherePlane.material.map, style);
+        }
     }
 
     /**
@@ -199,6 +209,15 @@ export class Geometry {
     updateTransformation(progress) {
         if (!this.spherePlane) return;
 
+        if (this.cubeUnfold) {
+            this.updateCubeTransformation(progress);
+            if (this.atmosphere) {
+                this.atmosphere.visible = progress === 0;
+            }
+            this.updateTilt(progress);
+            return;
+        }
+
         // Convert progress to scrollProgress
         const scrollProgress = 1 - progress;
         this.spherePlane.morphTargetInfluences[0] = scrollProgress;
@@ -216,6 +235,56 @@ export class Geometry {
 
         // Update tilt
         this.updateTilt(progress);
+    }
+
+    /**
+     * Sphere → cube → net transition. The regular plane mesh is shown as the sphere at rest
+     * and, for cube-fade only, again as the flat map once the net has faded into it.
+     */
+    updateCubeTransformation(progress) {
+        const cubeUnfold = this.cubeUnfold;
+        const { unfoldEnd, fadeEnd } = cubeUnfold.stages;
+        const fadesIntoPlane = cubeUnfold.style === 'cube-fade';
+
+        cubeUnfold.update(progress);
+
+        if (progress === 0) {
+            this.spherePlane.visible = true;
+            this.spherePlane.morphTargetInfluences[0] = 1;
+            this.setPlaneOpacity(1);
+        } else if (!fadesIntoPlane || progress < unfoldEnd) {
+            this.spherePlane.visible = false;
+        } else {
+            this.spherePlane.visible = true;
+            this.spherePlane.morphTargetInfluences[0] = 0;
+            this.setPlaneOpacity(progress >= fadeEnd ? 1 : cubeUnfold.stageProgress(progress).fade);
+        }
+
+        if (!this.cloudLayer?.morphTargetInfluences) return;
+
+        if (fadesIntoPlane && progress >= fadeEnd) {
+            this.cloudLayer.visible = true;
+            this.cloudLayer.morphTargetInfluences[0] = 0;
+            this.updateCloudLayerScaling(progress);
+            this.cloudLayer.material.opacity *= MathUtils.clamp((progress - fadeEnd) / 0.06, 0, 1);
+        } else {
+            const opacity = 0.6 * (1 - MathUtils.clamp(progress / 0.08, 0, 1));
+            this.cloudLayer.morphTargetInfluences[0] = 1;
+            this.cloudLayer.scale.setScalar(1);
+            this.cloudLayer.position.z = 0.02;
+            this.cloudLayer.material.opacity = opacity;
+            this.cloudLayer.visible = opacity > 0;
+        }
+    }
+
+    setPlaneOpacity(opacity) {
+        const material = this.spherePlane.material;
+        const transparent = opacity < 1;
+        material.opacity = opacity;
+        if (material.transparent !== transparent) {
+            material.transparent = transparent;
+            material.needsUpdate = true;
+        }
     }
 
     /**
@@ -265,6 +334,10 @@ export class Geometry {
         const scrollProgress = 1 - progress;
         let targetTilt = scrollProgress * this.THREE.MathUtils.degToRad(23.5);
 
+        if (this.cubeUnfold) {
+            targetTilt = this.cubeUnfold.tilt(progress);
+        }
+
         if (progress > 0.85) {
             targetTilt = 0;
             this.spherePlane.rotation.y = 0;
@@ -286,6 +359,7 @@ export class Geometry {
      */
     updateRotation(rotationY, cloudRotationY, isTransforming) {
         this.spherePlane.rotation.y = rotationY;
+        this.cubeUnfold?.setRotationY(rotationY);
 
         if (this.atmosphere) {
             this.atmosphere.rotation.y = rotationY;
@@ -342,5 +416,7 @@ export class Geometry {
             this.atmosphere.geometry.dispose();
             this.atmosphere.material.dispose();
         }
+
+        this.cubeUnfold?.destroy();
     }
 }

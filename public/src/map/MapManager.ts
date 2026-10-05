@@ -1,3 +1,13 @@
+export const MAP_START_ZOOM = 4.21;
+
+/**
+ * Scroll progress at which the map starts fading in over the 3D scene.
+ */
+export function mapHandoffProgress(): number {
+    const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
+    return isMobile ? 0.90 : 0.968;
+}
+
 /**
  * MapManager - Handles MapTiler map initialization and management
  */
@@ -11,7 +21,7 @@ export class MapManager {
         this.mapTilerMap = null;
         this.isInitialized = false;
         this.originalCenter = [0, 0];
-        this.originalZoom = 4.21;
+        this.originalZoom = MAP_START_ZOOM;
     }
 
     /**
