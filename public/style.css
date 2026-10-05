@@ -715,7 +715,9 @@ body {
             background: var(--surface-1);
             border: 1px solid var(--panel-border);
             border-radius: 14px;
+            /* clip instead of hidden: hidden makes Chromium treat the card as a scroll container and swallow touch scrolling */
             overflow: hidden;
+            overflow: clip;
             display: flex;
             flex-direction: column;
             transition: border-color var(--transition-base), transform var(--transition-base);
