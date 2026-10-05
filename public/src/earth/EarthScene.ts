@@ -147,7 +147,12 @@ export class EarthScene {
      * Handle final zoom phase
      */
     handleFinalZoom(progress) {
-        const easedProgress = MathUtils.easeInOutCubic(progress);
+        const cubeUnfold = this.geometry.cubeUnfold;
+        if (cubeUnfold?.style === 'cube-zoom') {
+            this.camera.position.set(0, 0, cubeUnfold.cameraZ(progress, this.camera));
+            return;
+        }
+
         let cameraZ = 15;
         
         if (progress < 0.85) {

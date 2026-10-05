@@ -1,4 +1,5 @@
 import { getIcon } from '../utils/Icons.js';
+import { getMorphStyle, type MorphStyle } from '../earth/CubeUnfold.js';
 
 export class EasterEggManager {
     app: any;
@@ -273,6 +274,30 @@ export class EasterEggManager {
         }
     }
 
+    renderMorphStyleLinks() {
+        const current = getMorphStyle();
+        const styles: { id: MorphStyle; label: string }[] = [
+            { id: 'cube-zoom', label: 'Cube unfold + zoom (default)' },
+            { id: 'cube-fade', label: 'Cube unfold + fade' },
+            { id: 'classic', label: 'Classic peel' }
+        ];
+
+        return styles.map(({ id, label }) => {
+            const url = new URL(window.location.href);
+            if (id === 'cube-zoom') {
+                url.searchParams.delete('morph');
+            } else {
+                url.searchParams.set('morph', id);
+            }
+            const active = id === current;
+            return `
+                <a href="${url.pathname}${url.search}" style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; text-decoration: none; color: ${active ? '#fff' : 'rgba(255, 255, 255, 0.75)'}; background: ${active ? 'rgba(90, 169, 255, 0.25)' : 'rgba(255, 255, 255, 0.06)'}; border: 1px solid ${active ? 'rgba(90, 169, 255, 0.6)' : 'transparent'};">
+                    <span>${label}</span>
+                    ${active ? '<span style="margin-left: auto; font-size: 12px; color: #5aa9ff;">active</span>' : ''}
+                </a>`;
+        }).join('');
+    }
+
     showShortcutsHelp() {
         if (this.closeHelp) {
             this.closeHelp();
@@ -333,6 +358,14 @@ export class EasterEggManager {
                     <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Help')}</span>
                 </li>
             </ul>
+            <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; margin-bottom: 12px; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px;">
+                    ${getIcon('Globe')} <span>Earth morph style</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    ${this.renderMorphStyleLinks()}
+                </div>
+            </div>
             <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;">
                 ${getIcon('Mouse')} <span>Click anywhere for surprises!</span>
             </div>
@@ -367,11 +400,11 @@ export class EasterEggManager {
 
         document.body.appendChild(helpDiv);
 
-        // Auto-close after 8 seconds
+        // Auto-close after 12 seconds
         setTimeout(() => {
             if (this.closeHelp) {
                 this.closeHelp();
             }
-        }, 8000);
+        }, 12000);
     }
 }

@@ -4,7 +4,7 @@ import { PlacesManager } from '../PlacesManager.js';
 import { ScrollController } from '../ScrollController.js';
 import { UIManager } from '../ui/UIManager.js';
 import { Tooltip } from '../ui/Tooltip.js';
-import { MapManager } from '../map/MapManager.js';
+import { MapManager, mapHandoffProgress } from '../map/MapManager.js';
 import { AlignmentTool } from '../map/AlignmentTool.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { MobileTouchHandler } from '../ui/MobileTouchHandler.js';
@@ -468,9 +468,8 @@ export class App {
             googleEarthContainer.style.zIndex = '0';
             googleEarthContainer.style.opacity = '0';
 
-            const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
-            const activationThreshold = isMobile ? 0.90 : 0.968;
-            const fadeRange = isMobile ? 0.10 : 0.032;
+            const activationThreshold = mapHandoffProgress();
+            const fadeRange = 1 - activationThreshold;
 
             if (progress > activationThreshold) {
                 const fadeProgress = Math.min((progress - activationThreshold) / fadeRange, 1.0);
