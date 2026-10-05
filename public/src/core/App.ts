@@ -362,9 +362,11 @@ export class App {
         try {
             // Lock scrolling immediately so the user is physically prevented from
             // scrolling up during the flight animation and ruining the map experience
+            window.scrollTo(0, this.scrollController.getMaxScroll());
             this.uiManager.lockScroll();
 
             this.uiManager.setState('journeyState', 'flying');
+            this.updateGoogleEarthVisibility(1);
 
             await this.mapManager.flyTo([targetLng, targetLat], targetZoom, prefersReducedMotion() ? 0 : 4000);
 
@@ -469,7 +471,10 @@ export class App {
             const fadeRange = 1 - activationThreshold;
 
             if (progress > activationThreshold) {
-                const fadeProgress = Math.min((progress - activationThreshold) / fadeRange, 1.0);
+                // Once the flight has started the scroll position can be frozen mid-fade by the scroll lock
+                const fadeProgress = this.uiManager.getState('journeyState') === 'idle'
+                    ? Math.min((progress - activationThreshold) / fadeRange, 1.0)
+                    : 1.0;
 
                 googleEarthContainer.style.zIndex = '2';
                 googleEarthContainer.style.opacity = fadeProgress.toString();

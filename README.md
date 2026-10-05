@@ -1,28 +1,27 @@
-# Interactive Earth Portfolio 🌍
+# Interactive Earth Portfolio
 
 Live: [mfindeisen.github.io](https://mfindeisen.github.io)
 
-The portfolio of Matthias Findeisen. A realistic 3D Earth "peels apart" into a flat plane as you scroll, hands off to an interactive MapLibre/MapTiler vector map, and flies to Erbil, Iraq, where the portfolio and showcase overlays open.
+This is the portfolio site of Matthias Findeisen. It opens on a 3D Earth. Scrolling turns the globe into a cube, unfolds the cube into a flat net and zooms into it until it becomes an interactive MapLibre map. The map then flies to Erbil, Iraq, where the portfolio and showcase open.
 
-## ✨ Features
+## Features
 
-- 🌍 **Realistic 3D Earth** - NASA textures, rotating clouds, atmosphere and sun lighting with Three.js.
-- 🍊 **Orange-peel unwrapping** - Scroll-driven morph targets turn the sphere into a flat plane.
-- 🗺️ **Seamless map handoff** - The flat plane crossfades into a MapLibre GL map aligned to the same projection.
-- ✈️ **Cinematic flyTo** - The map flies to Erbil and reveals places with photo galleries and 360° panoramas.
-- 🎨 **Portfolio & Showcase overlays** - About, experience and the open-source RTI toolset (modernRtiViewer, rtiDb, rtiprep, neural_rti).
-- 🌟 **Easter eggs** - Press `H` on the start screen.
-- ♿ **Accessible** - Keyboard navigable dialogs (Esc to close, focus trap) and `prefers-reduced-motion` support.
+- A 3D Earth built with Three.js, using NASA textures, clouds, an atmosphere and sun lighting.
+- A scroll-driven transition from sphere to cube to unfolded net. The net lines up with the projection of the map that replaces it.
+- A MapLibre GL map (MapTiler tiles) with a flight to Erbil and a list of places, each with photo galleries and 360° panoramas.
+- Portfolio and showcase overlays covering experience, skills and selected projects, among them the open-source RTI toolset, HumanitySync and KurdîHub.
+- Accessibility basics: keyboard-operable dialogs (Esc closes them, focus stays trapped inside) and support for `prefers-reduced-motion`.
+- A few hidden extras. Press `H` on the start screen to list them.
 
-## 🚀 Quick Start
+## Getting started
 
-This project uses [pnpm](https://pnpm.io/).
+The project uses [pnpm](https://pnpm.io/).
 
 ```bash
 git clone https://github.com/mfindeisen/mfindeisen.github.io.git
 cd mfindeisen.github.io
 pnpm install
-pnpm run dev        # http://127.0.0.1:4001
+pnpm run dev
 ```
 
 Other scripts:
@@ -35,55 +34,65 @@ pnpm run typecheck  # TypeScript type check
 
 ### MapTiler API key
 
-The public MapTiler key in `App.ts` only works on `mfindeisen.github.io`. For local development, create `public/.env.local` (Vite reads env files from its root, `public/`) with your own key:
+The MapTiler key in `App.ts` is restricted to `mfindeisen.github.io`. For local development, put your own key in `public/.env.local`. Vite uses `public/` as its root, so it reads env files from there.
 
 ```bash
 VITE_MAPTILER_LOCAL_API_KEY=your-key
 ```
 
-Without it the 3D globe and overlays still work locally, but the map does not load.
+Without a key, the globe and the overlays still work locally, but the map stays empty.
 
-## 🎮 How It Works
+## How it works
 
-1. **Sphere mode (top of page)** - Rotating Earth with day/night lighting.
-2. **Unwrapping (scrolling down)** - The Earth splits at the Pacific and spreads into a flat plane.
-3. **Map transition** - The plane crossfades into the MapLibre map.
-4. **Flight** - The map flies to Erbil.
-5. **Portfolio reveal** - The overlays open and the places list becomes available.
+1. At the top of the page, the Earth rotates with day and night lighting.
+2. Scrolling down morphs the sphere into a cube and unfolds it into a flat net.
+3. The camera zooms into the net until it matches the start view of the map, and the map takes over.
+4. The map flies to Erbil.
+5. The portfolio opens and the list of places becomes available.
 
-The **Showcase** and **Portfolio** buttons skip the journey and open the overlays directly.
+The Showcase and Portfolio buttons skip the journey and open the overlays directly.
 
-## 📁 Project Structure
+The transition style can be chosen with the `morph` URL parameter:
+
+| Value | Effect |
+| --- | --- |
+| `cube-zoom` (default) | Cube unfolds, then zooms into the map |
+| `cube-fade` | Cube unfolds, then crossfades into a flat plane |
+| `classic` | The original peel from sphere to plane |
+
+Example: `https://mfindeisen.github.io/?morph=classic`
+
+## Project structure
 
 ```
 mfindeisen.github.io/
 ├── vite.config.js             # Vite config (root is public/)
 ├── package.json
 └── public/
-    ├── index.html             # Entry point, overlays and SEO meta tags
+    ├── index.html             # Entry point, overlays and meta tags
     ├── style.css              # Global styles
     ├── showcase/              # Media for the showcase cards
-    ├── textures/              # Earth textures and place photos (+ thumbnails)
+    ├── textures/              # Earth textures and place photos
     └── src/
-        ├── main.ts            # App bootstrap
-        ├── core/App.ts        # Orchestrator and scroll/journey state machine
-        ├── earth/             # Globe, morph geometry, lighting, starfield, easter eggs
-        ├── map/               # MapLibre integration (+ dev-only alignment tool, press M)
-        ├── ui/                # UIManager, modals, tooltips, touch handling
-        ├── effects/           # Alternative design scene, easter egg controls
+        ├── main.ts            # Bootstrap
+        ├── core/App.ts        # Scroll and journey state
+        ├── earth/             # Globe, morph geometry, cube unfold, lighting, starfield
+        ├── map/               # MapLibre integration
+        ├── ui/                # Overlays, modals, tooltips, touch handling
+        ├── effects/           # Easter eggs and the scene for the alternative design
         ├── data/places.ts     # Places and photos shown on the map
-        └── PlacesManager.ts   # Map markers, popups and places list
+        └── PlacesManager.ts   # Map markers, popups and the places list
 ```
 
-## 🛠️ Tech Stack
+## Tech stack
 
-- **Build**: Vite, TypeScript
-- **3D**: Three.js
-- **Maps**: MapLibre GL JS with MapTiler
-- **Panoramas**: Photo Sphere Viewer
-- **Styling**: CSS (plus Tailwind for the alternative design)
-- **Deployment**: GitHub Pages via GitHub Actions on push to `main`
+- Vite and TypeScript
+- Three.js
+- MapLibre GL JS with MapTiler
+- Photo Sphere Viewer for the panoramas
+- Plain CSS
+- GitHub Pages, deployed by GitHub Actions on every push to `main`
 
-## 📝 License
+## License
 
 [GNU General Public License v3.0](LICENSE)
