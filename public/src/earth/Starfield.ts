@@ -123,8 +123,8 @@ export class Starfield {
                     vColor = color;
                     
                     // Occasional pulse: steady at 0.8, pulses to 1.0 once every period.
-                    // A high exponent (24.0) ensures a quick elegant sparkle once every ~5s
-                    float pulse = pow(max(0.0, sin(uTime * aTwinkleSpeed + aTwinklePhase)), 24.0);
+                    // The exponent keeps the pulse short relative to the period, but slow enough to read as a soft glow
+                    float pulse = pow(max(0.0, sin(uTime * aTwinkleSpeed + aTwinklePhase)), 10.0);
                     float baseTwinkle = 0.8 + 0.2 * pulse;
                     
                     // Mix between steady 1.0 and twinkle value based on aTwinkleAmount
@@ -165,8 +165,8 @@ export class Starfield {
         });
 
         // Set up 3 parallax layers with 5,000 stars each
-        // Close layer (50-150 radius): sparkles every ~8-12 seconds
-        const geoClose = this.createLayerGeometry(5000, 50, 150, 0.5, 0.8);
+        // Close layer (50-150 radius): sparkles every ~16-25 seconds
+        const geoClose = this.createLayerGeometry(5000, 50, 150, 0.25, 0.4);
         const pointsClose = new this.THREE.Points(geoClose, this.starMaterial);
         this.scene.add(pointsClose);
         this.layers.push({
@@ -176,8 +176,8 @@ export class Starfield {
             rotSpeedZ: 0.000004
         });
 
-        // Medium layer (150-300 radius): sparkles every ~10-20 seconds
-        const geoMed = this.createLayerGeometry(5000, 150, 300, 0.3, 0.6);
+        // Medium layer (150-300 radius): sparkles every ~20-40 seconds
+        const geoMed = this.createLayerGeometry(5000, 150, 300, 0.15, 0.3);
         const pointsMed = new this.THREE.Points(geoMed, this.starMaterial);
         this.scene.add(pointsMed);
         this.layers.push({
@@ -187,8 +187,8 @@ export class Starfield {
             rotSpeedZ: 0.000002
         });
 
-        // Far layer (300-500 radius): sparkles every ~18-40 seconds
-        const geoFar = this.createLayerGeometry(5000, 300, 500, 0.15, 0.35);
+        // Far layer (300-500 radius): sparkles every ~35-80 seconds
+        const geoFar = this.createLayerGeometry(5000, 300, 500, 0.08, 0.18);
         const pointsFar = new this.THREE.Points(geoFar, this.starMaterial);
         this.scene.add(pointsFar);
         this.layers.push({
@@ -207,9 +207,9 @@ export class Starfield {
      * Update starfield animation
      */
     update() {
-        // Increment time based on roughly ~60fps
-        this.time += 0.016;
-        
+        // Wall-clock time so the twinkle rate does not depend on the display refresh rate
+        this.time = performance.now() / 1000;
+
         if (this.starMaterial) {
             this.starMaterial.uniforms.uTime.value = this.time;
         }
