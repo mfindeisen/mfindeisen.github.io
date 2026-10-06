@@ -48,7 +48,7 @@ export class Modal {
                 <div class="photo-modal-header">
                     <h3>${placeName}</h3>
                     <div class="photo-counter">${currentIndex + 1} / ${totalPhotos}</div>
-                    <button class="photo-modal-close">&times;</button>
+                    <button class="photo-modal-close icon-btn" aria-label="Close">${getIcon('XMark')}</button>
                 </div>
                 <div class="photo-modal-content">
                     <div class="photo-loading">
@@ -56,14 +56,7 @@ export class Modal {
                         <p>Loading full-size image...</p>
                     </div>
                     <img src="${currentPhotoSrc}" alt="${placeName} photo" class="photo-modal-image" style="display: none;" />
-                    ${totalPhotos > 1 ? `
-                        <button class="photo-nav-btn photo-nav-prev" ${currentIndex === 0 ? 'disabled' : ''}>
-                            <span>‹</span>
-                        </button>
-                        <button class="photo-nav-btn photo-nav-next" ${currentIndex === totalPhotos - 1 ? 'disabled' : ''}>
-                            <span>›</span>
-                        </button>
-                    ` : ''}
+                    ${totalPhotos > 1 ? this.navButtonsHtml(currentIndex, totalPhotos) : ''}
                 </div>
             </div>
         `;
@@ -84,7 +77,7 @@ export class Modal {
         } else if (img) {
             img.addEventListener('load', handleImageLoad);
             img.addEventListener('error', () => {
-                if (loadingDiv) loadingDiv.innerHTML = '<p style="color: #ff4444;">Error loading image</p>';
+                if (loadingDiv) loadingDiv.innerHTML = '<p class="is-error">Error loading image</p>';
             });
         }
 
@@ -209,8 +202,8 @@ export class Modal {
                     <h3>${placeName} - 360° View</h3>
                     <div class="photosphere-controls">
                         ${totalPhotos > 1 ? `<div class="photo-counter">${currentIndex + 1} / ${totalPhotos}</div>` : ''}
-                        <button class="photosphere-fullscreen" title="Fullscreen">${getIcon('Maximize')}</button>
-                        <button class="photosphere-close">&times;</button>
+                        <button class="photosphere-fullscreen icon-btn" title="Fullscreen" aria-label="Fullscreen">${getIcon('Maximize')}</button>
+                        <button class="photosphere-close icon-btn" aria-label="Close">${getIcon('XMark')}</button>
                     </div>
                 </div>
                 <div class="photosphere-container">
@@ -219,14 +212,7 @@ export class Modal {
                     <div class="photosphere-instructions">
                         <p>${getIcon('Mouse')} Drag to look around • ${getIcon('Search')} Scroll to zoom • Use controls for more options</p>
                     </div>
-                    ${totalPhotos > 1 ? `
-                        <button class="photo-nav-btn photo-nav-prev" ${currentIndex === 0 ? 'disabled' : ''} title="Previous photo">
-                            <span>‹</span>
-                        </button>
-                        <button class="photo-nav-btn photo-nav-next" ${currentIndex === totalPhotos - 1 ? 'disabled' : ''} title="Next photo">
-                            <span>›</span>
-                        </button>
-                    ` : ''}
+                    ${totalPhotos > 1 ? this.navButtonsHtml(currentIndex, totalPhotos) : ''}
                 </div>
             </div>
         `;
@@ -239,7 +225,7 @@ export class Modal {
             const loading = modal.querySelector('.photosphere-loading') as HTMLDivElement;
             if (loading) {
                 loading.textContent = 'Error loading 360° viewer';
-                loading.style.color = '#ff4444';
+                loading.classList.add('is-error');
             }
         });
 
@@ -275,7 +261,7 @@ export class Modal {
             if (loading) {
                 loading.style.display = 'block';
                 loading.textContent = 'Loading 360° view...';
-                loading.style.color = '#fff';
+                loading.classList.remove('is-error');
             }
 
             if (this.photosphereViewer) {
@@ -295,7 +281,7 @@ export class Modal {
                         console.error('Error initializing photosphere viewer:', err);
                         if (loading) {
                             loading.textContent = 'Error loading 360° viewer';
-                            loading.style.color = '#ff4444';
+                            loading.classList.add('is-error');
                         }
                     });
                 }
@@ -304,7 +290,7 @@ export class Modal {
                     console.error('Error initializing photosphere viewer:', err);
                     if (loading) {
                         loading.textContent = 'Error loading 360° viewer';
-                        loading.style.color = '#ff4444';
+                        loading.classList.add('is-error');
                     }
                 });
             }
@@ -402,7 +388,7 @@ export class Modal {
             <div class="photo-gallery-modal">
                 <div class="photo-gallery-header">
                     <h3>${place.name} - Photo Gallery</h3>
-                    <button class="photo-gallery-close">&times;</button>
+                    <button class="photo-gallery-close icon-btn" aria-label="Close">${getIcon('XMark')}</button>
                 </div>
                 <div class="photo-gallery-content">
                     <div class="photo-grid">
@@ -469,6 +455,20 @@ export class Modal {
             }
         };
         document.addEventListener('keydown', handleEscape);
+    }
+
+    /**
+     * Previous/next buttons shared by the photo and photosphere modals
+     */
+    navButtonsHtml(currentIndex: number, totalPhotos: number) {
+        return `
+            <button class="icon-btn icon-btn-lg photo-nav-btn photo-nav-prev" ${currentIndex === 0 ? 'disabled' : ''} aria-label="Previous photo">
+                ${getIcon('ChevronLeft')}
+            </button>
+            <button class="icon-btn icon-btn-lg photo-nav-btn photo-nav-next" ${currentIndex === totalPhotos - 1 ? 'disabled' : ''} aria-label="Next photo">
+                ${getIcon('ChevronRight')}
+            </button>
+        `;
     }
 
     /**

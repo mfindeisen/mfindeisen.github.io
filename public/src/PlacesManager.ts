@@ -65,8 +65,8 @@ export class PlacesManager {
 
         console.log(`Adding marker for ${place.name}`);
 
-        // Create MapTiler default marker (no custom element needed)
-        const marker = new maplibregl.Marker()
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim();
+        const marker = new maplibregl.Marker({ color: accent || '#2f8cf5' })
             .setLngLat(place.coordinates)
             .addTo(this.mapTilerMap);
 
@@ -133,7 +133,7 @@ export class PlacesManager {
                             ${place.photos.length > 4 ? `<div class="more-photos-indicator">+${place.photos.length - 4}</div>` : ''}
                         </div>
                         <div class="photo-actions">
-                            <button class="view-all-photos-btn" data-place-id="${place.id}">
+                            <button class="btn btn-primary btn-sm view-all-photos-btn" data-place-id="${place.id}">
                                 ${getIcon('Camera')} View All ${place.photos.length} Photo${place.photos.length > 1 ? 's' : ''}
                             </button>
                         </div>
@@ -328,7 +328,7 @@ export class PlacesManager {
         header.className = 'places-list-header';
         header.innerHTML = `
             <span class="places-list-title">${getIcon('MapPin')} ${this.isMobile ? 'Places to Visit' : 'My Places'}</span>
-            <button class="places-list-toggle" title="Toggle places list">
+            <button class="places-list-toggle icon-btn" title="Toggle places list" aria-label="Toggle places list">
                 <span class="toggle-icon">${this.isMobile ? getIcon('ChevronUp') : getIcon('ChevronDown')}</span>
                 <span class="hamburger-icon" style="display: none;">${getIcon('Menu')}</span>
             </button>
@@ -758,7 +758,7 @@ export class PlacesManager {
     setPlacesListVisibility(visible) {
         if (this.placesListElement) {
             if (visible) {
-                this.placesListElement.style.display = 'block';
+                this.placesListElement.style.display = '';
                 // On mobile, add a small delay to ensure smooth animation
                 if (this.isMobile) {
                     setTimeout(() => {

@@ -90,8 +90,7 @@ export class Tooltip {
      */
     success(message, duration = 2000) {
         const tooltip = this.show(message, duration);
-        tooltip.style.background = 'rgba(34, 197, 94, 0.9)';
-        tooltip.style.border = '1px solid rgba(34, 197, 94, 1)';
+        tooltip.classList.add('tooltip-success');
         return tooltip;
     }
 
@@ -100,8 +99,7 @@ export class Tooltip {
      */
     error(message, duration = 3000) {
         const tooltip = this.show(message, duration);
-        tooltip.style.background = 'rgba(239, 68, 68, 0.9)';
-        tooltip.style.border = '1px solid rgba(239, 68, 68, 1)';
+        tooltip.classList.add('tooltip-error');
         return tooltip;
     }
 
@@ -110,8 +108,7 @@ export class Tooltip {
      */
     warning(message, duration = 2500) {
         const tooltip = this.show(message, duration);
-        tooltip.style.background = 'rgba(245, 158, 11, 0.9)';
-        tooltip.style.border = '1px solid rgba(245, 158, 11, 1)';
+        tooltip.classList.add('tooltip-warning');
         return tooltip;
     }
 
@@ -120,8 +117,7 @@ export class Tooltip {
      */
     info(message, duration = 2000) {
         const tooltip = this.show(message, duration);
-        tooltip.style.background = 'rgba(59, 130, 246, 0.9)';
-        tooltip.style.border = '1px solid rgba(59, 130, 246, 1)';
+        tooltip.classList.add('tooltip-info');
         return tooltip;
     }
 

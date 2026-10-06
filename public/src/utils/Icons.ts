@@ -15,6 +15,7 @@ import chevronDown from 'heroicons/24/outline/chevron-down.svg?raw';
 import chevronLeft from 'heroicons/24/outline/chevron-left.svg?raw';
 import chevronRight from 'heroicons/24/outline/chevron-right.svg?raw';
 import bars3 from 'heroicons/24/outline/bars-3.svg?raw';
+import xMark from 'heroicons/24/outline/x-mark.svg?raw';
 import sparkles from 'heroicons/24/outline/sparkles.svg?raw';
 import bolt from 'heroicons/24/outline/bolt.svg?raw';
 import clock from 'heroicons/24/outline/clock.svg?raw';
@@ -44,6 +45,7 @@ const heroiconsRegistry = {
     ChevronLeft: chevronLeft,
     ChevronRight: chevronRight,
     Menu: bars3,
+    XMark: xMark,
     Sparkles: sparkles,
     Zap: bolt,
     Clock: clock,
