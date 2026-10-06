@@ -108,6 +108,7 @@ export class PlacesManager {
      * Create popup using MapTiler's native popup functionality
      */
     createNativePopup(place) {
+        const previewCount = place.photos.length > 3 ? 2 : 3;
         const popupContent = `
             <div class="place-popup">
                 <h3 class="popup-title">${place.name}</h3>
@@ -116,7 +117,7 @@ export class PlacesManager {
                 ${place.photos.length > 0 ? `
                     <div class="popup-photos">
                         <div class="photo-preview-grid">
-                            ${place.photos.slice(0, 4).map(photo => {
+                            ${place.photos.slice(0, previewCount).map(photo => {
                                 const photoSrc = typeof photo === 'string' ? photo : photo.src;
                                 const thumbnailSrc = this.getThumbnailPath(photoSrc, 'preview');
                                 const isPhotosphere = typeof photo === 'object' && photo.isPhotosphere;
@@ -130,7 +131,7 @@ export class PlacesManager {
                                     </div>
                                 `;
                             }).join('')}
-                            ${place.photos.length > 4 ? `<div class="more-photos-indicator">+${place.photos.length - 4}</div>` : ''}
+                            ${place.photos.length > previewCount ? `<button type="button" class="more-photos-indicator" aria-label="Show all photos">+${place.photos.length - previewCount}</button>` : ''}
                         </div>
                         <div class="photo-actions">
                             <button class="btn btn-primary btn-sm view-all-photos-btn" data-place-id="${place.id}">
@@ -241,9 +242,8 @@ export class PlacesManager {
             });
         });
         
-        // Handle "View All Photos" button click
-        const viewAllBtn = containerElement.querySelector('.view-all-photos-btn');
-        if (viewAllBtn) {
+        // Handle "View All Photos" button and "+N" tile clicks
+        containerElement.querySelectorAll('.view-all-photos-btn, .more-photos-indicator').forEach(viewAllBtn => {
             viewAllBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent popup from closing
                 this.modal.showPhotoGalleryModal(place, {
@@ -251,7 +251,7 @@ export class PlacesManager {
                     onClose: () => this.enableMapInteractions()
                 });
             });
-        }
+        });
     }
 
     /**
