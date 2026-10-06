@@ -1,5 +1,6 @@
 import { MathUtils } from '../utils/MathUtils.js';
 import { MAP_START_ZOOM, mapHandoffProgress } from '../map/MapManager.js';
+import { NIGHT_EMISSIVE, OCEAN_GLOSS_GLSL, SURFACE_UNIFORMS_GLSL, type SurfaceUniforms, nightLightsGlsl } from './SurfaceShader.js';
 
 /**
  * Selected via `?morph=` in the URL:
@@ -61,7 +62,7 @@ export class CubeUnfold {
     faceIndex: Uint8Array;
     vertsPerFace: number;
 
-    constructor(scene: any, THREE: any, earthTexture: any, style: CubeStyle) {
+    constructor(scene: any, THREE: any, earthTexture: any, style: CubeStyle, nightTexture: any, surfaceUniforms: SurfaceUniforms) {
         this.scene = scene;
         this.THREE = THREE;
         this.style = style;
@@ -75,7 +76,7 @@ export class CubeUnfold {
         this.faceIndex = new Uint8Array(total);
 
         const geometry = this.buildGeometry();
-        this.material = this.buildMaterial(earthTexture);
+        this.material = this.buildMaterial(earthTexture, nightTexture, surfaceUniforms);
 
         this.mesh = new THREE.Mesh(geometry, this.material);
         this.mesh.visible = false;
@@ -141,10 +142,12 @@ export class CubeUnfold {
      * mipmap seam at the antimeridian. Only the gradients are selected, never the
      * coordinate, so neighbouring pixels picking different candidates can't blow up mips.
      */
-    buildMaterial(earthTexture: any) {
+    buildMaterial(earthTexture: any, nightTexture: any, surfaceUniforms: SurfaceUniforms) {
         const THREE = this.THREE;
         const material = new THREE.MeshStandardMaterial({
             map: earthTexture,
+            emissiveMap: nightTexture,
+            ...NIGHT_EMISSIVE,
             side: THREE.DoubleSide,
             metalness: 0,
             roughness: 1,
@@ -152,12 +155,15 @@ export class CubeUnfold {
         });
 
         material.onBeforeCompile = (shader: any) => {
+            Object.assign(shader.uniforms, surfaceUniforms);
             shader.vertexShader = shader.vertexShader
                 .replace('#include <common>', '#include <common>\nattribute vec3 aDir;\nvarying vec3 vDir;')
                 .replace('#include <begin_vertex>', '#include <begin_vertex>\nvDir = aDir;');
 
             shader.fragmentShader = shader.fragmentShader
-                .replace('#include <common>', '#include <common>\nvarying vec3 vDir;')
+                .replace('#include <common>', `#include <common>\nvarying vec3 vDir;\n${SURFACE_UNIFORMS_GLSL}`)
+                .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\n${OCEAN_GLOSS_GLSL}`)
+                .replace('#include <emissivemap_fragment>', nightLightsGlsl('textureGrad(emissiveMap, vec2(eqU1, eqV), eqDx, eqDy)'))
                 .replace('#include <map_fragment>', `
                     vec3 eqDir = normalize(vDir);
                     float eqU1 = atan(eqDir.x, eqDir.z) / 6.28318530718 + 0.5;

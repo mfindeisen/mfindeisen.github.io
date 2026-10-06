@@ -205,6 +205,11 @@ export class EarthScene {
         
         // Update geometry rotation
         this.geometry.updateRotation(totalRotationY, this.cloudRotationY, this.isScrolling || this.hasStartedMorphing);
+
+        if (this.lighting?.lights.sun) {
+            this.camera.updateMatrixWorld();
+            this.geometry.updateSunDirection(this.lighting.lights.sun.position, this.camera);
+        }
         
         // Update starfield
         this.starfield.update();

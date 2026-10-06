@@ -1,5 +1,8 @@
 import { CubeUnfold, getMorphStyle } from './CubeUnfold.js';
 import { MathUtils } from '../utils/MathUtils.js';
+import { NIGHT_EMISSIVE, OCEAN_GLOSS_GLSL, SURFACE_UNIFORMS_GLSL, type SurfaceUniforms, nightLightsGlsl } from './SurfaceShader.js';
+
+const CLOUD_OPACITY = 0.9;
 
 /**
  * Geometry - Handles Earth geometry creation and morphing
@@ -11,6 +14,7 @@ export class Geometry {
     cloudLayer: any;
     atmosphere: any;
     cubeUnfold: CubeUnfold | null;
+    surfaceUniforms: SurfaceUniforms;
 
     constructor(scene: any, THREE: any) {
         this.scene = scene;
@@ -19,13 +23,19 @@ export class Geometry {
         this.cloudLayer = null;
         this.atmosphere = null;
         this.cubeUnfold = null;
+        // uSurfaceFx fades night lights and ocean gloss out while the globe flattens into the map
+        this.surfaceUniforms = {
+            uSunDirView: { value: new THREE.Vector3(1, 0, 0) },
+            uSurfaceFx: { value: 1 }
+        };
         this.createMorphingGeometry();
         this.createAtmosphere();
         this.createCloudLayer();
 
         const style = getMorphStyle();
         if (style !== 'classic') {
-            this.cubeUnfold = new CubeUnfold(scene, THREE, this.spherePlane.material.map, style);
+            const { map, emissiveMap } = this.spherePlane.material;
+            this.cubeUnfold = new CubeUnfold(scene, THREE, map, style, emissiveMap, this.surfaceUniforms);
         }
     }
 
@@ -75,12 +85,32 @@ export class Geometry {
         earthTexture.minFilter = this.THREE.LinearMipmapLinearFilter;
         earthTexture.magFilter = this.THREE.LinearFilter;
 
+        const nightTexture = loader.load(
+            'textures/BlackMarble_2016_01deg.jpg',
+            undefined,
+            undefined,
+            (e) => console.error('Night texture load error', e)
+        );
+        nightTexture.colorSpace = this.THREE.SRGBColorSpace;
+        nightTexture.minFilter = this.THREE.LinearMipmapLinearFilter;
+        nightTexture.magFilter = this.THREE.LinearFilter;
+
         const mat = new this.THREE.MeshStandardMaterial({
             map: earthTexture,
+            emissiveMap: nightTexture,
+            ...NIGHT_EMISSIVE,
             side: this.THREE.DoubleSide,
             metalness: 0,
             roughness: 1
         });
+
+        mat.onBeforeCompile = (shader) => {
+            Object.assign(shader.uniforms, this.surfaceUniforms);
+            shader.fragmentShader = shader.fragmentShader
+                .replace('#include <common>', `#include <common>\n${SURFACE_UNIFORMS_GLSL}`)
+                .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\n${OCEAN_GLOSS_GLSL}`)
+                .replace('#include <emissivemap_fragment>', nightLightsGlsl('texture2D( emissiveMap, vEmissiveMapUv )'));
+        };
 
         this.spherePlane = new this.THREE.Mesh(planeGeom, mat);
         this.spherePlane.castShadow = false;
@@ -106,16 +136,22 @@ export class Geometry {
         `;
 
         const atmosphereFragmentShader = `
+            uniform vec3 uSunDirView;
             varying vec3 vNormal;
             void main() {
                 float intensity = pow( 0.6 - dot( vNormal, vec3( 0, 0, 1.0 ) ), 2.0 );
                 intensity = max(intensity, 0.0);
-                gl_FragColor = vec4( 0.3, 0.6, 1.0, 0.4 ) * intensity;
+                float sunDot = dot( vNormal, uSunDirView );
+                float day = smoothstep( -0.3, 0.4, sunDot );
+                float twilight = smoothstep( -0.3, 0.0, sunDot ) * ( 1.0 - smoothstep( 0.0, 0.35, sunDot ) );
+                vec3 color = mix( vec3( 0.3, 0.6, 1.0 ), vec3( 1.0, 0.55, 0.3 ), twilight * 0.5 );
+                gl_FragColor = vec4( color, 0.4 ) * intensity * mix( 0.12, 1.0, day );
             }
         `;
 
         const atmosphereGeom = new this.THREE.SphereGeometry(2.8, 32, 32);
         const atmosphereMaterial = new this.THREE.ShaderMaterial({
+            uniforms: { uSunDirView: this.surfaceUniforms.uSunDirView },
             vertexShader: atmosphereVertexShader,
             fragmentShader: atmosphereFragmentShader,
             side: this.THREE.BackSide,
@@ -174,18 +210,19 @@ export class Geometry {
             undefined,
             (e) => console.error('Cloud texture load error', e)
         );
-        cloudTexture.colorSpace = this.THREE.SRGBColorSpace;
         cloudTexture.minFilter = this.THREE.LinearMipmapLinearFilter;
         cloudTexture.magFilter = this.THREE.LinearFilter;
 
+        // Clouds.webp has no alpha channel, so its brightness drives the coverage
         const cloudMaterial = new this.THREE.MeshStandardMaterial({
-            map: cloudTexture,
+            color: 0xf4f6fa,
+            alphaMap: cloudTexture,
             transparent: true,
-            opacity: 0.6,
-            side: this.THREE.DoubleSide,
+            opacity: CLOUD_OPACITY,
+            side: this.THREE.FrontSide,
             metalness: 0,
             roughness: 1.0,
-            alphaTest: 0.05,
+            alphaTest: 0.02,
             depthWrite: false,
             depthTest: true,
             polygonOffset: true,
@@ -208,6 +245,8 @@ export class Geometry {
      */
     updateTransformation(progress) {
         if (!this.spherePlane) return;
+
+        this.surfaceUniforms.uSurfaceFx.value = 1 - MathUtils.clamp(progress / 0.15, 0, 1);
 
         if (this.cubeUnfold) {
             this.updateCubeTransformation(progress);
@@ -268,7 +307,7 @@ export class Geometry {
             this.updateCloudLayerScaling(progress);
             this.cloudLayer.material.opacity *= MathUtils.clamp((progress - fadeEnd) / 0.06, 0, 1);
         } else {
-            const opacity = 0.6 * (1 - MathUtils.clamp(progress / 0.08, 0, 1));
+            const opacity = CLOUD_OPACITY * (1 - MathUtils.clamp(progress / 0.08, 0, 1));
             this.cloudLayer.morphTargetInfluences[0] = 1;
             this.cloudLayer.scale.setScalar(1);
             this.cloudLayer.position.z = 0.02;
@@ -311,13 +350,13 @@ export class Geometry {
                 const fadeStart = 0.4;
                 if (progress > 0.9 + (fadeStart * 0.1)) {
                     const fadeProgress = (progress - (0.9 + fadeStart * 0.1)) / (0.1 * (1 - fadeStart));
-                    const fadeOpacity = Math.max(0, 0.6 * (1 - fadeProgress));
+                    const fadeOpacity = Math.max(0, CLOUD_OPACITY * (1 - fadeProgress));
                     this.cloudLayer.material.opacity = fadeOpacity;
                 } else {
-                    this.cloudLayer.material.opacity = 0.6;
+                    this.cloudLayer.material.opacity = CLOUD_OPACITY;
                 }
             } else {
-                this.cloudLayer.material.opacity = 0.6;
+                this.cloudLayer.material.opacity = CLOUD_OPACITY;
             }
 
             this.cloudLayer.position.z = cloudZOffset;
@@ -372,6 +411,16 @@ export class Geometry {
                 this.cloudLayer.rotation.y = cloudRotationY;
             }
         }
+    }
+
+    /**
+     * Update the sun direction (in view space) used by night lights, ocean gloss and atmosphere
+     */
+    updateSunDirection(sunPosition, camera) {
+        this.surfaceUniforms.uSunDirView.value
+            .copy(sunPosition)
+            .normalize()
+            .transformDirection(camera.matrixWorldInverse);
     }
 
     /**
