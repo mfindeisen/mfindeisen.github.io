@@ -7,6 +7,7 @@ export class EasterEggManager {
     colorModeIndex: number;
     colorModes: any[];
     astronautBoostTimer: ReturnType<typeof setTimeout> | undefined;
+    colorBurstTimer: ReturnType<typeof setTimeout> | undefined;
     helpAutoCloseTimer: ReturnType<typeof setTimeout> | undefined;
     closeHelp: (() => void) | null;
 
@@ -149,14 +150,28 @@ export class EasterEggManager {
         this.app.showTooltip(`${getIcon('Sparkles')} Sparkles!`, 1500);
     }
 
-    createColorBurst(x, y) {
-        // Change the whole scene color temporarily
-        const canvas = this.app.renderer.domElement;
-        const originalFilter = canvas.style.filter;
-        canvas.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(2)`;
+    createColorBurst(_x, _y) {
+        // Tint only the Earth (surface, clouds, cube), leave the sky alone
+        const geometry = this.app.earthScene?.geometry;
+        if (!geometry) return;
 
-        setTimeout(() => {
-            canvas.style.filter = originalFilter;
+        const materials = [
+            geometry.getEarthMesh()?.material,
+            geometry.getCloudLayer()?.material,
+            geometry.cubeUnfold?.material
+        ].filter((material: any) => material?.color);
+
+        if (!materials.length) return;
+
+        clearTimeout(this.colorBurstTimer);
+        const originals = materials.map((material: any) => material.color.clone());
+        const hue = Math.random();
+        for (const material of materials) {
+            material.color.setHSL(hue, 0.85, 0.55);
+        }
+
+        this.colorBurstTimer = setTimeout(() => {
+            materials.forEach((material: any, i: number) => material.color.copy(originals[i]));
         }, 500);
 
         this.app.showTooltip(`${getIcon('Rainbow')} Color burst!`, 1500);
