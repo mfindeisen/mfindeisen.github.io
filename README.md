@@ -7,6 +7,7 @@ This is the portfolio site of Matthias Findeisen. It opens on a 3D Earth. Scroll
 ## Features
 
 - A 3D Earth built with Three.js, using NASA textures, clouds, an atmosphere and sun lighting.
+- The real night sky behind it: the ~9,100 stars of the Yale Bright Star Catalog at their true positions, brightnesses and colours, over ESO's photographic panorama of the Milky Way, aligned to the catalogue. The view faces the Galactic centre.
 - A scroll-driven transition from sphere to cube to unfolded net. The net lines up with the projection of the map that replaces it.
 - A MapLibre GL map (MapTiler tiles) with a flight to Erbil and a list of places, each with photo galleries and 360° panoramas.
 - Portfolio and showcase overlays covering experience, skills and selected projects, among them the open-source RTI toolset, HumanitySync and KurdîHub.
@@ -30,6 +31,7 @@ Other scripts:
 pnpm run build      # production build into dist/
 pnpm run preview    # serve the production build
 pnpm run typecheck  # TypeScript type check
+pnpm run build:sky  # regenerate public/textures/sky/ from the star catalogue and the Milky Way panorama
 ```
 
 ### MapTiler API key
@@ -68,6 +70,7 @@ Example: `https://mfindeisen.github.io/?morph=classic`
 mfindeisen.github.io/
 ├── vite.config.js             # Vite config (root is public/)
 ├── package.json
+├── scripts/build-sky.mjs      # Builds the star catalogue and Milky Way assets
 └── public/
     ├── index.html             # Entry point, overlays and meta tags
     ├── style.css              # Global styles
@@ -92,6 +95,11 @@ mfindeisen.github.io/
 - Photo Sphere Viewer for the panoramas
 - Plain CSS
 - GitHub Pages, deployed by GitHub Actions on every push to `main`
+
+## Credits
+
+- Milky Way: [ESO/S. Brunier](https://www.eso.org/public/images/eso0932a/), CC BY 4.0, reprojected to equatorial coordinates.
+- Stars: Yale Bright Star Catalog, 5th revised edition (Hoffleit & Warren), via [brettonw/YaleBrightStarCatalog](https://github.com/brettonw/YaleBrightStarCatalog).
 
 ## License
 

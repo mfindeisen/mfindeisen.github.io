@@ -1033,6 +1033,8 @@ body {
             text-align: center;
             pointer-events: auto;
             white-space: nowrap;
+            width: max-content;
+            max-width: calc(100vw - 32px);
         }
 
         #footer:hover {
@@ -1047,13 +1049,25 @@ body {
 
         .footer-content {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 4px 12px;
         }
 
         .footer-item {
             display: inline-block;
+            white-space: nowrap;
+        }
+
+        .footer-item a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .footer-item a:hover,
+        .footer-item a:focus-visible {
+            text-decoration: underline;
         }
 
         .footer-divider {

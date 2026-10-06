@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p .",
+    "build:sky": "node scripts/build-sky.mjs",
     "start": "node server.js"
   },
   "keywords": [

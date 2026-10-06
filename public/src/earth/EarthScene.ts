@@ -211,8 +211,8 @@ export class EarthScene {
             this.geometry.updateSunDirection(this.lighting.lights.sun.position, this.camera);
         }
         
-        // Update starfield
-        this.starfield.update();
+        // Update starfield; mouse parallax only on the unscrolled start view
+        this.starfield.update(this.scrollProgress === 1);
         
         // Update easter eggs
         this.easterEggs.update();
