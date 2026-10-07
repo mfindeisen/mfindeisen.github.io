@@ -214,7 +214,7 @@ export class PlacesManager {
         const nameWithoutExt = filename.replace(/\.[^/.]+$/, "");
         
         // Return thumbnail path
-        return `textures/photos/thumbnails/${nameWithoutExt}_${size}.jpg`;
+        return `textures/photos/thumbnails/${nameWithoutExt}_${size}.webp`;
     }
 
     /**

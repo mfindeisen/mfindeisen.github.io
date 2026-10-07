@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p .",
     "build:sky": "node scripts/build-sky.mjs",
+    "build:photos": "node scripts/build-photos.mjs",
     "start": "node server.js"
   },
   "keywords": [

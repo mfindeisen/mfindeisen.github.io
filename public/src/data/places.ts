@@ -27,32 +27,32 @@ export const places: Place[] = [
         importance: 'high',
         photos: [
             {
-                src: 'textures/photos/erbil_citadel_1.jpg',
+                src: 'textures/photos/erbil_citadel_1.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_citadel_2.jpg',
+                src: 'textures/photos/erbil_citadel_2.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_citadel_3.jpg',
+                src: 'textures/photos/erbil_citadel_3.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_citadel_4.jpg',
+                src: 'textures/photos/erbil_citadel_4.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_citadel_5.jpg',
+                src: 'textures/photos/erbil_citadel_5.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_citadel_6.jpg',
+                src: 'textures/photos/erbil_citadel_6.webp',
                 isPhotosphere: false,
                 caption: ''
             }
@@ -69,82 +69,82 @@ export const places: Place[] = [
         importance: 'high',
         photos: [
             {
-                src: 'textures/photos/erbil_arab_quarter_360_1.jpg',
+                src: 'textures/photos/erbil_arab_quarter_360_1.webp',
                 isPhotosphere: true,
                 caption: '360° view of Erbil Arab Quarter'
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_360_2.jpg',
+                src: 'textures/photos/erbil_arab_quarter_360_2.webp',
                 isPhotosphere: true,
                 caption: '360° view of Erbil Arab Quarter'
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_3.jpg',
+                src: 'textures/photos/erbil_arab_quarter_3.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_4.jpg',
+                src: 'textures/photos/erbil_arab_quarter_4.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_5.jpg',
+                src: 'textures/photos/erbil_arab_quarter_5.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_6.jpg',
+                src: 'textures/photos/erbil_arab_quarter_6.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_7.jpg',
+                src: 'textures/photos/erbil_arab_quarter_7.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_8.jpg',
+                src: 'textures/photos/erbil_arab_quarter_8.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_9.jpg',
+                src: 'textures/photos/erbil_arab_quarter_9.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_10.jpg',
+                src: 'textures/photos/erbil_arab_quarter_10.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_11.jpg',
+                src: 'textures/photos/erbil_arab_quarter_11.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_12.jpg',
+                src: 'textures/photos/erbil_arab_quarter_12.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_13.jpg',
+                src: 'textures/photos/erbil_arab_quarter_13.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_14.jpg',
+                src: 'textures/photos/erbil_arab_quarter_14.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_15.jpg',
+                src: 'textures/photos/erbil_arab_quarter_15.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_arab_quarter_16.jpg',
+                src: 'textures/photos/erbil_arab_quarter_16.webp',
                 isPhotosphere: false,
                 caption: ''
             }
@@ -161,12 +161,12 @@ export const places: Place[] = [
         importance: 'high',
         photos: [
             {
-                src: 'textures/photos/erbil_mosque_1.jpg',
+                src: 'textures/photos/erbil_mosque_1.webp',
                 isPhotosphere: false,
                 caption: ''
             },
             {
-                src: 'textures/photos/erbil_mosque_2.jpg',
+                src: 'textures/photos/erbil_mosque_2.webp',
                 isPhotosphere: false,
                 caption: ''
             }

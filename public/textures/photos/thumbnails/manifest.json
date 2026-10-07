@@ -1,222 +1,228 @@
 {
-  "generated": "2025-09-12T22:14:58.010Z",
+  "generated": "2026-10-07T13:36:55.259Z",
   "totalPhotos": 25,
+  "display": {
+    "maxEdge": 2560,
+    "quality": 80,
+    "sphereMaxEdge": 4096,
+    "sphereQuality": 74
+  },
   "thumbnailSizes": {
     "preview": {
       "width": 150,
       "height": 150,
-      "quality": 80
+      "quality": 70
     },
     "gallery": {
       "width": 200,
       "height": 200,
-      "quality": 85
+      "quality": 74
     },
     "medium": {
       "width": 400,
       "height": 400,
-      "quality": 90
+      "quality": 76
     }
   },
   "files": [
     {
-      "original": "20241102_132908.jpg",
+      "original": "erbil_arab_quarter_10.webp",
       "thumbnails": [
-        "20241102_132908_preview.jpg",
-        "20241102_132908_gallery.jpg",
-        "20241102_132908_medium.jpg"
+        "erbil_arab_quarter_10_preview.webp",
+        "erbil_arab_quarter_10_gallery.webp",
+        "erbil_arab_quarter_10_medium.webp"
       ]
     },
     {
-      "original": "PXL_20221015_115356533.jpg",
+      "original": "erbil_arab_quarter_11.webp",
       "thumbnails": [
-        "PXL_20221015_115356533_preview.jpg",
-        "PXL_20221015_115356533_gallery.jpg",
-        "PXL_20221015_115356533_medium.jpg"
+        "erbil_arab_quarter_11_preview.webp",
+        "erbil_arab_quarter_11_gallery.webp",
+        "erbil_arab_quarter_11_medium.webp"
       ]
     },
     {
-      "original": "PXL_20221015_115629967.jpg",
+      "original": "erbil_arab_quarter_12.webp",
       "thumbnails": [
-        "PXL_20221015_115629967_preview.jpg",
-        "PXL_20221015_115629967_gallery.jpg",
-        "PXL_20221015_115629967_medium.jpg"
+        "erbil_arab_quarter_12_preview.webp",
+        "erbil_arab_quarter_12_gallery.webp",
+        "erbil_arab_quarter_12_medium.webp"
       ]
     },
     {
-      "original": "PXL_20221015_150921206.jpg",
+      "original": "erbil_arab_quarter_13.webp",
       "thumbnails": [
-        "PXL_20221015_150921206_preview.jpg",
-        "PXL_20221015_150921206_gallery.jpg",
-        "PXL_20221015_150921206_medium.jpg"
+        "erbil_arab_quarter_13_preview.webp",
+        "erbil_arab_quarter_13_gallery.webp",
+        "erbil_arab_quarter_13_medium.webp"
       ]
     },
     {
-      "original": "PXL_20221016_100441108.jpg",
+      "original": "erbil_arab_quarter_14.webp",
       "thumbnails": [
-        "PXL_20221016_100441108_preview.jpg",
-        "PXL_20221016_100441108_gallery.jpg",
-        "PXL_20221016_100441108_medium.jpg"
+        "erbil_arab_quarter_14_preview.webp",
+        "erbil_arab_quarter_14_gallery.webp",
+        "erbil_arab_quarter_14_medium.webp"
       ]
     },
     {
-      "original": "PXL_20221016_100536586.jpg",
+      "original": "erbil_arab_quarter_15.webp",
       "thumbnails": [
-        "PXL_20221016_100536586_preview.jpg",
-        "PXL_20221016_100536586_gallery.jpg",
-        "PXL_20221016_100536586_medium.jpg"
+        "erbil_arab_quarter_15_preview.webp",
+        "erbil_arab_quarter_15_gallery.webp",
+        "erbil_arab_quarter_15_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241101_143435275.RAW-01.COVER.jpg",
+      "original": "erbil_arab_quarter_16.webp",
       "thumbnails": [
-        "PXL_20241101_143435275.RAW-01.COVER_preview.jpg",
-        "PXL_20241101_143435275.RAW-01.COVER_gallery.jpg",
-        "PXL_20241101_143435275.RAW-01.COVER_medium.jpg"
+        "erbil_arab_quarter_16_preview.webp",
+        "erbil_arab_quarter_16_gallery.webp",
+        "erbil_arab_quarter_16_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_102754081.RAW-01.COVER.jpg",
+      "original": "erbil_arab_quarter_3.webp",
       "thumbnails": [
-        "PXL_20241102_102754081.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_102754081.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_102754081.RAW-01.COVER_medium.jpg"
+        "erbil_arab_quarter_3_preview.webp",
+        "erbil_arab_quarter_3_gallery.webp",
+        "erbil_arab_quarter_3_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_102815695.RAW-01.COVER.jpg",
+      "original": "erbil_arab_quarter_360_1.webp",
       "thumbnails": [
-        "PXL_20241102_102815695.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_102815695.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_102815695.RAW-01.COVER_medium.jpg"
+        "erbil_arab_quarter_360_1_preview.webp",
+        "erbil_arab_quarter_360_1_gallery.webp",
+        "erbil_arab_quarter_360_1_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_102826919.RAW-01.COVER.jpg",
+      "original": "erbil_arab_quarter_360_2.webp",
       "thumbnails": [
-        "PXL_20241102_102826919.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_102826919.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_102826919.RAW-01.COVER_medium.jpg"
+        "erbil_arab_quarter_360_2_preview.webp",
+        "erbil_arab_quarter_360_2_gallery.webp",
+        "erbil_arab_quarter_360_2_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_102907796.RAW-01.COVER.jpg",
+      "original": "erbil_arab_quarter_4.webp",
       "thumbnails": [
-        "PXL_20241102_102907796.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_102907796.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_102907796.RAW-01.COVER_medium.jpg"
+        "erbil_arab_quarter_4_preview.webp",
+        "erbil_arab_quarter_4_gallery.webp",
+        "erbil_arab_quarter_4_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_103216524.RAW-01.MP.COVER.jpg",
+      "original": "erbil_arab_quarter_5.webp",
       "thumbnails": [
-        "PXL_20241102_103216524.RAW-01.MP.COVER_preview.jpg",
-        "PXL_20241102_103216524.RAW-01.MP.COVER_gallery.jpg",
-        "PXL_20241102_103216524.RAW-01.MP.COVER_medium.jpg"
+        "erbil_arab_quarter_5_preview.webp",
+        "erbil_arab_quarter_5_gallery.webp",
+        "erbil_arab_quarter_5_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_103244091.RAW-01.COVER.jpg",
+      "original": "erbil_arab_quarter_6.webp",
       "thumbnails": [
-        "PXL_20241102_103244091.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_103244091.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_103244091.RAW-01.COVER_medium.jpg"
+        "erbil_arab_quarter_6_preview.webp",
+        "erbil_arab_quarter_6_gallery.webp",
+        "erbil_arab_quarter_6_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_103245906.RAW-01.COVER.jpg",
+      "original": "erbil_arab_quarter_7.webp",
       "thumbnails": [
-        "PXL_20241102_103245906.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_103245906.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_103245906.RAW-01.COVER_medium.jpg"
+        "erbil_arab_quarter_7_preview.webp",
+        "erbil_arab_quarter_7_gallery.webp",
+        "erbil_arab_quarter_7_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_103301112.PHOTOSPHERE.jpg",
+      "original": "erbil_arab_quarter_8.webp",
       "thumbnails": [
-        "PXL_20241102_103301112.PHOTOSPHERE_preview.jpg",
-        "PXL_20241102_103301112.PHOTOSPHERE_gallery.jpg",
-        "PXL_20241102_103301112.PHOTOSPHERE_medium.jpg"
+        "erbil_arab_quarter_8_preview.webp",
+        "erbil_arab_quarter_8_gallery.webp",
+        "erbil_arab_quarter_8_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_103536911.RAW-01.COVER.jpg",
+      "original": "erbil_arab_quarter_9.webp",
       "thumbnails": [
-        "PXL_20241102_103536911.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_103536911.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_103536911.RAW-01.COVER_medium.jpg"
+        "erbil_arab_quarter_9_preview.webp",
+        "erbil_arab_quarter_9_gallery.webp",
+        "erbil_arab_quarter_9_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_103547754.RAW-01.COVER.jpg",
+      "original": "erbil_citadel_1.webp",
       "thumbnails": [
-        "PXL_20241102_103547754.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_103547754.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_103547754.RAW-01.COVER_medium.jpg"
+        "erbil_citadel_1_preview.webp",
+        "erbil_citadel_1_gallery.webp",
+        "erbil_citadel_1_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_103644688.RAW-01.COVER.jpg",
+      "original": "erbil_citadel_2.webp",
       "thumbnails": [
-        "PXL_20241102_103644688.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_103644688.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_103644688.RAW-01.COVER_medium.jpg"
+        "erbil_citadel_2_preview.webp",
+        "erbil_citadel_2_gallery.webp",
+        "erbil_citadel_2_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_103739902.RAW-01.COVER.jpg",
+      "original": "erbil_citadel_3.webp",
       "thumbnails": [
-        "PXL_20241102_103739902.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_103739902.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_103739902.RAW-01.COVER_medium.jpg"
+        "erbil_citadel_3_preview.webp",
+        "erbil_citadel_3_gallery.webp",
+        "erbil_citadel_3_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_103748514.PHOTOSPHERE.jpg",
+      "original": "erbil_citadel_4.webp",
       "thumbnails": [
-        "PXL_20241102_103748514.PHOTOSPHERE_preview.jpg",
-        "PXL_20241102_103748514.PHOTOSPHERE_gallery.jpg",
-        "PXL_20241102_103748514.PHOTOSPHERE_medium.jpg"
+        "erbil_citadel_4_preview.webp",
+        "erbil_citadel_4_gallery.webp",
+        "erbil_citadel_4_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_104000380.RAW-01.COVER.jpg",
+      "original": "erbil_citadel_5.webp",
       "thumbnails": [
-        "PXL_20241102_104000380.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_104000380.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_104000380.RAW-01.COVER_medium.jpg"
+        "erbil_citadel_5_preview.webp",
+        "erbil_citadel_5_gallery.webp",
+        "erbil_citadel_5_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_104025670.RAW-01.COVER.jpg",
+      "original": "erbil_citadel_6.webp",
       "thumbnails": [
-        "PXL_20241102_104025670.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_104025670.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_104025670.RAW-01.COVER_medium.jpg"
+        "erbil_citadel_6_preview.webp",
+        "erbil_citadel_6_gallery.webp",
+        "erbil_citadel_6_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_104224604.RAW-01.COVER.jpg",
+      "original": "erbil_mosque_1.webp",
       "thumbnails": [
-        "PXL_20241102_104224604.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_104224604.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_104224604.RAW-01.COVER_medium.jpg"
+        "erbil_mosque_1_preview.webp",
+        "erbil_mosque_1_gallery.webp",
+        "erbil_mosque_1_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_130901805.RAW-01.COVER.jpg",
+      "original": "erbil_mosque_2.webp",
       "thumbnails": [
-        "PXL_20241102_130901805.RAW-01.COVER_preview.jpg",
-        "PXL_20241102_130901805.RAW-01.COVER_gallery.jpg",
-        "PXL_20241102_130901805.RAW-01.COVER_medium.jpg"
+        "erbil_mosque_2_preview.webp",
+        "erbil_mosque_2_gallery.webp",
+        "erbil_mosque_2_medium.webp"
       ]
     },
     {
-      "original": "PXL_20241102_141808163.RAW-01.MP.COVER.jpg",
+      "original": "erbil_unused_1.webp",
       "thumbnails": [
-        "PXL_20241102_141808163.RAW-01.MP.COVER_preview.jpg",
-        "PXL_20241102_141808163.RAW-01.MP.COVER_gallery.jpg",
-        "PXL_20241102_141808163.RAW-01.MP.COVER_medium.jpg"
+        "erbil_unused_1_preview.webp",
+        "erbil_unused_1_gallery.webp",
+        "erbil_unused_1_medium.webp"
       ]
     }
   ]

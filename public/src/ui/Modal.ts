@@ -507,7 +507,7 @@ export class Modal {
     getThumbnailPath(photoSrc, size = 'preview') {
         const filename = photoSrc.split('/').pop();
         const nameWithoutExt = filename.replace(/\.[^/.]+$/, "");
-        return `textures/photos/thumbnails/${nameWithoutExt}_${size}.jpg`;
+        return `textures/photos/thumbnails/${nameWithoutExt}_${size}.webp`;
     }
 
     /**
