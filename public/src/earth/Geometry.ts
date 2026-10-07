@@ -1,8 +1,17 @@
 import { CubeUnfold, getMorphStyle } from './CubeUnfold.js';
 import { MathUtils } from '../utils/MathUtils.js';
-import { NIGHT_EMISSIVE, OCEAN_GLOSS_GLSL, SURFACE_UNIFORMS_GLSL, type SurfaceUniforms, nightLightsGlsl } from './SurfaceShader.js';
+import { COLOR_GRADE_APPLY_GLSL, COLOR_GRADE_GLSL, NIGHT_EMISSIVE, OCEAN_GLOSS_GLSL, SURFACE_UNIFORMS_GLSL, type SurfaceUniforms, nightLightsGlsl } from './SurfaceShader.js';
 
 const CLOUD_OPACITY = 0.9;
+
+// Living oceans collapse into dark basins; land shifts toward rust and ash
+const DEAD_GRADE_MATRIX = [
+    0.40, 0.28, 0.04,
+    0.18, 0.22, 0.03,
+    0.06, 0.05, 0.045
+];
+const DEAD_GRADE_OFFSET = [0.025, 0.01, 0.0];
+const IDENTITY_GRADE = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
 /**
  * Geometry - Handles Earth geometry creation and morphing
@@ -15,6 +24,9 @@ export class Geometry {
     atmosphere: any;
     cubeUnfold: CubeUnfold | null;
     surfaceUniforms: SurfaceUniforms;
+    vitality: number;
+    flash: number;
+    baseGrade: { m: number[]; o: number[] };
 
     constructor(scene: any, THREE: any) {
         this.scene = scene;
@@ -23,10 +35,18 @@ export class Geometry {
         this.cloudLayer = null;
         this.atmosphere = null;
         this.cubeUnfold = null;
-        // uSurfaceFx fades night lights and ocean gloss out while the globe flattens into the map
+        this.vitality = 1;
+        this.flash = 0;
+        this.baseGrade = { m: IDENTITY_GRADE.slice(), o: [0, 0, 0] };
+        // uSurfaceFx fades night lights and ocean gloss out while the globe flattens into the map.
+        // uVitality does the same when the planet dies, and uFlash is the last burst of light.
         this.surfaceUniforms = {
             uSunDirView: { value: new THREE.Vector3(1, 0, 0) },
-            uSurfaceFx: { value: 1 }
+            uSurfaceFx: { value: 1 },
+            uVitality: { value: 1 },
+            uFlash: { value: 0 },
+            uColorMatrix: { value: new THREE.Matrix3() },
+            uColorOffset: { value: new THREE.Vector3() }
         };
         this.createMorphingGeometry();
         this.createAtmosphere();
@@ -109,7 +129,8 @@ export class Geometry {
             shader.fragmentShader = shader.fragmentShader
                 .replace('#include <common>', `#include <common>\n${SURFACE_UNIFORMS_GLSL}`)
                 .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\n${OCEAN_GLOSS_GLSL}`)
-                .replace('#include <emissivemap_fragment>', nightLightsGlsl('texture2D( emissiveMap, vEmissiveMapUv )'));
+                .replace('#include <emissivemap_fragment>', nightLightsGlsl('texture2D( emissiveMap, vEmissiveMapUv )'))
+                .replace('#include <colorspace_fragment>', `#include <colorspace_fragment>\n${COLOR_GRADE_APPLY_GLSL}`);
         };
 
         this.spherePlane = new this.THREE.Mesh(planeGeom, mat);
@@ -137,6 +158,10 @@ export class Geometry {
 
         const atmosphereFragmentShader = `
             uniform vec3 uSunDirView;
+            uniform mat3 uColorMatrix;
+            uniform vec3 uColorOffset;
+            uniform float uVitality;
+            uniform float uFlash;
             varying vec3 vNormal;
             void main() {
                 float intensity = pow( 0.6 - dot( vNormal, vec3( 0, 0, 1.0 ) ), 2.0 );
@@ -145,13 +170,23 @@ export class Geometry {
                 float day = smoothstep( -0.3, 0.4, sunDot );
                 float twilight = smoothstep( -0.3, 0.0, sunDot ) * ( 1.0 - smoothstep( 0.0, 0.35, sunDot ) );
                 vec3 color = mix( vec3( 0.3, 0.6, 1.0 ), vec3( 1.0, 0.55, 0.3 ), twilight * 0.5 );
-                gl_FragColor = vec4( color, 0.4 ) * intensity * mix( 0.12, 1.0, day );
+                color = uColorMatrix * color + uColorOffset;
+                color = mix( color, vec3( 1.0, 0.98, 0.92 ), uFlash );
+                float shell = intensity * mix( 0.12, 1.0, day );
+                float presence = max( uVitality, uFlash * 0.95 );
+                gl_FragColor = vec4( color, 0.4 ) * shell * presence;
             }
         `;
 
         const atmosphereGeom = new this.THREE.SphereGeometry(2.8, 32, 32);
         const atmosphereMaterial = new this.THREE.ShaderMaterial({
-            uniforms: { uSunDirView: this.surfaceUniforms.uSunDirView },
+            uniforms: {
+                uSunDirView: this.surfaceUniforms.uSunDirView,
+                uColorMatrix: this.surfaceUniforms.uColorMatrix,
+                uColorOffset: this.surfaceUniforms.uColorOffset,
+                uVitality: this.surfaceUniforms.uVitality,
+                uFlash: this.surfaceUniforms.uFlash
+            },
             vertexShader: atmosphereVertexShader,
             fragmentShader: atmosphereFragmentShader,
             side: this.THREE.BackSide,
@@ -229,6 +264,15 @@ export class Geometry {
             polygonOffsetFactor: -1,
             polygonOffsetUnits: -1
         });
+
+        cloudMaterial.onBeforeCompile = (shader) => {
+            shader.uniforms.uColorMatrix = this.surfaceUniforms.uColorMatrix;
+            shader.uniforms.uColorOffset = this.surfaceUniforms.uColorOffset;
+            shader.uniforms.uVitality = this.surfaceUniforms.uVitality;
+            shader.fragmentShader = shader.fragmentShader
+                .replace('#include <common>', `#include <common>\n${COLOR_GRADE_GLSL}\nuniform float uVitality;`)
+                .replace('#include <colorspace_fragment>', `#include <colorspace_fragment>\n${COLOR_GRADE_APPLY_GLSL}\ngl_FragColor.a *= uVitality;`);
+        };
 
         this.cloudLayer = new this.THREE.Mesh(cloudPlaneGeom, cloudMaterial);
         this.cloudLayer.rotation.z = this.THREE.MathUtils.degToRad(23.5);
@@ -423,9 +467,38 @@ export class Geometry {
             .transformDirection(camera.matrixWorldInverse);
     }
 
+    setColorGrade(matrix: number[], offset: number[]) {
+        this.baseGrade = { m: matrix.slice(), o: offset.slice() };
+        this.applyColorGrade();
+    }
+
     /**
-     * Get Earth mesh
+     * 1 is a living Earth. 0 is a barren one. Flash is a short white-out on the way down.
      */
+    setEpochVisual(vitality: number, flash: number) {
+        this.vitality = vitality;
+        this.flash = flash;
+        this.surfaceUniforms.uVitality.value = vitality;
+        this.surfaceUniforms.uFlash.value = flash;
+        this.applyColorGrade();
+    }
+
+    applyColorGrade() {
+        const living = this.vitality;
+        const dead = 1 - living;
+        const baseM = this.baseGrade.m;
+        const baseO = this.baseGrade.o;
+        const m = baseM.map((value, i) => value * living + DEAD_GRADE_MATRIX[i] * dead);
+        const o = baseO.map((value, i) => value * living + DEAD_GRADE_OFFSET[i] * dead);
+        const boost = this.flash * 0.48;
+        this.surfaceUniforms.uColorMatrix.value.set(
+            m[0], m[1], m[2],
+            m[3], m[4], m[5],
+            m[6], m[7], m[8]
+        );
+        this.surfaceUniforms.uColorOffset.value.set(o[0] + boost, o[1] + boost, o[2] + boost * 0.92);
+    }
+
     getEarthMesh() {
         return this.spherePlane;
     }

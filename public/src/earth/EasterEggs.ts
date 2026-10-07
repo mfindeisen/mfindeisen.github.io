@@ -14,6 +14,8 @@ export class EasterEggs {
     astronautVisible: boolean;
     astronautJourneyStarted: boolean;
     astronautNextAppearanceTime: number;
+    astronautExiled: boolean;
+    astronautFlight: 'normal' | 'departing' | 'returning';
     jetpackThrusting: boolean;
     jetpackThrustCycle: number;
     jetpackThrustDuration: number;
@@ -49,6 +51,8 @@ export class EasterEggs {
         this.astronautVisible = false;
         this.astronautJourneyStarted = false;
         this.astronautNextAppearanceTime = 0;
+        this.astronautExiled = false;
+        this.astronautFlight = 'normal';
         this.jetpackThrusting = false;
         this.jetpackThrustCycle = 0;
         this.jetpackThrustDuration = 0;
@@ -336,8 +340,10 @@ export class EasterEggs {
         if (!this.astronaut) return;
         
         const currentTime = Date.now();
+
+        if (this.astronautExiled && !this.astronautVisible) return;
         
-        if (!this.astronautVisible && currentTime > this.astronautNextAppearanceTime) {
+        if (!this.astronautExiled && !this.astronautVisible && currentTime > this.astronautNextAppearanceTime) {
             this.startAstronautJourney();
         }
         
@@ -345,11 +351,13 @@ export class EasterEggs {
             this.updateJetpackThrust(currentTime);
             this.updateAstronautLegs(currentTime);
             
-            let currentSpeed = this.astronautJourneySpeed * this.astronautBoost * this.timeScale;
-            if (this.jetpackThrusting) {
-                currentSpeed *= 2.5;
+            let currentSpeed: number;
+            if (this.astronautFlight === 'departing') {
+                currentSpeed = this.astronautJourneySpeed;
             } else {
-                currentSpeed *= 0.5;
+                const scale = this.astronautFlight === 'returning' ? Math.max(this.timeScale, 1) : this.timeScale;
+                currentSpeed = this.astronautJourneySpeed * this.astronautBoost * scale;
+                currentSpeed *= this.jetpackThrusting ? 2.5 : 0.5;
             }
             
             this.astronautJourneyProgress += currentSpeed;
@@ -448,8 +456,82 @@ export class EasterEggs {
      * Bring the astronaut on screen right away unless it is already flying
      */
     summonAstronaut() {
+        if (this.astronautExiled) return;
         if (this.astronaut && !this.astronautVisible) {
             this.startAstronautJourney();
+        }
+    }
+
+    /**
+     * The planet is dying. Fly out, and stay gone until life returns.
+     */
+    departAstronaut() {
+        this.astronautExiled = true;
+        this.astronautNextAppearanceTime = Number.POSITIVE_INFINITY;
+        if (!this.astronaut || !this.astronautVisible) return;
+
+        const pos = this.astronaut.position;
+        const away = new THREE.Vector3(
+            this.astronautEndPos.x - this.astronautStartPos.x,
+            this.astronautEndPos.y - this.astronautStartPos.y,
+            this.astronautEndPos.z - this.astronautStartPos.z
+        );
+        if (away.dot(pos) <= 0 || away.lengthSq() < 0.001) {
+            away.set(pos.x, pos.y, pos.z);
+        }
+        if (away.lengthSq() < 1) away.set(8, 2, 6);
+        away.normalize().multiplyScalar(48);
+        const exit = pos.clone().add(away);
+
+        this.astronautStartPos = { x: pos.x, y: pos.y, z: pos.z };
+        this.astronautEndPos = { x: exit.x, y: exit.y, z: exit.z };
+        this.astronautJourneyProgress = 0;
+        this.astronautJourneySpeed = 0.0018;
+        this.astronautFlight = 'departing';
+        this.astronautJourneyStarted = true;
+        this.astronaut.visible = true;
+    }
+
+    /**
+     * Life is back. Cross the globe again.
+     */
+    recallAstronaut() {
+        this.astronautExiled = false;
+        if (!this.astronaut) return;
+
+        if (!this.astronautVisible) {
+            this.startAstronautJourney();
+            this.astronautJourneySpeed = 0.0012;
+            this.astronautFlight = 'returning';
+            return;
+        }
+
+        const pos = this.astronaut.position;
+        const inbound = new THREE.Vector3(-pos.x, -pos.y * 0.3, -pos.z);
+        if (inbound.lengthSq() < 1) inbound.set(0, 1, 12);
+        inbound.normalize().multiplyScalar(46);
+        const end = pos.clone().add(inbound);
+
+        this.astronautStartPos = { x: pos.x, y: pos.y, z: pos.z };
+        this.astronautEndPos = { x: end.x, y: end.y, z: end.z };
+        this.astronautJourneyProgress = 0;
+        this.astronautJourneySpeed = 0.003;
+        this.astronautFlight = 'returning';
+        this.astronautJourneyStarted = true;
+        this.astronaut.visible = true;
+    }
+
+    /**
+     * The dead epoch was cancelled. Don't force a return; just allow the usual schedule.
+     */
+    releaseAstronaut() {
+        const wasExiled = this.astronautExiled;
+        this.astronautExiled = false;
+        if (this.astronautFlight === 'departing') return;
+
+        this.astronautFlight = 'normal';
+        if (wasExiled && !this.astronautVisible) {
+            this.astronautNextAppearanceTime = Date.now() + (30000 + Math.random() * 90000);
         }
     }
 
@@ -462,8 +544,11 @@ export class EasterEggs {
         this.astronaut.visible = false;
         this.astronautVisible = false;
         this.astronautJourneyStarted = false;
+        this.astronautFlight = 'normal';
         
-        this.astronautNextAppearanceTime = Date.now() + (30000 + Math.random() * 90000);
+        this.astronautNextAppearanceTime = this.astronautExiled
+            ? Number.POSITIVE_INFINITY
+            : Date.now() + (30000 + Math.random() * 90000);
     }
 
     /**
@@ -472,7 +557,7 @@ export class EasterEggs {
     updateJetpackThrust(currentTime) {
         if (!this.jetpackFlames) return;
         
-        if (this.jetpackCycleStart === 0) {
+        if (this.jetpackCycleStart === 0 || this.astronautFlight !== 'normal') {
             this.jetpackCycleStart = currentTime;
         }
         
@@ -672,7 +757,7 @@ export class EasterEggs {
             const z = Math.sin(satData.orbitAngle) * satData.orbitRadius;
             
             satData.group.position.set(x, y, z);
-            satData.group.rotation.y += satData.spinSpeed;
+            satData.group.rotation.y += satData.spinSpeed * this.timeScale;
             
             satData.group.lookAt(
                 x + Math.cos(satData.orbitAngle + Math.PI/2),

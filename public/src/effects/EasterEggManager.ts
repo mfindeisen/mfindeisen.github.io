@@ -1,13 +1,93 @@
 import { getIcon } from '../utils/Icons.js';
 import { getMorphStyle, type MorphStyle } from '../earth/CubeUnfold.js';
 
+type ColorOp =
+    | { op: 'sepia'; amount: number }
+    | { op: 'saturate'; amount: number }
+    | { op: 'hue'; degrees: number }
+    | { op: 'contrast'; amount: number }
+    | { op: 'brightness'; amount: number };
+
+type ColorGrade = { m: number[]; o: number[] };
+
+function identityGrade(): ColorGrade {
+    return { m: [1, 0, 0, 0, 1, 0, 0, 0, 1], o: [0, 0, 0] };
+}
+
+function multiplyGrade(a: ColorGrade, b: ColorGrade): ColorGrade {
+    const A = a.m;
+    const B = b.m;
+    const m: number[] = [];
+    for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+            m.push(A[row * 3] * B[col] + A[row * 3 + 1] * B[3 + col] + A[row * 3 + 2] * B[6 + col]);
+        }
+    }
+    const o = [0, 0, 0];
+    for (let row = 0; row < 3; row++) {
+        o[row] = A[row * 3] * b.o[0] + A[row * 3 + 1] * b.o[1] + A[row * 3 + 2] * b.o[2] + a.o[row];
+    }
+    return { m, o };
+}
+
+function colorOpGrade(op: ColorOp): ColorGrade {
+    if (op.op === 'brightness') {
+        const v = op.amount;
+        return { m: [v, 0, 0, 0, v, 0, 0, 0, v], o: [0, 0, 0] };
+    }
+    if (op.op === 'contrast') {
+        const v = op.amount;
+        const bias = 0.5 * (1 - v);
+        return { m: [v, 0, 0, 0, v, 0, 0, 0, v], o: [bias, bias, bias] };
+    }
+    if (op.op === 'saturate') {
+        const s = op.amount;
+        const r = 0.213;
+        const g = 0.715;
+        const b = 0.072;
+        return {
+            m: [
+                r + (1 - r) * s, g * (1 - s), b * (1 - s),
+                r * (1 - s), g + (1 - g) * s, b * (1 - s),
+                r * (1 - s), g * (1 - s), b + (1 - b) * s
+            ],
+            o: [0, 0, 0]
+        };
+    }
+    if (op.op === 'sepia') {
+        const amount = op.amount;
+        const keep = 1 - amount;
+        const sepia = [
+            0.393, 0.769, 0.189,
+            0.349, 0.686, 0.168,
+            0.272, 0.534, 0.131
+        ];
+        const identity = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+        return { m: sepia.map((value, i) => keep * identity[i] + amount * value), o: [0, 0, 0] };
+    }
+
+    const rad = op.degrees * Math.PI / 180;
+    const c = Math.cos(rad);
+    const s = Math.sin(rad);
+    return {
+        m: [
+            0.213 + c * 0.787 - s * 0.213, 0.715 - c * 0.715 - s * 0.715, 0.072 - c * 0.072 + s * 0.928,
+            0.213 - c * 0.213 + s * 0.143, 0.715 + c * 0.285 + s * 0.140, 0.072 - c * 0.072 - s * 0.283,
+            0.213 - c * 0.213 - s * 0.787, 0.715 - c * 0.715 + s * 0.715, 0.072 + c * 0.928 + s * 0.072
+        ],
+        o: [0, 0, 0]
+    };
+}
+
+function composeColorGrade(ops: ColorOp[]): ColorGrade {
+    return ops.reduce((grade, op) => multiplyGrade(colorOpGrade(op), grade), identityGrade());
+}
+
 export class EasterEggManager {
     app: any;
-    timeWarpActive: boolean;
     colorModeIndex: number;
     colorModes: any[];
     astronautBoostTimer: ReturnType<typeof setTimeout> | undefined;
-    colorBurstTimer: ReturnType<typeof setTimeout> | undefined;
     helpAutoCloseTimer: ReturnType<typeof setTimeout> | undefined;
     closeHelp: (() => void) | null;
 
@@ -15,57 +95,40 @@ export class EasterEggManager {
         this.app = app;
 
         // Initialize easter egg state
-        this.timeWarpActive = false;
         this.colorModeIndex = 0;
         this.colorModes = [
-            { name: 'Normal', filter: '' },
-            { name: 'Retro', filter: 'sepia(0.8) saturate(1.5) hue-rotate(20deg)' },
-            { name: 'Cyberpunk', filter: 'hue-rotate(200deg) saturate(2) contrast(1.2)' },
-            { name: 'Matrix', filter: 'hue-rotate(90deg) saturate(2) brightness(0.8)' },
-            { name: 'Warm', filter: 'hue-rotate(-20deg) saturate(1.3) brightness(1.1)' }
+            { name: 'Normal', filters: [] },
+            { name: 'Retro', filters: [{ op: 'sepia', amount: 0.8 }, { op: 'saturate', amount: 1.5 }, { op: 'hue', degrees: 20 }] },
+            { name: 'Cyberpunk', filters: [{ op: 'hue', degrees: 200 }, { op: 'saturate', amount: 2 }, { op: 'contrast', amount: 1.2 }] },
+            { name: 'Matrix', filters: [{ op: 'hue', degrees: 90 }, { op: 'saturate', amount: 2 }, { op: 'brightness', amount: 0.8 }] },
+            { name: 'Warm', filters: [{ op: 'hue', degrees: -20 }, { op: 'saturate', amount: 1.3 }, { op: 'brightness', amount: 1.1 }] }
         ];
 
         this.closeHelp = null;
     }
 
     setup() {
+        this.app.renderer.domElement.style.filter = '';
+
         // Keyboard shortcuts for fun features
         document.addEventListener('keydown', (e) => {
             // Only trigger if not typing in an input
             const target = e.target as HTMLElement;
             if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
 
-            switch (e.code) {
-                case 'KeyA':
-                    // 'A' for Astronaut speed boost
-                    this.boostAstronaut();
-                    break;
-
-                case 'KeyS':
-                    // 'S' for Shooting star shower
-                    this.triggerShootingStarShower();
-                    break;
-
-                case 'KeyT':
-                    // 'T' for Time warp (speed up everything)
-                    this.toggleTimeWarp();
-                    break;
-
-                case 'KeyC':
-                    // 'C' for Color mode
-                    this.toggleColorMode();
-                    break;
-
-                case 'KeyF':
-                    // 'F' for Fireworks
-                    this.triggerFireworks();
-                    break;
-
-                case 'KeyH':
-                    // 'H' for Help/shortcuts
-                    this.showShortcutsHelp();
-                    break;
+            if (e.code === 'KeyH') {
+                this.showShortcutsHelp();
+                return;
             }
+
+            // Key repeat would finish the warp chain by holding T
+            if (e.code === 'KeyT') {
+                if (!e.repeat) this.triggerTimeWarp(true);
+                return;
+            }
+
+            const effect = this.surpriseEffects.find((item) => item.key === e.code);
+            effect?.run();
         });
 
         // Click interactions on the canvas
@@ -83,12 +146,21 @@ export class EasterEggManager {
         // Create a ripple effect at click position
         this.createClickRipple(x, y);
 
-        // Random chance for special effects on click
-        if (Math.random() < 0.33) { // 33% chance
-            const effects = ['sparkles', 'colorBurst', 'miniStar'];
-            const effect = effects[Math.floor(Math.random() * effects.length)];
-            this.triggerClickEffect(effect, x, y);
+        // Same effects as the keyboard shortcuts, picked at random
+        if (Math.random() < 0.33) {
+            const effects = this.surpriseEffects;
+            effects[Math.floor(Math.random() * effects.length)].run();
         }
+    }
+
+    get surpriseEffects() {
+        return [
+            { key: 'KeyA', run: () => this.boostAstronaut() },
+            { key: 'KeyS', run: () => this.triggerShootingStarShower() },
+            { key: 'KeyT', run: () => this.triggerTimeWarp() },
+            { key: 'KeyC', run: () => this.toggleColorMode() },
+            { key: 'KeyF', run: () => this.triggerFireworks() },
+        ];
     }
 
     createClickRipple(x, y) {
@@ -115,68 +187,6 @@ export class EasterEggManager {
         setTimeout(() => ripple.remove(), 1000);
     }
 
-    triggerClickEffect(effect, x, y) {
-        switch (effect) {
-            case 'sparkles':
-                this.createSparkles(x, y);
-                break;
-            case 'colorBurst':
-                this.createColorBurst(x, y);
-                break;
-            case 'miniStar':
-                this.createMiniStar(x, y);
-                break;
-        }
-    }
-
-    createSparkles(x, y) {
-        for (let i = 0; i < 5; i++) {
-            const sparkle = document.createElement('div');
-            sparkle.style.position = 'fixed';
-            sparkle.style.left = `${(x + 1) * 50 + (Math.random() - 0.5) * 20}%`;
-            sparkle.style.top = `${(-y + 1) * 50 + (Math.random() - 0.5) * 20}%`;
-            sparkle.style.width = '6px';
-            sparkle.style.height = '6px';
-            sparkle.style.background = `hsl(${Math.random() * 360}, 100%, 70%)`;
-            sparkle.style.borderRadius = '50%';
-            sparkle.style.transform = 'translate(-50%, -50%)';
-            sparkle.style.pointerEvents = 'none';
-            sparkle.style.zIndex = '1000';
-            sparkle.style.animation = 'sparkleEffect 1.5s ease-out forwards';
-
-            document.body.appendChild(sparkle);
-            setTimeout(() => sparkle.remove(), 1500);
-        }
-        this.app.showTooltip(`${getIcon('Sparkles')} Sparkles!`, 1500);
-    }
-
-    createColorBurst(_x, _y) {
-        // Tint only the Earth (surface, clouds, cube), leave the sky alone
-        const geometry = this.app.earthScene?.geometry;
-        if (!geometry) return;
-
-        const materials = [
-            geometry.getEarthMesh()?.material,
-            geometry.getCloudLayer()?.material,
-            geometry.cubeUnfold?.material
-        ].filter((material: any) => material?.color);
-
-        if (!materials.length) return;
-
-        clearTimeout(this.colorBurstTimer);
-        const originals = materials.map((material: any) => material.color.clone());
-        const hue = Math.random();
-        for (const material of materials) {
-            material.color.setHSL(hue, 0.85, 0.55);
-        }
-
-        this.colorBurstTimer = setTimeout(() => {
-            materials.forEach((material: any, i: number) => material.color.copy(originals[i]));
-        }, 500);
-
-        this.app.showTooltip(`${getIcon('Rainbow')} Color burst!`, 1500);
-    }
-
     get easterEggs() {
         return this.app.earthScene?.easterEggs;
     }
@@ -194,13 +204,6 @@ export class EasterEggManager {
         this.app.showTooltip(`${getIcon('Rocket')} Astronaut speed boost!`, 2000);
     }
 
-    createMiniStar(x, y) {
-        if (this.easterEggs) {
-            this.easterEggs.createShootingStar();
-            this.app.showTooltip(`${getIcon('Star')} Mini shooting star!`, 2000);
-        }
-    }
-
     triggerShootingStarShower() {
         const eggs = this.easterEggs;
         if (!eggs) return;
@@ -211,27 +214,32 @@ export class EasterEggManager {
         this.app.showTooltip(`${getIcon('Star')} Shooting star shower!`, 3000);
     }
 
-    toggleTimeWarp() {
-        const eggs = this.easterEggs;
-        if (!eggs) return;
+    triggerTimeWarp(intentional = false) {
+        const scene = this.app.earthScene;
+        if (!scene?.noteTimeWarp) return;
 
-        this.timeWarpActive = !this.timeWarpActive;
-        eggs.timeScale = this.timeWarpActive ? 3 : 1;
-        if (this.timeWarpActive) {
-            eggs.summonAstronaut();
-            this.app.showTooltip(`${getIcon('Zap')} Time warp activated!`, 2000);
-        } else {
-            this.app.showTooltip(`${getIcon('Clock')} Time warp deactivated`, 2000);
+        const result = scene.noteTimeWarp(intentional);
+        if (result === 'death') {
+            this.app.showTooltip(`${getIcon('Zap')} The oceans are gone.`, 3200);
+            return;
         }
+        if (result === 'revive') {
+            this.app.showTooltip(`${getIcon('Zap')} The oceans return.`, 2600);
+            return;
+        }
+        if (result !== 'warp') return;
+
+        this.easterEggs?.summonAstronaut();
+        this.app.showTooltip(`${getIcon('Zap')} Time warp!`, 2000);
     }
 
     toggleColorMode() {
         this.colorModeIndex = (this.colorModeIndex + 1) % this.colorModes.length;
         const mode = this.colorModes[this.colorModeIndex];
+        const grade = composeColorGrade(mode.filters);
 
-        const canvas = this.app.renderer.domElement;
-        canvas.style.filter = mode.filter;
-
+        this.app.renderer.domElement.style.filter = '';
+        this.app.earthScene?.geometry?.setColorGrade(grade.m, grade.o);
         this.app.showTooltip(`${getIcon('Palette')} Color mode: ${mode.name}`, 2000);
     }
 
@@ -346,7 +354,7 @@ export class EasterEggManager {
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">T</kbd>
-                    <span>Toggle time warp</span>
+                    <span>Time warp</span>
                     <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Zap')}</span>
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">

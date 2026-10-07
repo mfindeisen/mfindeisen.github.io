@@ -1,6 +1,6 @@
 import { MathUtils } from '../utils/MathUtils.js';
 import { MAP_START_ZOOM, mapHandoffProgress } from '../map/MapManager.js';
-import { NIGHT_EMISSIVE, OCEAN_GLOSS_GLSL, SURFACE_UNIFORMS_GLSL, type SurfaceUniforms, nightLightsGlsl } from './SurfaceShader.js';
+import { COLOR_GRADE_APPLY_GLSL, NIGHT_EMISSIVE, OCEAN_GLOSS_GLSL, SURFACE_UNIFORMS_GLSL, type SurfaceUniforms, nightLightsGlsl } from './SurfaceShader.js';
 
 /**
  * Selected via `?morph=` in the URL:
@@ -164,6 +164,7 @@ export class CubeUnfold {
                 .replace('#include <common>', `#include <common>\nvarying vec3 vDir;\n${SURFACE_UNIFORMS_GLSL}`)
                 .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\n${OCEAN_GLOSS_GLSL}`)
                 .replace('#include <emissivemap_fragment>', nightLightsGlsl('textureGrad(emissiveMap, vec2(eqU1, eqV), eqDx, eqDy)'))
+                .replace('#include <colorspace_fragment>', `#include <colorspace_fragment>\n${COLOR_GRADE_APPLY_GLSL}`)
                 .replace('#include <map_fragment>', `
                     vec3 eqDir = normalize(vDir);
                     float eqU1 = atan(eqDir.x, eqDir.z) / 6.28318530718 + 0.5;
