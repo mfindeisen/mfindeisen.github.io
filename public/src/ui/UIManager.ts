@@ -47,6 +47,8 @@ export class UIManager {
 
         this.lastOverlayToggleTime = 0;
         this.setupOverlayListeners();
+        this.setupOverlayToc(this.getElement('showcaseOverlay'));
+        this.setupOverlayToc(this.getElement('portfolioOverlay'));
         
         this.beginningTimer = null;
         this.autoScrollAnimation = null;
@@ -72,7 +74,7 @@ export class UIManager {
                 
                 if (!isMapCanvas && !isEarthCanvas) {
                     // Check if it's inside a scrollable container
-                    const scrollable = e.target.closest('.portfolio-content, .places-list, .photo-modal-content, .maplibregl-popup-content');
+                    const scrollable = e.target.closest('.portfolio-content, .showcase-toc, .places-list, .photo-modal-content, .maplibregl-popup-content');
                     if (scrollable) {
                         const deltaY = e.type === 'wheel' ? e.deltaY : (this.lastTouchY ? this.lastTouchY - e.touches[0].clientY : 0);
                         const isAtTop = scrollable.scrollTop <= 0;
@@ -133,6 +135,103 @@ export class UIManager {
                 this.trapFocus(overlay, e);
             }
         });
+    }
+
+    setupOverlayToc(overlay: HTMLElement | null) {
+        if (!overlay) return;
+
+        const content = overlay.querySelector<HTMLElement>('.portfolio-content');
+        const toc = overlay.querySelector<HTMLElement>('.showcase-toc');
+        if (!content || !toc) return;
+
+        const links = Array.from(toc.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'));
+        const sections = links
+            .map((link) => {
+                const id = link.getAttribute('href')?.slice(1);
+                return id ? document.getElementById(id) : null;
+            })
+            .filter((section): section is HTMLElement => !!section);
+
+        let currentId = '';
+        let pinnedId = '';
+        let pinTimer = 0;
+        const revealActive = () => {
+            if (toc.scrollWidth <= toc.clientWidth + 1) return;
+            const activeLink = links.find((link) => link.getAttribute('aria-current') === 'true');
+            if (!activeLink) return;
+            const left = activeLink.offsetLeft - (toc.clientWidth - activeLink.offsetWidth) / 2;
+            toc.scrollTo({ left: Math.max(0, left), behavior: 'auto' });
+        };
+
+        const setCurrent = (id: string) => {
+            if (id === currentId) return;
+            currentId = id;
+            for (const link of links) {
+                const active = link.getAttribute('href') === `#${id}`;
+                if (active) link.setAttribute('aria-current', 'true');
+                else link.removeAttribute('aria-current');
+            }
+            revealActive();
+        };
+
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(() => revealActive()).observe(toc);
+        }
+
+        const sync = () => {
+            if (pinnedId) return;
+            const atBottom = content.scrollTop > 0
+                && content.scrollTop + content.clientHeight >= content.scrollHeight - 4;
+            if (atBottom && sections.length > 0) {
+                setCurrent(sections[sections.length - 1].id);
+                return;
+            }
+            const edge = content.getBoundingClientRect().top + 80;
+            let current = sections[0];
+            for (const section of sections) {
+                if (section.getBoundingClientRect().top <= edge) current = section;
+            }
+            if (current) setCurrent(current.id);
+        };
+
+        const releasePin = () => {
+            window.clearTimeout(pinTimer);
+            pinTimer = window.setTimeout(() => {
+                pinnedId = '';
+                sync();
+            }, 80);
+        };
+
+        toc.addEventListener('click', (event) => {
+            const link = (event.target as HTMLElement).closest('a');
+            if (!link || !toc.contains(link)) return;
+            const id = link.getAttribute('href')?.slice(1);
+            if (!id) return;
+            const target = document.getElementById(id);
+            if (!target || !content.contains(target)) return;
+            event.preventDefault();
+            pinnedId = id;
+            setCurrent(id);
+            const top = target.getBoundingClientRect().top - content.getBoundingClientRect().top + content.scrollTop - 68;
+            content.scrollTo({
+                top: Math.max(0, top),
+                behavior: prefersReducedMotion() ? 'auto' : 'smooth'
+            });
+            window.clearTimeout(pinTimer);
+            pinTimer = window.setTimeout(() => {
+                pinnedId = '';
+                sync();
+            }, 1200);
+        });
+
+        content.addEventListener('scroll', () => {
+            if (pinnedId) {
+                releasePin();
+                return;
+            }
+            sync();
+        }, { passive: true });
+        sync();
     }
 
     getActiveOverlayElement(): HTMLElement | null {
