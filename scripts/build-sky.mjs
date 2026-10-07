@@ -1,8 +1,8 @@
 /**
  * Builds the night sky assets used by public/src/earth/Starfield.ts:
  *
- *  - public/textures/sky/stars.bin      Yale Bright Star Catalog, ~9,100 stars down to V 6.5
- *  - public/textures/sky/milkyway.webp  ESO/S. Brunier all-sky Milky Way photograph, reprojected from galactic
+ *  - public/static/textures/sky/stars.bin      Yale Bright Star Catalog, ~9,100 stars down to V 6.5
+ *  - public/static/textures/sky/milkyway.webp  ESO/S. Brunier all-sky Milky Way photograph, reprojected from galactic
  *                                       to J2000 equatorial coordinates (equirectangular, RA 0h at the centre)
  *
  * Sources:
@@ -20,7 +20,7 @@ import sharp from 'sharp';
 const CATALOG_URL = 'https://raw.githubusercontent.com/brettonw/YaleBrightStarCatalog/master/bsc5-short.json';
 const MILKY_WAY_URL = 'https://cdn.eso.org/images/original/eso0932a.tif';
 
-const OUT_DIR = join(process.cwd(), 'public', 'textures', 'sky');
+const OUT_DIR = join(process.cwd(), 'public', 'static', 'textures', 'sky');
 const CACHE_DIR = join(tmpdir(), 'sky-build');
 
 const MILKY_WAY_WIDTH = 6144;

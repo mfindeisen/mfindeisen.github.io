@@ -25,23 +25,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # The pnpm version comes from "packageManager" in package.json
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 8 # Adjust if you need a specific pnpm version
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm run typecheck
 
       # Since you are deploying to https://mfindeisen.github.io directly, no --base flag is needed.
       - name: Build
-        run: pnpm exec vite build
+        run: pnpm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

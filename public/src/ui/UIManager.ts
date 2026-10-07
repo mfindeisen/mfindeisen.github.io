@@ -19,7 +19,7 @@ export class UIManager {
         this.lastTouchY = 0;
         this.elements = {
             container: document.getElementById('canvas-container'),
-            googleEarthContainer: document.getElementById('google-earth-container'),
+            mapContainer: document.getElementById('map-container'),
             scrollIndicator: document.getElementById('scroll-indicator'),
             portfolioOverlay: document.getElementById('portfolio-overlay'),
             skipButton: document.getElementById('skip-button'),
@@ -29,8 +29,7 @@ export class UIManager {
             showcaseOverlay: document.getElementById('showcase-overlay'),
             backToBeginningBtn: document.getElementById('back-to-beginning-btn'),
             footer: document.getElementById('footer'),
-            hero: document.getElementById('hero'),
-            altPortfolioPage: document.getElementById('alt-portfolio-page')
+            hero: document.getElementById('hero')
         };
         
         this.state = {
@@ -41,8 +40,7 @@ export class UIManager {
             isScrollLocked: false,
             isAutoScrolling: false,
             activeOverlay: 'none', // 'none' | 'portfolio' | 'showcase'
-            journeyState: 'idle', // 'idle' | 'scrolling' | 'flying' | 'arrived'
-            isAltPortfolioActive: false
+            journeyState: 'idle' // 'idle' | 'scrolling' | 'flying' | 'arrived'
         };
 
         this.lastOverlayToggleTime = 0;
@@ -469,11 +467,11 @@ export class UIManager {
                     this.showElement('reopenShowcaseBtn');
                 }
                 // We are at the map (arrived), so unconditionally restore MapTiler map
-                const googleEarthContainer = this.getElement('googleEarthContainer');
-                if (googleEarthContainer) {
-                    googleEarthContainer.style.opacity = '1';
-                    googleEarthContainer.style.zIndex = '2';
-                    googleEarthContainer.classList.add('visible');
+                const mapContainer = this.getElement('mapContainer');
+                if (mapContainer) {
+                    mapContainer.style.opacity = '1';
+                    mapContainer.style.zIndex = '2';
+                    mapContainer.classList.add('visible');
                 }
                 
                 if (this.placesManager) {

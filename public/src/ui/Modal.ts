@@ -441,7 +441,7 @@ export class Modal {
             photoItem.addEventListener('click', () => {
                 const fullSrc = photoItem.getAttribute('data-full-src');
                 const isPhotosphere = photoItem.getAttribute('data-photosphere') === 'true';
-                const index = parseInt(photoItem.getAttribute('data-index'));
+                const index = parseInt(photoItem.getAttribute('data-index') ?? '0');
                 
                 // Transition to photo modal
                 this.showPhotoModal(fullSrc, place.name, isPhotosphere, place, index, options);

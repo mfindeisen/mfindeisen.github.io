@@ -1,3 +1,5 @@
+import maplibregl from 'maplibre-gl';
+
 export const MAP_START_ZOOM = 4.21;
 
 /**
@@ -35,8 +37,8 @@ export class MapManager {
 
         return new Promise((resolve, reject) => {
             try {
-                // Calculate the center point of the 3D Earth model
-                const earthCenter = this.calculateEarthCenter();
+                // The unfolded globe is an equirectangular projection centred on 0°/0°
+                const earthCenter: [number, number] = [0, 0];
                 this.originalCenter = earthCenter;
 
                 // Initialize MapTiler map
@@ -45,6 +47,10 @@ export class MapManager {
                     style: `${styleUrl}?key=${apiKey}`,
                     center: earthCenter,
                     zoom: this.originalZoom,
+                    // The footer is hidden on the map, so the legal pages stay reachable here
+                    attributionControl: {
+                        customAttribution: '<a href="/impressum.html">Impressum</a> | <a href="/datenschutz.html">Datenschutz</a>'
+                    },
                     interactive: false // Start with interactions disabled
                 });
 
@@ -68,29 +74,6 @@ export class MapManager {
                 reject(error);
             }
         });
-    }
-
-    /**
-     * Calculate the center point of the 3D Earth model for perfect alignment
-     */
-    calculateEarthCenter(): [number, number] {
-        // The 3D Earth model uses equirectangular projection
-        // When morphed to flat plane, it covers a specific geographic area
-
-        // Based on the morphing geometry, the plane covers:
-        // Width: Math.PI * 5 (approximately 15.71 units)
-        // Height: Math.PI * 2.5 (approximately 7.85 units)
-
-        // For equirectangular projection:
-        // - Width covers 360° of longitude
-        // - Height covers 180° of latitude (from -90° to +90°)
-
-        // The center of the plane corresponds to:
-        // Longitude: 0° (Greenwich meridian)
-        // Latitude: 0° (Equator)
-
-        // Default center (can be adjusted for better alignment)
-        return [0, 0]; // [longitude, latitude]
     }
 
     /**

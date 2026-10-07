@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "Interactive portfolio of Matthias Findeisen: a Three.js Earth that unwraps into a MapLibre map on scroll",
   "private": true,
+  "packageManager": "pnpm@11.11.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p .",
     "build:sky": "node scripts/build-sky.mjs",
-    "build:photos": "node scripts/build-photos.mjs",
-    "start": "node server.js"
+    "build:photos": "node scripts/build-photos.mjs"
   },
   "keywords": [
     "threejs",
@@ -22,15 +22,15 @@
   "author": "Matthias Findeisen",
   "license": "GPL-3.0-or-later",
   "dependencies": {
+    "@fontsource-variable/outfit": "^5.3.0",
     "@photo-sphere-viewer/core": "^5.14.0",
     "heroicons": "^2.2.0",
+    "maplibre-gl": "^4.7.1",
     "three": "^0.158.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",
-    "@types/three": "^0.185.1",
-    "express": "^4.18.2",
-    "nodemon": "^3.0.2",
+    "@types/three": "^0.158.3",
     "piexifjs": "^1.0.6",
     "sharp": "^0.34.3",
     "tailwindcss": "^4.3.2",

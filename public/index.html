@@ -25,22 +25,42 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#000000">
 
-    <!-- MapLibre GL -->
-    <script defer src="https://unpkg.com/maplibre-gl@4.1.1/dist/maplibre-gl.js"></script>
-    <link href="https://unpkg.com/maplibre-gl@4.1.1/dist/maplibre-gl.css" rel="stylesheet" />
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Matthias Findeisen",
+        "jobTitle": "Full Stack Developer",
+        "url": "https://mfindeisen.github.io/",
+        "image": "https://mfindeisen.github.io/og-image.jpg",
+        "email": "mailto:findeisen.matthias@gmail.com",
+        "sameAs": [
+            "https://github.com/mfindeisen",
+            "https://linkedin.com/in/matthias-findeisen"
+        ],
+        "knowsAbout": ["WebGL", "Three.js", "TypeScript", "GIS", "MapLibre GL", "Reflectance Transformation Imaging", "Cultural heritage"]
+    }
+    </script>
 
-    <!-- Google Fonts (Syne for the alternative design is loaded on demand) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
+    <noscript>
+        <style>#loader, #scroll-indicator, #top-toolbar { display: none; }</style>
+        <div class="noscript-card">
+            <p><strong>Matthias Findeisen</strong> &middot; Full Stack Developer building WebGL, 3D and geospatial
+                web applications.</p>
+            <p>This interactive portfolio needs JavaScript. You can reach me via
+                <a href="mailto:findeisen.matthias@gmail.com">email</a>,
+                <a href="https://linkedin.com/in/matthias-findeisen">LinkedIn</a> or
+                <a href="https://github.com/mfindeisen">GitHub</a>.</p>
+            <p><a href="/impressum.html">Impressum</a> &middot; <a href="/datenschutz.html">Datenschutz</a></p>
+        </div>
+    </noscript>
+
     <div id="loader" role="status" aria-live="polite">
         <div class="loader-orb" aria-hidden="true"></div>
         <div class="loader-text">Loading Earth <span id="loader-progress">0%</span></div>
@@ -48,8 +68,8 @@
 
     <header id="hero">
         <h1 class="hero-name">Matthias Findeisen</h1>
-        <p class="hero-role">Full Stack Developer &amp; Creative Technologist</p>
-        <p class="hero-tagline">WebGL &middot; 3D &middot; Geospatial &middot; Cultural Heritage</p>
+        <p class="hero-role">Full stack developer building 3D, map and research data applications for the web</p>
+        <p class="hero-tagline">WebGL &middot; Geospatial &middot; Cultural Heritage &middot; Based in Germany</p>
     </header>
 
     <nav id="top-toolbar" aria-label="Quick navigation">
@@ -61,7 +81,7 @@
 
     <button id="back-to-beginning-btn" class="btn btn-ghost hidden" aria-label="Back to beginning">↑ Back to Beginning</button>
 
-    <div id="google-earth-container">
+    <div id="map-container">
         <div id="maptiler-map"></div>
     </div>
 
@@ -106,7 +126,7 @@
                     <img src="profile-photo.jpg" alt="Matthias Findeisen" class="profile-photo" width="120" height="120">
                     <div class="header-text">
                         <h1 id="portfolio-title" class="portfolio-title">Matthias Findeisen</h1>
-                        <p class="portfolio-subtitle">Full Stack Developer &amp; Creative Technologist</p>
+                        <p class="portfolio-subtitle">Full Stack Developer &middot; WebGL, Geospatial &amp; Research Data &middot; Based in Germany</p>
                         <div class="contact-links">
                             <a href="mailto:findeisen.matthias@gmail.com" class="btn btn-primary contact-link">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -160,23 +180,42 @@
 
                 <section class="portfolio-section" id="portfolio-skills">
                     <h2 class="section-title">Skills</h2>
-                    <ul class="skills-grid">
-                        <li class="skill-tag">TypeScript / JavaScript</li>
-                        <li class="skill-tag">Three.js / WebGL / GLSL</li>
-                        <li class="skill-tag">Vue</li>
-                        <li class="skill-tag">React / Svelte</li>
-                        <li class="skill-tag">GIS / MapLibre GL / Leaflet / OpenLayers</li>
-                        <li class="skill-tag">ArcGIS / QGIS / Remote Sensing</li>
-                        <li class="skill-tag">Node.js / Express</li>
-                        <li class="skill-tag">Java</li>
-                        <li class="skill-tag">Python / Django / PyTorch</li>
-                        <li class="skill-tag">Go</li>
-                        <li class="skill-tag">SQL / SQLite / CouchDB / PouchDB</li>
-                        <li class="skill-tag">REST APIs / SAP Integration</li>
-                        <li class="skill-tag">UML / BPMN 2.0</li>
-                        <li class="skill-tag">Docker / Linux / Tomcat</li>
-                        <li class="skill-tag">UX / UI Collaboration</li>
-                    </ul>
+                    <div class="skill-group">
+                        <h3 class="skill-group-title">Frontend &amp; 3D</h3>
+                        <ul class="skills-grid">
+                            <li class="skill-tag">TypeScript / JavaScript</li>
+                            <li class="skill-tag">Three.js / WebGL / GLSL</li>
+                            <li class="skill-tag">Vue</li>
+                            <li class="skill-tag">UX / UI Collaboration</li>
+                        </ul>
+                    </div>
+                    <div class="skill-group">
+                        <h3 class="skill-group-title">Geospatial</h3>
+                        <ul class="skills-grid">
+                            <li class="skill-tag">MapLibre GL / Leaflet / OpenLayers</li>
+                            <li class="skill-tag">QGIS / ArcGIS</li>
+                            <li class="skill-tag">Remote Sensing</li>
+                        </ul>
+                    </div>
+                    <div class="skill-group">
+                        <h3 class="skill-group-title">Backend &amp; Data</h3>
+                        <ul class="skills-grid">
+                            <li class="skill-tag">Java</li>
+                            <li class="skill-tag">Node.js / Express</li>
+                            <li class="skill-tag">Python / Django / PyTorch</li>
+                            <li class="skill-tag">Kotlin / Ktor</li>
+                            <li class="skill-tag">Go</li>
+                            <li class="skill-tag">SQL / SQLite / CouchDB / PouchDB</li>
+                            <li class="skill-tag">REST APIs / SAP Integration</li>
+                        </ul>
+                    </div>
+                    <div class="skill-group">
+                        <h3 class="skill-group-title">Process &amp; Operations</h3>
+                        <ul class="skills-grid">
+                            <li class="skill-tag">UML / BPMN 2.0</li>
+                            <li class="skill-tag">Docker / Linux / Tomcat</li>
+                        </ul>
+                    </div>
                 </section>
 
                 <section class="portfolio-section" id="portfolio-experience">
@@ -247,20 +286,16 @@
                 <section class="portfolio-section" id="portfolio-education">
                     <h2 class="section-title">Education</h2>
                     <article class="experience-item">
-                        <h3 class="experience-title">History and Cultures of Ancient Western Asia (Graduate Studies)</h3>
+                        <h3 class="experience-title">History and Cultures of Ancient Western Asia (Master's Programme)</h3>
                         <p class="experience-company">Freie Universität Berlin &middot; 2017 – 2021 &middot; Coursework
-                            completed in Near Eastern archaeology before moving into software engineering</p>
+                            completed; moved into software engineering in 2021</p>
                         <div class="experience-description">
-                            Focus on the intersection of archaeology, spatial analysis, politics, and sociology.
                             <ul>
-                                <li><strong>Spatial &amp; Computational Methods:</strong> Remote sensing and digital
-                                    image processing, quantitative landscape archaeology modelling with R, applied GIS
-                                    cartography and terrain analysis, and AutoCAD</li>
-                                <li><strong>Theoretical approaches:</strong> theories of subjectivation, power dynamics,
-                                    post-colonialism, Orientalism, and feminism</li>
-                                <li><strong>Socio-political archaeology:</strong> social inequality in early complex
-                                    societies, imperialism, ideology, and the political dimension of archaeology today
-                                </li>
+                                <li><strong>Spatial &amp; computational methods:</strong> remote sensing and digital
+                                    image processing, quantitative landscape modelling with R, GIS cartography and
+                                    terrain analysis, AutoCAD</li>
+                                <li><strong>Social and political archaeology:</strong> inequality in early complex
+                                    societies, imperialism and ideology</li>
                             </ul>
                         </div>
                     </article>
@@ -292,12 +327,13 @@
                         guitar.
                     </p>
                     <p>
-                        <strong>Personal research &amp; reading:</strong> theories of power (Machttheorien), and the
-                        history, languages (Kurmanji, Sorani, Persian), culture, and geopolitics of Kurdistan and West
-                        Asia.
+                        <strong>Personal research &amp; reading:</strong> theories of power, post-colonial thought, and
+                        the history, languages (Kurmanji, Sorani, Persian), culture, and geopolitics of Kurdistan and
+                        West Asia.
                     </p>
                 </section>
 
+                <p class="legal-links"><a href="/impressum.html">Impressum</a> &middot; <a href="/datenschutz.html">Datenschutz</a></p>
             </div>
         </div>
     </div>
@@ -305,11 +341,12 @@
     <div id="showcase-overlay" role="dialog" aria-modal="true" aria-labelledby="showcase-title" aria-hidden="true">
         <div class="portfolio-wrapper showcase-shell">
             <nav class="showcase-toc" aria-label="Contents">
-                <a href="#showcase-overview" aria-current="true">Overview</a>
+                <a href="#showcase-overview" aria-current="true">RTI Toolset</a>
                 <a href="#showcase-modernrtiviewer">modernRtiViewer</a>
                 <a href="#showcase-rtidb">rtiDb</a>
                 <a href="#showcase-rtiprep">rtiprep</a>
                 <a href="#showcase-neural-rti">neural_rti</a>
+                <a href="#showcase-more">More Projects</a>
                 <a href="#showcase-humanitysync">HumanitySync</a>
                 <a href="#showcase-kurdihub">KurdîHub</a>
                 <a href="#showcase-portfolio">This Portfolio</a>
@@ -346,7 +383,8 @@
                     <p>
                         An open-source toolset for Reflectance Transformation Imaging, a technique used in cultural
                         heritage to capture and reveal fine surface detail. It covers the full pipeline, from
-                        preparing raw captures to rendering them interactively in the browser.
+                        preparing raw captures to rendering them interactively in the browser. The four tools below
+                        make up the toolset; further projects follow after them.
                     </p>
                 </section>
 
@@ -469,6 +507,14 @@
                     </article>
                 </section>
 
+                <section class="portfolio-section" id="showcase-more">
+                    <h2 class="section-title"><span>More Projects</span></h2>
+                    <p>
+                        Independent projects outside the RTI toolset: offline-first field data collection, a
+                        cross-platform map app, and the site you are looking at.
+                    </p>
+                </section>
+
                 <section class="portfolio-section" id="showcase-humanitysync">
                     <h2 class="section-title">HumanitySync</h2>
                     <article class="project-card">
@@ -564,85 +610,9 @@
                         </div>
                     </article>
                 </section>
+
+                <p class="legal-links"><a href="/impressum.html">Impressum</a> &middot; <a href="/datenschutz.html">Datenschutz</a></p>
             </div>
-        </div>
-    </div>
-
-    <div id="alt-portfolio-page" class="hidden-alt">
-        <canvas id="alt-three-canvas"></canvas>
-        <button id="alt-back-btn" class="alt-design-nav-btn back" title="Go Back">
-            <span class="btn-arrow">←</span>
-            <span class="btn-text">Original Design</span>
-        </button>
-
-        <div class="alt-portfolio-container">
-            <!-- Typographic Layout -->
-            <header class="alt-portfolio-header">
-                <div class="alt-title-wrapper">
-                    <span class="alt-eyebrow">CREATIVE TECHNOLOGIST &amp; DEVELOPER</span>
-                    <h1 class="alt-hero-title">Matthias Findeisen</h1>
-                </div>
-                <div class="alt-quick-bio">
-                    <p>Blending technical precision with creative technology. Crafting immersive WebGL/3D interfaces, robust systems, and interactive storytelling platforms.</p>
-                </div>
-            </header>
-
-            <main class="alt-portfolio-grid">
-                <!-- Info cards with graphic look -->
-                <div class="alt-card alt-card-about">
-                    <span class="alt-card-num">01</span>
-                    <h3 class="alt-card-title">Archaeological Precision meets Digital Craft</h3>
-                    <p class="alt-card-text">
-                        Transitioning from archaeological survey databases and international field studies to modern systems engineering, my work is driven by structural rigor, curiosity, and a passion for immersive digital landscapes.
-                    </p>
-                </div>
-
-                <div class="alt-card alt-card-skills">
-                    <span class="alt-card-num">02</span>
-                    <h3 class="alt-card-title">Core Capability Stack</h3>
-                    <div class="alt-skills-list">
-                        <div class="alt-skill-group">
-                            <span class="alt-skill-group-title">WebGL &amp; Graphics</span>
-                            <span>Three.js / WebGL / Custom Shaders / GLSL</span>
-                        </div>
-                        <div class="alt-skill-group">
-                            <span class="alt-skill-group-title">Software Engineering</span>
-                            <span>TypeScript / Java / Python / CLI Tools in Go</span>
-                        </div>
-                        <div class="alt-skill-group">
-                            <span class="alt-skill-group-title">Geospatial</span>
-                            <span>WebGIS / MapLibre GL / GIS Coordinates &amp; Projection</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="alt-card alt-card-showcase">
-                    <span class="alt-card-num">03</span>
-                    <h3 class="alt-card-title">Creative Innovations</h3>
-                    <p class="alt-card-text">
-                        Designing the <strong>RTI Toolset</strong> (Reflectance Transformation Imaging) for cultural heritage archiving: compiling raw sensor captures to high-performance Neural RTI models and pyramidal WebGL rendering.
-                    </p>
-                </div>
-
-                <div class="alt-card alt-card-connect">
-                    <span class="alt-card-num">04</span>
-                    <h3 class="alt-card-title">Connect / Links</h3>
-                    <div class="alt-links-grid">
-                        <a href="mailto:findeisen.matthias@gmail.com" class="alt-link-item">
-                            <span>Email</span>
-                            <span class="alt-link-arrow">↗</span>
-                        </a>
-                        <a href="https://linkedin.com/in/matthias-findeisen" target="_blank" class="alt-link-item">
-                            <span>LinkedIn</span>
-                            <span class="alt-link-arrow">↗</span>
-                        </a>
-                        <a href="https://github.com/mfindeisen" target="_blank" class="alt-link-item">
-                            <span>GitHub</span>
-                            <span class="alt-link-arrow">↗</span>
-                        </a>
-                    </div>
-                </div>
-            </main>
         </div>
     </div>
 
@@ -655,6 +625,8 @@
             <span class="footer-item">MILKY WAY: <a href="https://www.eso.org/public/images/eso0932a/" target="_blank" rel="noopener">ESO/S. BRUNIER</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>)</span>
             <span class="footer-divider">/</span>
             <span class="footer-item">PRESS 'H' FOR SECRETS</span>
+            <span class="footer-divider">/</span>
+            <span class="footer-item"><a href="/impressum.html">IMPRESSUM</a> &middot; <a href="/datenschutz.html">DATENSCHUTZ</a></span>
         </div>
     </div>
 

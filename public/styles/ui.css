@@ -1,0 +1,156 @@
+        /* ---------- Tooltip ---------- */
+
+        .tooltip {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+            max-width: 320px;
+            padding: 10px 20px;
+            font-family: var(--font-system);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-strong);
+            text-align: center;
+            overflow-wrap: anywhere;
+            background: var(--panel-bg);
+            backdrop-filter: var(--panel-frost);
+            border: 1px solid var(--panel-border);
+            border-radius: 999px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            animation: fadeInOut 3s ease forwards;
+        }
+
+        .tooltip-success {
+            border-color: var(--success);
+        }
+
+        .tooltip-error {
+            border-color: var(--danger);
+        }
+
+        .tooltip-warning {
+            border-color: var(--warning);
+        }
+
+        .tooltip-info {
+            border-color: var(--accent);
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+
+            20%,
+            80% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        .tooltip[style*="transform: none"] {
+            animation: fadeInOutNoTransform 3s ease forwards;
+        }
+
+        @keyframes fadeInOutNoTransform {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            20%,
+            80% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+
+
+
+        /* Extracted from public/src/effects/EasterEggManager.js */
+
+        @keyframes rippleEffect {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(8);
+                opacity: 0;
+            }
+        }
+
+        /* Heroicons Integration Styles */
+        .h-icon {
+            width: 1.2em;
+            height: 1.2em;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            fill: none;
+            display: inline-block;
+            vertical-align: middle;
+            transition: transform var(--transition-fast), color var(--transition-fast);
+        }
+ 
+        .contact-link .h-icon {
+            width: 18px;
+            height: 18px;
+        }
+ 
+        .place-type .h-icon {
+            width: 14px;
+            height: 14px;
+        }
+ 
+        .place-fly-button .h-icon {
+            width: 20px;
+            height: 20px;
+        }
+ 
+        .places-list-title .h-icon {
+            width: 18px;
+            height: 18px;
+            color: var(--accent);
+        }
+ 
+        .tooltip .h-icon {
+            width: 18px;
+            height: 18px;
+        }
+ 
+        .photosphere-instructions p {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+ 
+        .photosphere-instructions p .h-icon {
+            width: 14px;
+            height: 14px;
+            opacity: 0.8;
+        }
+
+#canvas-container,
+#top-toolbar,
+#scroll-indicator,
+#footer,
+#back-to-beginning-btn {
+    transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1), opacity 0.8s ease, margin-bottom 0.3s ease !important;
+}

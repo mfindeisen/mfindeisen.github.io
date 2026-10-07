@@ -6,31 +6,29 @@ import { UIManager } from '../ui/UIManager.js';
 import { Tooltip } from '../ui/Tooltip.js';
 import { MapManager, mapHandoffProgress } from '../map/MapManager.js';
 import { AlignmentTool } from '../map/AlignmentTool.js';
-import { MathUtils } from '../utils/MathUtils.js';
 import { MobileTouchHandler } from '../ui/MobileTouchHandler.js';
 import { prefersReducedMotion } from '../utils/motion.js';
 
 import { EasterEggManager } from '../effects/EasterEggManager.js';
-import { AltScene } from '../effects/AltScene.js';
 
 export class App {
-    uiManager: UIManager;
-    tooltip: Tooltip;
-    scrollController: ScrollController;
-    mapManager: MapManager;
-    earthScene: EarthScene;
-    renderer: THREE.WebGLRenderer;
+    uiManager!: UIManager;
+    tooltip!: Tooltip;
+    scrollController!: ScrollController;
+    mapManager!: MapManager;
+    earthScene!: EarthScene;
+    renderer!: THREE.WebGLRenderer;
     mapTilerMap: any;
-    alignmentTool: AlignmentTool;
-    placesManager: PlacesManager;
-    mobileTouchHandler: MobileTouchHandler;
-    easterEggManager: EasterEggManager;
-    altScene: AltScene | null = null;
+    alignmentTool?: AlignmentTool;
+    placesManager?: PlacesManager;
+    mobileTouchHandler!: MobileTouchHandler;
+    easterEggManager!: EasterEggManager;
     scrollIndicator: any;
     skipButton: any;
     skipShowcaseBtn: any;
     backToBeginningBtn: any;
     lastScrollProgress: number;
+    isSceneHidden = false;
 
     constructor() {
         this.lastScrollProgress = 0;
@@ -70,8 +68,13 @@ export class App {
         // Initialize map manager
         this.mapManager = new MapManager();
 
-        // Initialize Three.js renderer
-        this.initRenderer();
+        try {
+            this.initRenderer();
+        } catch (error) {
+            console.error('WebGL is not available:', error);
+            this.initWithoutWebGL();
+            return;
+        }
 
         this.setupLoader();
 
@@ -89,9 +92,6 @@ export class App {
 
         // Setup event listeners
         this.setupEventListeners();
-
-        // Initialize alternative portfolio Three.js scene
-        this.altScene = new AltScene('alt-three-canvas');
     }
 
     /**
@@ -106,11 +106,24 @@ export class App {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         const container = this.uiManager.getElement('container');
+        if (!container) throw new Error('#canvas-container is missing');
         container.appendChild(this.renderer.domElement);
+    }
+
+    /**
+     * Without WebGL there is no globe or map, so the overlays become the whole site
+     */
+    initWithoutWebGL() {
+        document.body.classList.add('no-webgl');
+        document.getElementById('loader')?.remove();
+
+        this.uiManager.getElement('skipButton')?.addEventListener('click', () => this.uiManager.setActiveOverlay('portfolio'));
+        this.uiManager.getElement('skipShowcaseBtn')?.addEventListener('click', () => this.uiManager.setActiveOverlay('showcase'));
+
+        this.uiManager.setActiveOverlay('portfolio');
+        this.tooltip.show('The interactive 3D Earth needs WebGL, which is not available in this browser.', 6000);
     }
 
     /**
@@ -171,12 +184,6 @@ export class App {
         }
     }
 
-    // Calculate the center point of the 3D Earth model for perfect alignment
-
-    // Method to update center calculation with custom coordinates
-
-    // Method to get the current center (custom or calculated)
-
     setupEventListeners() {
         // Window resize
         window.addEventListener('resize', this.onWindowResize.bind(this));
@@ -201,7 +208,6 @@ export class App {
         const skipButton = this.uiManager.getElement('skipButton');
         const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
         const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
-        const portfolioOverlay = this.uiManager.getElement('portfolioOverlay');
 
         // Store element references as class properties
         this.scrollIndicator = scrollIndicator;
@@ -242,49 +248,6 @@ export class App {
                 this.uiManager.setActiveOverlay('showcase');
             });
         }
-
-        // Alternative design transition listeners
-        const altDesignBtn = document.getElementById('alt-design-btn');
-        const altBackBtn = document.getElementById('alt-back-btn');
-        const altPortfolioPage = document.getElementById('alt-portfolio-page');
-
-        if (altDesignBtn && altPortfolioPage) {
-            altDesignBtn.addEventListener('click', () => {
-                this.loadAltDesignFonts();
-                this.uiManager.setState('isAltPortfolioActive', true);
-                document.body.classList.add('alt-mode-active');
-                altPortfolioPage.classList.add('visible');
-                altDesignBtn.style.display = 'none';
-                this.tooltip.removeAll(); // Hide all active tooltips
-                
-                // Start alternative Three.js rendering
-                this.altScene?.start();
-            });
-        }
-
-        if (altBackBtn && altPortfolioPage && altDesignBtn) {
-            altBackBtn.addEventListener('click', () => {
-                this.uiManager.setState('isAltPortfolioActive', false);
-                document.body.classList.remove('alt-mode-active');
-                altPortfolioPage.classList.remove('visible');
-                
-                // Stop alternative Three.js rendering to save performance
-                this.altScene?.stop();
-
-                setTimeout(() => {
-                    altDesignBtn.style.display = 'flex';
-                }, 800); // Match transition duration
-            });
-        }
-    }
-
-    loadAltDesignFonts() {
-        if (document.getElementById('alt-design-fonts')) return;
-        const link = document.createElement('link');
-        link.id = 'alt-design-fonts';
-        link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap';
-        document.head.appendChild(link);
     }
 
     showTooltip(message, duration = 2000) {
@@ -303,7 +266,7 @@ export class App {
 
     onScroll() {
         // Prevent fake scroll events caused by CSS position: fixed from ruining the state
-        if (this.uiManager && (this.uiManager.getState('isScrollLocked') || this.uiManager.getState('isAltPortfolioActive'))) {
+        if (this.uiManager && this.uiManager.getState('isScrollLocked')) {
             return;
         }
 
@@ -316,17 +279,12 @@ export class App {
         // Update earth transformation
         this.earthScene.updateTransformation(scrollProgress);
 
-        // Control Google Earth fade-in
-        this.updateGoogleEarthVisibility(scrollProgress, scrollingDown);
+        // Fade the map in over the globe
+        this.updateMapVisibility(scrollProgress, scrollingDown);
 
         // Update UI based on scroll progress
         this.updateUIOnScroll(scrollProgress);
     }
-
-
-    /**
-     * Update UI based on scroll progress
-     */
 
     async zoomToErbil() {
         // Wait for map to be initialized
@@ -366,7 +324,7 @@ export class App {
             this.uiManager.lockScroll();
 
             this.uiManager.setState('journeyState', 'flying');
-            this.updateGoogleEarthVisibility(1);
+            this.updateMapVisibility(1);
 
             await this.mapManager.flyTo([targetLng, targetLat], targetZoom, prefersReducedMotion() ? 0 : 4000);
 
@@ -375,7 +333,7 @@ export class App {
 
             setTimeout(() => {
                 if (this.placesManager) {
-                    this.mapManager.ensureContainerInteractions(this.uiManager.getElement('googleEarthContainer'));
+                    this.mapManager.ensureContainerInteractions(this.uiManager.getElement('mapContainer'));
                     this.placesManager.addAllMarkers();
                     this.placesManager.setPlacesListVisibility(true);
                 }
@@ -402,13 +360,15 @@ export class App {
     }
 
     ensureMapContainerInteractions() {
-        this.mapManager.ensureContainerInteractions(this.uiManager.getElement('googleEarthContainer'));
+        this.mapManager.ensureContainerInteractions(this.uiManager.getElement('mapContainer'));
     }
 
     animate() {
         requestAnimationFrame(this.animate.bind(this));
 
-        // Update earth scene
+        // The map covers the globe completely, so there is nothing to draw
+        if (this.isSceneHidden) return;
+
         this.earthScene.update();
 
         // Render
@@ -417,10 +377,9 @@ export class App {
 
     updateUIOnScroll(progress) {
         const journeyState = this.uiManager.getState('journeyState');
-        const isAltActive = this.uiManager.getState('isAltPortfolioActive');
-        
+
         // Never show UI elements while flying or after arrived
-        if (journeyState === 'flying' || journeyState === 'arrived' || isAltActive) {
+        if (journeyState === 'flying' || journeyState === 'arrived') {
             this.uiManager.hideElement('scrollIndicator');
             this.uiManager.hideElement('skipButton');
             this.uiManager.hideElement('skipShowcaseBtn');
@@ -456,16 +415,18 @@ export class App {
     }
 
 
-    updateGoogleEarthVisibility(progress, scrollingDown = true) {
-        const googleEarthContainer = this.uiManager.getElement('googleEarthContainer');
+    updateMapVisibility(progress, scrollingDown = true) {
+        const mapContainer = this.uiManager.getElement('mapContainer');
+        const footer = this.uiManager.getElement('footer');
+        if (!mapContainer) return;
 
         if (progress > 0.5) {
             // Force hide scroll indicator and skip button on the map view
             this.uiManager.hideElement('scrollIndicator');
             this.uiManager.hideElement('skipButton');
 
-            googleEarthContainer.style.zIndex = '0';
-            googleEarthContainer.style.opacity = '0';
+            mapContainer.style.zIndex = '0';
+            mapContainer.style.opacity = '0';
 
             const activationThreshold = mapHandoffProgress();
             const fadeRange = 1 - activationThreshold;
@@ -476,14 +437,14 @@ export class App {
                     ? Math.min((progress - activationThreshold) / fadeRange, 1.0)
                     : 1.0;
 
-                googleEarthContainer.style.zIndex = '2';
-                googleEarthContainer.style.opacity = fadeProgress.toString();
-                googleEarthContainer.classList.add('visible');
+                mapContainer.style.zIndex = '2';
+                mapContainer.style.opacity = fadeProgress.toString();
+                mapContainer.classList.add('visible');
 
                 this.hideBackgroundElements(fadeProgress);
 
-                if (fadeProgress >= 0.5) {
-                    this.uiManager.getElement('footer').style.marginBottom = window.innerWidth <= 768 ? '45px' : '25px';
+                if (fadeProgress >= 0.5 && footer) {
+                    footer.style.marginBottom = window.innerWidth <= 768 ? '45px' : '25px';
                 }
 
                 // Map UI visibility check - ensure places list and buttons are shown if we arrived
@@ -504,12 +465,12 @@ export class App {
                 }
             }
         } else {
-            googleEarthContainer.style.zIndex = '0';
-            googleEarthContainer.style.opacity = '0';
-            googleEarthContainer.classList.remove('visible');
+            mapContainer.style.zIndex = '0';
+            mapContainer.style.opacity = '0';
+            mapContainer.classList.remove('visible');
 
             this.showBackgroundElements();
-            this.uiManager.getElement('footer').style.marginBottom = '';
+            if (footer) footer.style.marginBottom = '';
 
             // Force hide all map-specific UI when map is not visible
             this.uiManager.hideElement('reopenPortfolioBtn');
@@ -536,6 +497,7 @@ export class App {
             container.style.opacity = Math.max(0, 1 - fadeProgress * 2).toString();
             container.style.pointerEvents = 'none';
         }
+        this.isSceneHidden = fadeProgress >= 0.5;
 
         this.uiManager.hideElement('scrollIndicator');
         this.uiManager.hideElement('skipButton');
@@ -557,6 +519,7 @@ export class App {
             container.style.opacity = '1';
             container.style.pointerEvents = 'auto';
         }
+        this.isSceneHidden = false;
     }
 
 

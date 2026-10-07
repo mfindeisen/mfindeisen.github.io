@@ -1,3 +1,5 @@
+import '@fontsource-variable/outfit';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import '../style.css';
 import { App } from './core/App.js';
 

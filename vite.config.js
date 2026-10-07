@@ -1,11 +1,15 @@
 import { defineConfig } from 'vite';
-import { copyFileSync, mkdirSync, existsSync } from 'fs';
 import tailwindcss from '@tailwindcss/vite';
 import { join } from 'path';
+
+const page = (name) => join(process.cwd(), 'public', `${name}.html`);
 
 export default defineConfig(({ command }) => ({
   // Set the root directory to 'public' since that's where your HTML and assets are
   root: 'public',
+
+  // Copied unchanged to the site root: textures loaded at runtime, og-image, favicon, robots.txt, sitemap.xml
+  publicDir: 'static',
   
   plugins: [
     tailwindcss()
@@ -28,11 +32,19 @@ export default defineConfig(({ command }) => ({
     sourcemap: true,
     chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
     rollupOptions: {
+      input: {
+        main: page('index'),
+        impressum: page('impressum'),
+        datenschutz: page('datenschutz')
+      },
       output: {
         manualChunks: (id) => {
           // Split Three.js into its own chunk
           if (id.includes('node_modules/three')) {
             return 'three';
+          }
+          if (id.includes('node_modules/maplibre-gl')) {
+            return 'maplibre';
           }
           // Split photo sphere viewer into its own chunk
           if (id.includes('node_modules/@photo-sphere-viewer')) {
@@ -43,41 +55,7 @@ export default defineConfig(({ command }) => ({
             return 'vendor';
           }
         }
-      },
-      plugins: [
-        {
-          name: 'copy-textures',
-          writeBundle() {
-            const srcDir = join(process.cwd(), 'public', 'textures');
-            const destDir = join(process.cwd(), 'dist', 'textures');
-            
-            if (existsSync(srcDir)) {
-              // Create destination directory
-              mkdirSync(destDir, { recursive: true });
-              
-              // Copy all files recursively
-              const copyRecursive = (src, dest) => {
-                const fs = require('fs');
-                const path = require('path');
-                
-                if (fs.statSync(src).isDirectory()) {
-                  if (!existsSync(dest)) {
-                    mkdirSync(dest, { recursive: true });
-                  }
-                  fs.readdirSync(src).forEach(file => {
-                    copyRecursive(path.join(src, file), path.join(dest, file));
-                  });
-                } else {
-                  copyFileSync(src, dest);
-                }
-              };
-              
-              copyRecursive(srcDir, destDir);
-              console.log('✅ Copied textures folder to dist/');
-            }
-          }
-        }
-      ]
+      }
     }
   },
   

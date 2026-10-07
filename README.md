@@ -12,11 +12,12 @@ This is the portfolio site of Matthias Findeisen. It opens on a 3D Earth. Scroll
 - A MapLibre GL map (MapTiler tiles) with a flight to Erbil and a list of places, each with photo galleries and 360° panoramas.
 - Portfolio and showcase overlays covering experience, skills and selected projects, among them the open-source RTI toolset, HumanitySync and KurdîHub.
 - Accessibility basics: keyboard-operable dialogs (Esc closes them, focus stays trapped inside) and support for `prefers-reduced-motion`.
+- Fallbacks: without WebGL the portfolio opens directly, without JavaScript a short contact card is shown.
 - A few hidden extras. Press `H` on the start screen to list them.
 
 ## Getting started
 
-The project uses [pnpm](https://pnpm.io/).
+The project uses [pnpm](https://pnpm.io/); the version is pinned in `packageManager` in `package.json`.
 
 ```bash
 git clone https://github.com/mfindeisen/mfindeisen.github.io.git
@@ -31,7 +32,7 @@ Other scripts:
 pnpm run build      # production build into dist/
 pnpm run preview    # serve the production build
 pnpm run typecheck  # TypeScript type check
-pnpm run build:sky  # regenerate public/textures/sky/ from the star catalogue and the Milky Way panorama
+pnpm run build:sky  # regenerate public/static/textures/sky/ from the star catalogue and the Milky Way panorama
 ```
 
 ### MapTiler API key
@@ -68,21 +69,24 @@ Example: `https://mfindeisen.github.io/?morph=classic`
 
 ```
 mfindeisen.github.io/
-├── vite.config.js             # Vite config (root is public/)
+├── vite.config.js             # Vite config (root is public/, publicDir is public/static/)
 ├── package.json
 ├── scripts/build-sky.mjs      # Builds the star catalogue and Milky Way assets
 └── public/
     ├── index.html             # Entry point, overlays and meta tags
-    ├── style.css              # Global styles
+    ├── impressum.html         # Legal notice (German)
+    ├── datenschutz.html       # Privacy policy (German)
+    ├── style.css              # Imports the stylesheets in styles/
+    ├── styles/                # Base, overlays, footer, media, map, UI and fallback styles
     ├── showcase/              # Media for the showcase cards
-    ├── textures/              # Earth textures and place photos
+    ├── static/                # Copied unchanged: textures, og-image, favicon, robots.txt, sitemap.xml
     └── src/
         ├── main.ts            # Bootstrap
         ├── core/App.ts        # Scroll and journey state
         ├── earth/             # Globe, morph geometry, cube unfold, lighting, starfield
         ├── map/               # MapLibre integration
         ├── ui/                # Overlays, modals, tooltips, touch handling
-        ├── effects/           # Easter eggs and the scene for the alternative design
+        ├── effects/           # Easter eggs
         ├── data/places.ts     # Places and photos shown on the map
         └── PlacesManager.ts   # Map markers, popups and the places list
 ```
@@ -93,8 +97,9 @@ mfindeisen.github.io/
 - Three.js
 - MapLibre GL JS with MapTiler
 - Photo Sphere Viewer for the panoramas
-- Plain CSS
-- GitHub Pages, deployed by GitHub Actions on every push to `main`
+- Custom CSS on top of the Tailwind CSS v4 base styles
+- Outfit font, self-hosted via Fontsource (no requests to Google Fonts)
+- GitHub Pages, deployed by GitHub Actions on every push to `main` after a type check
 
 ## Credits
 

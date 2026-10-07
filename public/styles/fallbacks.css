@@ -1,0 +1,57 @@
+/* ==========================================================================
+   Fallbacks without WebGL or JavaScript
+   ========================================================================== */
+.no-webgl .content,
+.no-webgl #scroll-indicator,
+.no-webgl #canvas-container,
+.no-webgl #map-container {
+    display: none;
+}
+
+.noscript-card {
+    position: fixed;
+    inset: auto 1.5rem 1.5rem;
+    z-index: 30000;
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: rgba(10, 12, 18, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    line-height: 1.6;
+}
+
+.noscript-card a {
+    color: var(--accent);
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.btn:focus-visible,
+.icon-btn:focus-visible,
+#scroll-indicator:focus-visible .scroll-arrow {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+#scroll-indicator:focus-visible {
+    outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

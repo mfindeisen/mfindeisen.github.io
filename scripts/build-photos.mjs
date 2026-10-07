@@ -1,7 +1,7 @@
 /**
  * Turns place photos into display-sized WebP and square thumbnails.
  *
- * Drop JPEG or WebP files into public/textures/photos/, then run:
+ * Drop JPEG or WebP files into public/static/textures/photos/, then run:
  *   node scripts/build-photos.mjs
  *
  * JPEGs are resized, written as WebP, and removed. Existing WebP files are
@@ -12,7 +12,7 @@ import { readdir, stat, unlink, writeFile } from 'node:fs/promises';
 import { basename, extname, join } from 'node:path';
 import sharp from 'sharp';
 
-const PHOTO_DIR = join(process.cwd(), 'public', 'textures', 'photos');
+const PHOTO_DIR = join(process.cwd(), 'public', 'static', 'textures', 'photos');
 const THUMB_DIR = join(PHOTO_DIR, 'thumbnails');
 
 const THUMBS = {

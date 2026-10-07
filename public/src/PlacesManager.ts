@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import maplibregl from 'maplibre-gl';
 import { getIcon } from './utils/Icons.js';
 import { Modal } from './ui/Modal.js';
 import { places } from './data/places.js';
@@ -220,7 +220,7 @@ export class PlacesManager {
     /**
      * Add click handlers for photos in the popup
      */
-    addPhotoClickHandlers(place, containerElement = document) {
+    addPhotoClickHandlers(place, containerElement: ParentNode = document) {
         if (!containerElement) return;
         
         // Handle preview thumbnail clicks
@@ -373,10 +373,12 @@ export class PlacesManager {
      * Setup toggle functionality for the places list
      */
     setupToggleFunctionality() {
-        const toggleButton = this.placesListElement.querySelector('.places-list-toggle') as HTMLElement;
-        const listContainer = this.placesListElement.querySelector('.places-list') as HTMLElement;
-        const toggleIcon = this.placesListElement.querySelector('.toggle-icon') as HTMLElement;
-        const hamburgerIcon = this.placesListElement.querySelector('.hamburger-icon') as HTMLElement;
+        const placesList = this.placesListElement;
+        if (!placesList) return;
+        const toggleButton = placesList.querySelector('.places-list-toggle') as HTMLElement;
+        const listContainer = placesList.querySelector('.places-list') as HTMLElement;
+        const toggleIcon = placesList.querySelector('.toggle-icon') as HTMLElement;
+        const hamburgerIcon = placesList.querySelector('.hamburger-icon') as HTMLElement;
         
         // Check if we're on mobile and start collapsed
         this.isListCollapsed = this.isMobile; // Start collapsed on mobile
@@ -386,7 +388,7 @@ export class PlacesManager {
             if (this.isListCollapsed) {
                 if (this.isMobile) {
                     // On mobile, show collapsed state (only header visible)
-                    this.placesListElement.classList.add('collapsed');
+                    placesList.classList.add('collapsed');
                     // Ensure backdrop is hidden initially
                     if (this.backdropElement) {
                         this.backdropElement.classList.remove('visible');
@@ -398,7 +400,7 @@ export class PlacesManager {
                     listContainer.style.display = 'none';
                     toggleIcon.style.display = 'none';
                     hamburgerIcon.style.display = 'block';
-                    this.placesListElement.classList.add('collapsed');
+                    placesList.classList.add('collapsed');
                 }
             }
             
@@ -413,9 +415,11 @@ export class PlacesManager {
      * Toggle the places list visibility
      */
     togglePlacesList() {
-        const listContainer = this.placesListElement.querySelector('.places-list') as HTMLElement;
-        const toggleIcon = this.placesListElement.querySelector('.toggle-icon') as HTMLElement;
-        const hamburgerIcon = this.placesListElement.querySelector('.hamburger-icon') as HTMLElement;
+        const placesList = this.placesListElement;
+        if (!placesList) return;
+        const listContainer = placesList.querySelector('.places-list') as HTMLElement;
+        const toggleIcon = placesList.querySelector('.toggle-icon') as HTMLElement;
+        const hamburgerIcon = placesList.querySelector('.hamburger-icon') as HTMLElement;
         
         if (listContainer && toggleIcon && hamburgerIcon) {
             this.isListCollapsed = !this.isListCollapsed;
@@ -423,14 +427,14 @@ export class PlacesManager {
             if (this.isMobile) {
                 // Mobile bottom sheet behavior
                 if (this.isListCollapsed) {
-                    this.placesListElement.classList.add('collapsed');
+                    placesList.classList.add('collapsed');
                     if (this.backdropElement) {
                         this.backdropElement.classList.remove('visible');
                     }
                     // Update arrow to point up (expand)
                     toggleIcon.innerHTML = getIcon('ChevronUp');
                 } else {
-                    this.placesListElement.classList.remove('collapsed');
+                    placesList.classList.remove('collapsed');
                     if (this.backdropElement) {
                         this.backdropElement.classList.add('visible');
                     }
@@ -443,12 +447,12 @@ export class PlacesManager {
                     listContainer.style.display = 'none';
                     toggleIcon.style.display = 'none';
                     hamburgerIcon.style.display = 'block';
-                    this.placesListElement.classList.add('collapsed');
+                    placesList.classList.add('collapsed');
                 } else {
                     listContainer.style.display = 'block';
                     toggleIcon.style.display = 'block';
                     hamburgerIcon.style.display = 'none';
-                    this.placesListElement.classList.remove('collapsed');
+                    placesList.classList.remove('collapsed');
                 }
             }
         }
@@ -486,7 +490,7 @@ export class PlacesManager {
      * Setup mobile-specific functionality (touch gestures, etc.)
      */
     setupMobileFunctionality() {
-        const header = this.placesListElement.querySelector('.places-list-header') as HTMLElement;
+        const header = this.placesListElement?.querySelector('.places-list-header') as HTMLElement | null;
         
         if (!header) return;
         
@@ -762,7 +766,7 @@ export class PlacesManager {
                 // On mobile, add a small delay to ensure smooth animation
                 if (this.isMobile) {
                     setTimeout(() => {
-                        this.placesListElement.classList.add('visible');
+                        this.placesListElement?.classList.add('visible');
                         if (this.backdropElement) {
                             this.backdropElement.classList.add('visible');
                         }
@@ -776,7 +780,7 @@ export class PlacesManager {
                     }
                     // Hide after animation completes
                     setTimeout(() => {
-                        this.placesListElement.style.display = 'none';
+                        if (this.placesListElement) this.placesListElement.style.display = 'none';
                     }, 300);
                 } else {
                     this.placesListElement.style.display = 'none';

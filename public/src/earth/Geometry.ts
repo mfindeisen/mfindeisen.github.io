@@ -4,6 +4,11 @@ import { COLOR_GRADE_APPLY_GLSL, COLOR_GRADE_GLSL, NIGHT_EMISSIVE, OCEAN_GLOSS_G
 
 const CLOUD_OPACITY = 0.9;
 
+// Many phone GPUs cap textures at 4096 px, so small screens get the half-resolution maps
+const SMALL_SCREEN = window.innerWidth <= 768 || 'ontouchstart' in window;
+const EARTH_DAY_TEXTURE = SMALL_SCREEN ? 'textures/earth-day-2700.webp' : 'textures/earth-day-5400.webp';
+const CLOUD_TEXTURE = SMALL_SCREEN ? 'textures/clouds-2048.webp' : 'textures/Clouds.webp';
+
 // Living oceans collapse into dark basins; land shifts toward rust and ash
 const DEAD_GRADE_MATRIX = [
     0.40, 0.28, 0.04,
@@ -69,8 +74,8 @@ export class Geometry {
         planeGeom.morphAttributes.position = [];
         planeGeom.morphAttributes.normal = [];
 
-        const sphereFormation = [];
-        const sphereNormals = [];
+        const sphereFormation: number[] = [];
+        const sphereNormals: number[] = [];
 
         const uvs = planeGeom.attributes.uv;
         const uv = new this.THREE.Vector2();
@@ -96,7 +101,7 @@ export class Geometry {
 
         const loader = new this.THREE.TextureLoader();
         const earthTexture = loader.load(
-            'textures/world.topo.bathy.200407.3x5400x2700.jpg',
+            EARTH_DAY_TEXTURE,
             undefined,
             undefined,
             (e) => console.error('Earth texture load error', e)
@@ -106,7 +111,7 @@ export class Geometry {
         earthTexture.magFilter = this.THREE.LinearFilter;
 
         const nightTexture = loader.load(
-            'textures/BlackMarble_2016_01deg.jpg',
+            'textures/earth-night.webp',
             undefined,
             undefined,
             (e) => console.error('Night texture load error', e)
@@ -213,8 +218,8 @@ export class Geometry {
         cloudPlaneGeom.morphAttributes.position = [];
         cloudPlaneGeom.morphAttributes.normal = [];
 
-        const cloudSphereFormation = [];
-        const cloudSphereNormals = [];
+        const cloudSphereFormation: number[] = [];
+        const cloudSphereNormals: number[] = [];
 
         const uvs = cloudPlaneGeom.attributes.uv;
         const uv = new this.THREE.Vector2();
@@ -240,7 +245,7 @@ export class Geometry {
 
         const loader = new this.THREE.TextureLoader();
         const cloudTexture = loader.load(
-            'textures/Clouds.webp',
+            CLOUD_TEXTURE,
             undefined,
             undefined,
             (e) => console.error('Cloud texture load error', e)
@@ -326,6 +331,7 @@ export class Geometry {
      */
     updateCubeTransformation(progress) {
         const cubeUnfold = this.cubeUnfold;
+        if (!cubeUnfold) return;
         const { unfoldEnd, fadeEnd } = cubeUnfold.stages;
         const fadesIntoPlane = cubeUnfold.style === 'cube-fade';
 

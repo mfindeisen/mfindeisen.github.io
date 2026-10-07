@@ -569,7 +569,6 @@ export class EasterEggs {
         }
         
         const currentCycleTime = currentTime - this.jetpackCycleStart;
-        const wasThrusting = this.jetpackThrusting;
         
         if (currentCycleTime < this.jetpackThrustDuration) {
             this.jetpackThrusting = true;
@@ -710,7 +709,7 @@ export class EasterEggs {
         );
         
         const trailGeometry = new THREE.BufferGeometry();
-        const trailPositions = [];
+        const trailPositions: number[] = [];
         const trailLength = 20;
         
         for (let i = 0; i < trailLength; i++) {

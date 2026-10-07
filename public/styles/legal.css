@@ -1,0 +1,98 @@
+:root {
+    --accent: #5aa9ff;
+    --text-strong: #f2f5fa;
+    --text-body: rgba(226, 232, 240, 0.86);
+    --text-muted: rgba(178, 190, 208, 0.75);
+    --panel-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at top, #0d1626 0%, #000 70%);
+    color: var(--text-body);
+    font-family: 'Outfit Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.legal {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+}
+
+.legal-back {
+    display: inline-block;
+    margin-bottom: 2.5rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.legal-back:hover,
+.legal-back:focus-visible {
+    text-decoration: underline;
+}
+
+h1 {
+    margin: 0 0 2rem;
+    color: var(--text-strong);
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+h2 {
+    margin: 2.5rem 0 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--panel-border);
+    color: var(--text-strong);
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+h3 {
+    margin: 1.5rem 0 0.5rem;
+    color: var(--text-strong);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+p,
+ul,
+address {
+    margin: 0 0 1rem;
+}
+
+address {
+    font-style: normal;
+}
+
+ul {
+    padding-left: 1.3rem;
+}
+
+li + li {
+    margin-top: 0.35rem;
+}
+
+a {
+    color: var(--accent);
+}
+
+a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.legal-meta {
+    margin-top: 3rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}

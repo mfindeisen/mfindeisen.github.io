@@ -10,11 +10,10 @@
     "isolatedModules": true,
     "noEmit": true,
     
-    /* Lenient strictness flags for migration */
+    /* noImplicitAny is the remaining step of the JavaScript migration */
     "strict": true,
-    "strictNullChecks": false,
     "noImplicitAny": false,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": false,
     
     "skipLibCheck": true

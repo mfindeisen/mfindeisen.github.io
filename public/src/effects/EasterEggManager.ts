@@ -397,12 +397,12 @@ export class EasterEggManager {
         };
 
         const clickHandler = () => {
-            this.closeHelp();
+            this.closeHelp?.();
         };
 
         const keyHandler = (e) => {
             if (e.key === 'Escape') {
-                this.closeHelp();
+                this.closeHelp?.();
             }
         };
 

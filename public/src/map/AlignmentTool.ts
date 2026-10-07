@@ -85,12 +85,12 @@ export class AlignmentTool {
         const lngSlider = document.getElementById('lng-slider') as HTMLInputElement;
         const latSlider = document.getElementById('lat-slider') as HTMLInputElement;
         const zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement;
-        const lngValue = document.getElementById('lng-value');
-        const latValue = document.getElementById('lat-value');
-        const zoomValue = document.getElementById('zoom-value');
-        const resetBtn = document.getElementById('reset-alignment');
-        const copyBtn = document.getElementById('copy-coords');
-        const hideBtn = document.getElementById('hide-tool');
+        const lngValue = document.getElementById('lng-value') as HTMLElement;
+        const latValue = document.getElementById('lat-value') as HTMLElement;
+        const zoomValue = document.getElementById('zoom-value') as HTMLElement;
+        const resetBtn = document.getElementById('reset-alignment') as HTMLElement;
+        const copyBtn = document.getElementById('copy-coords') as HTMLElement;
+        const hideBtn = document.getElementById('hide-tool') as HTMLElement;
         
         // Update map when sliders change
         const updateMap = () => {
