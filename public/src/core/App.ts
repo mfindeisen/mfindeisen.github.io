@@ -5,11 +5,14 @@ import { ScrollController } from '../ScrollController.js';
 import { UIManager } from '../ui/UIManager.js';
 import { Tooltip } from '../ui/Tooltip.js';
 import { MapManager, mapHandoffProgress } from '../map/MapManager.js';
-import { AlignmentTool } from '../map/AlignmentTool.js';
 import { MobileTouchHandler } from '../ui/MobileTouchHandler.js';
 import { prefersReducedMotion } from '../utils/motion.js';
 
 import { EasterEggManager } from '../effects/EasterEggManager.js';
+
+// 36.1892566,44.0100967
+const ERBIL_CENTER: [number, number] = [44.0100967, 36.1892566];
+const ERBIL_ZOOM = 13;
 
 export class App {
     uiManager!: UIManager;
@@ -19,7 +22,6 @@ export class App {
     earthScene!: EarthScene;
     renderer!: THREE.WebGLRenderer;
     mapTilerMap: any;
-    alignmentTool?: AlignmentTool;
     placesManager?: PlacesManager;
     mobileTouchHandler!: MobileTouchHandler;
     easterEggManager!: EasterEggManager;
@@ -29,6 +31,7 @@ export class App {
     backToBeginningBtn: any;
     lastScrollProgress: number;
     isSceneHidden = false;
+    texturesReady!: Promise<void>;
 
     constructor() {
         this.lastScrollProgress = 0;
@@ -92,6 +95,26 @@ export class App {
 
         // Setup event listeners
         this.setupEventListeners();
+
+        // Load the Erbil tiles in the background so the flight does not land on an empty map.
+        // Waiting for the first scroll spares the MapTiler quota for visitors who never start the journey,
+        // and waiting for the globe textures keeps both from competing for bandwidth.
+        Promise.all([this.texturesReady, this.firstScroll()]).then(() => {
+            if (this.mapManager.isMapInitialized() && this.uiManager.getState('journeyState') === 'idle') {
+                this.mapManager.prefetchArea(ERBIL_CENTER, [6, 8, 10, 12, ERBIL_ZOOM]);
+            }
+        });
+    }
+
+    firstScroll() {
+        return new Promise<void>(resolve => {
+            const onScroll = () => {
+                if (window.scrollY <= 0) return;
+                window.removeEventListener('scroll', onScroll);
+                resolve();
+            };
+            window.addEventListener('scroll', onScroll, { passive: true });
+        });
     }
 
     /**
@@ -132,9 +155,18 @@ export class App {
     setupLoader() {
         const loader = document.getElementById('loader');
         const progressLabel = document.getElementById('loader-progress');
-        if (!loader) return;
+
+        let resolveTexturesReady!: () => void;
+        this.texturesReady = new Promise(resolve => { resolveTexturesReady = resolve; });
+
+        if (!loader) {
+            resolveTexturesReady();
+            return;
+        }
 
         const hide = () => {
+            resolveTexturesReady();
+            if (loader.classList.contains('done')) return;
             loader.classList.add('done');
             setTimeout(() => loader.remove(), 800);
         };
@@ -167,11 +199,6 @@ export class App {
 
             // Start with interactions disabled
             this.enableMapInteractions(false);
-
-            if (import.meta.env.DEV) {
-                this.alignmentTool = new AlignmentTool(this.mapManager);
-                this.alignmentTool.create();
-            }
 
             // Initialize places manager
             this.placesManager = new PlacesManager(this.mapTilerMap);
@@ -312,11 +339,6 @@ export class App {
         this.uiManager.hideElement('skipShowcaseBtn');
         this.uiManager.hideElement('footer');
 
-        // 36.1892566,44.0100967
-        const targetLng = 44.0100967;
-        const targetLat = 36.1892566;
-        const targetZoom = 13;
-
         try {
             // Lock scrolling immediately so the user is physically prevented from
             // scrolling up during the flight animation and ruining the map experience
@@ -326,10 +348,12 @@ export class App {
             this.uiManager.setState('journeyState', 'flying');
             this.updateMapVisibility(1);
 
-            await this.mapManager.flyTo([targetLng, targetLat], targetZoom, prefersReducedMotion() ? 0 : 4000);
+            await this.mapManager.flyTo(ERBIL_CENTER, ERBIL_ZOOM, prefersReducedMotion() ? 0 : 4000);
 
             this.uiManager.setState('journeyState', 'arrived');
             this.mapManager.setInteractions(true);
+
+            const willAutoOpenPortfolio = !this.isPortfolioIntroDone();
 
             setTimeout(() => {
                 if (this.placesManager) {
@@ -337,9 +361,12 @@ export class App {
                     this.placesManager.addAllMarkers();
                     this.placesManager.setPlacesListVisibility(true);
                 }
+                if (!willAutoOpenPortfolio && this.uiManager.getState('activeOverlay') === 'none') {
+                    this.uiManager.showElement('backToBeginningBtn');
+                }
             }, 100);
 
-            if (!this.uiManager.getState('portfolioHasBeenShown') && !this.uiManager.getState('portfolioManuallyDismissed')) {
+            if (willAutoOpenPortfolio) {
                 setTimeout(() => {
                     this.uiManager.setActiveOverlay('portfolio');
                     this.uiManager.setState('portfolioHasBeenShown', true);
@@ -353,6 +380,10 @@ export class App {
         } catch (error) {
             console.error('Error during flyTo animation:', error);
         }
+    }
+
+    isPortfolioIntroDone() {
+        return this.uiManager.getState('portfolioHasBeenShown') || this.uiManager.getState('portfolioManuallyDismissed');
     }
 
     enableMapInteractions(enable) {
@@ -404,7 +435,9 @@ export class App {
 
         // Show back to beginning button when at the end
         if (progress > 0.95 && this.uiManager.getState('journeyState') === 'arrived' &&
-            this.uiManager.getState('activeOverlay') === 'none') {
+            this.uiManager.getState('activeOverlay') === 'none' &&
+            this.isPortfolioIntroDone() &&
+            (this.placesManager?.markers.size ?? 0) > 0) {
             this.uiManager.showElement('backToBeginningBtn');
         } else if (progress <= 0.95 && this.uiManager.getState('journeyState') === 'arrived') {
             this.uiManager.hideElement('backToBeginningBtn');
@@ -432,6 +465,8 @@ export class App {
             const fadeRange = 1 - activationThreshold;
 
             if (progress > activationThreshold) {
+                this.mapManager.cancelPrefetch();
+
                 // Once the flight has started the scroll position can be frozen mid-fade by the scroll lock
                 const fadeProgress = this.uiManager.getState('journeyState') === 'idle'
                     ? Math.min((progress - activationThreshold) / fadeRange, 1.0)
@@ -508,8 +543,6 @@ export class App {
             this.uiManager.hideElement('reopenPortfolioBtn');
             this.uiManager.hideElement('reopenShowcaseBtn');
         }
-
-        this.uiManager.showElement('backToBeginningBtn');
     }
 
 

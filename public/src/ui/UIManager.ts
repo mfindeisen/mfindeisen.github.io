@@ -476,6 +476,9 @@ export class UIManager {
                 
                 if (this.placesManager) {
                     this.placesManager.setPlacesListVisibility(true);
+                    if (this.placesManager.markers.size > 0) {
+                        this.showElement('backToBeginningBtn');
+                    }
                 }
             } else {
                 // If we are not arrived (e.g. at the top of the page), restore the top buttons

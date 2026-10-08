@@ -18,12 +18,14 @@ export class MapManager {
     isInitialized: boolean;
     originalCenter: [number, number];
     originalZoom: number;
+    isPrefetching: boolean;
 
     constructor() {
         this.mapTilerMap = null;
         this.isInitialized = false;
         this.originalCenter = [0, 0];
         this.originalZoom = MAP_START_ZOOM;
+        this.isPrefetching = false;
     }
 
     /**
@@ -146,6 +148,48 @@ export class MapManager {
     }
 
     /**
+     * Load the tiles around a destination while the map is still invisible, so a later flyTo
+     * does not have to wait for them. Zoom levels should be ascending so the final view stays
+     * the most recently used in the tile cache.
+     */
+    async prefetchArea(center: [number, number], zooms: number[], stepTimeout = 5000) {
+        if (!this.mapTilerMap || this.isPrefetching) return;
+
+        this.isPrefetching = true;
+        for (const zoom of zooms) {
+            if (!this.isPrefetching) return;
+            this.mapTilerMap.jumpTo({ center, zoom });
+            await this.waitForIdle(stepTimeout);
+        }
+
+        if (this.isPrefetching) {
+            this.isPrefetching = false;
+            this.mapTilerMap.jumpTo({ center: this.originalCenter, zoom: this.originalZoom });
+        }
+    }
+
+    /**
+     * Stop a running prefetch and put the camera back to the start position right away
+     */
+    cancelPrefetch() {
+        if (!this.isPrefetching) return;
+        this.isPrefetching = false;
+        this.mapTilerMap.jumpTo({ center: this.originalCenter, zoom: this.originalZoom });
+    }
+
+    waitForIdle(timeout: number) {
+        return new Promise<void>((resolve) => {
+            const done = () => {
+                clearTimeout(timer);
+                this.mapTilerMap.off('idle', done);
+                resolve();
+            };
+            const timer = setTimeout(done, timeout);
+            this.mapTilerMap.once('idle', done);
+        });
+    }
+
+    /**
      * Fly to specific coordinates with animation
      */
     flyTo(center: any, zoom: any, duration = 8000) {
@@ -153,6 +197,8 @@ export class MapManager {
             console.warn('MapTiler map not initialized');
             return Promise.reject('Map not initialized');
         }
+
+        this.cancelPrefetch();
 
         return new Promise<void>((resolve) => {
             // Listen for the moveend event which triggers when flyTo finishes
@@ -179,6 +225,8 @@ export class MapManager {
         }
 
         console.log('Resetting map to original state');
+
+        this.cancelPrefetch();
 
         // Reset map to original position and zoom
         this.mapTilerMap.setCenter(this.originalCenter);
