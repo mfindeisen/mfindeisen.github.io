@@ -1,7 +1,9 @@
 import { Lighting } from './Lighting.js';
 import { Geometry } from './Geometry.js';
 import { Starfield } from './Starfield.js';
-import { EasterEggs } from './EasterEggs.js';
+import { Astronaut } from './Astronaut.js';
+import { Satellites } from './Satellites.js';
+import { ShootingStars } from './ShootingStars.js';
 import { MathUtils } from '../utils/MathUtils.js';
 
 const TIME_WARP_PEAK = 8;
@@ -41,7 +43,9 @@ export class EarthScene {
     lighting: any;
     geometry: any;
     starfield: any;
-    easterEggs: any;
+    astronaut!: Astronaut;
+    satellites!: Satellites;
+    shootingStars!: ShootingStars;
     scrollProgress: number;
     isScrolling: boolean;
     hasStartedMorphing: boolean;
@@ -118,7 +122,9 @@ export class EarthScene {
         this.lighting = new Lighting(this.scene, this.THREE);
         this.geometry = new Geometry(this.scene, this.THREE);
         this.starfield = new Starfield(this.scene, this.THREE);
-        this.easterEggs = new EasterEggs(this.scene);
+        this.astronaut = new Astronaut(this.scene);
+        this.satellites = new Satellites(this.scene);
+        this.shootingStars = new ShootingStars(this.scene);
         
         // Initialize state
         this.scrollProgress = 1; // 1 = sphere, 0 = flat
@@ -286,7 +292,7 @@ export class EarthScene {
             start: performance.now(),
             fromVitality: this.vitality
         };
-        this.easterEggs?.departAstronaut();
+        this.astronaut?.depart();
     }
 
     beginRevive() {
@@ -299,7 +305,7 @@ export class EarthScene {
             start: performance.now(),
             fromVitality: this.vitality
         };
-        this.easterEggs?.recallAstronaut();
+        this.astronaut?.recall();
     }
 
     clearEpoch() {
@@ -311,10 +317,7 @@ export class EarthScene {
         this.timeScale = 1;
         this.geometry?.setEpochVisual(1, 0);
         this.restoreLights();
-        if (this.easterEggs) {
-            this.easterEggs.timeScale = 1;
-            this.easterEggs.releaseAstronaut();
-        }
+        this.astronaut?.release();
     }
 
     epochFlash(elapsed: number) {
@@ -442,9 +445,9 @@ export class EarthScene {
         if (this.epoch) this.updateEpoch();
         else this.updateTimeScale();
 
-        if (this.easterEggs) {
-            this.easterEggs.timeScale = this.timeScale;
-        }
+        this.astronaut.update(this.timeScale);
+        this.satellites.update(this.timeScale);
+        this.shootingStars.update();
         
         // Handle natural Earth rotation vs morphing animation
         const shouldRotate = !this.isScrolling && (!this.hasStartedMorphing || this.scrollProgress === 1);
@@ -479,9 +482,6 @@ export class EarthScene {
         
         // Update starfield; mouse parallax only on the unscrolled start view
         this.starfield.update(this.scrollProgress === 1);
-        
-        // Update easter eggs
-        this.easterEggs.update();
 
         this.applyEpochLighting();
     }
@@ -559,27 +559,6 @@ export class EarthScene {
     }
 
     /**
-     * Get astronaut
-     */
-    getAstronaut() {
-        return this.easterEggs.getAstronaut();
-    }
-
-    /**
-     * Get shooting stars
-     */
-    getShootingStars() {
-        return this.easterEggs.getShootingStars();
-    }
-
-    /**
-     * Get satellites
-     */
-    getSatellites() {
-        return this.easterEggs.getSatellites();
-    }
-
-    /**
      * Get lighting
      */
     getLighting() {
@@ -615,7 +594,9 @@ export class EarthScene {
         this.lighting.destroy();
         this.geometry.destroy();
         this.starfield.destroy();
-        this.easterEggs.destroy();
+        this.astronaut.destroy();
+        this.satellites.destroy();
+        this.shootingStars.destroy();
         
         this.isInitialized = false;
         console.log('EarthScene destroyed');

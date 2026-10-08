@@ -188,29 +188,33 @@ export class EasterEggManager {
         setTimeout(() => ripple.remove(), 1000);
     }
 
-    get easterEggs() {
-        return this.app.earthScene?.easterEggs;
+    get astronaut() {
+        return this.app.earthScene?.astronaut;
+    }
+
+    get shootingStars() {
+        return this.app.earthScene?.shootingStars;
     }
 
     boostAstronaut() {
-        const eggs = this.easterEggs;
-        if (!eggs) return;
+        const astronaut = this.astronaut;
+        if (!astronaut) return;
 
-        eggs.summonAstronaut();
-        eggs.astronautBoost = 3;
+        astronaut.summon();
+        astronaut.boost = 3;
         clearTimeout(this.astronautBoostTimer);
         this.astronautBoostTimer = setTimeout(() => {
-            eggs.astronautBoost = 1;
+            astronaut.boost = 1;
         }, 5000);
         this.app.showTooltip(`${getIcon('Rocket')} ${t('eggs.astronaut')}`, 2000);
     }
 
     triggerShootingStarShower() {
-        const eggs = this.easterEggs;
-        if (!eggs) return;
+        const stars = this.shootingStars;
+        if (!stars) return;
 
         for (let i = 0; i < 8; i++) {
-            setTimeout(() => eggs.createShootingStar(), i * 200);
+            setTimeout(() => stars.spawn(), i * 200);
         }
         this.app.showTooltip(`${getIcon('Star')} ${t('eggs.stars')}`, 3000);
     }
@@ -230,7 +234,7 @@ export class EasterEggManager {
         }
         if (result !== 'warp') return;
 
-        this.easterEggs?.summonAstronaut();
+        this.astronaut?.summon();
         this.app.showTooltip(`${getIcon('Zap')} ${t('eggs.timeWarp')}`, 2000);
     }
 
