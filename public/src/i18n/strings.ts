@@ -1,34 +1,66 @@
 import type { Locale } from './i18n.js';
 
-type Dict = { [key: string]: string | Dict };
+export type Dict = { [key: string]: string | Dict };
+
+export const uiStrings: Dict = {
+    places: {
+        myPlaces: 'My Places',
+        placesToVisit: 'Places to Visit',
+        toggleList: 'Toggle places list',
+        visitDate: 'Visit Date: {date}',
+        viewAllOne: 'View All {count} Photo',
+        viewAllMany: 'View All {count} Photos',
+        showAll: 'Show all photos',
+        photoAlt: '{name} photo',
+        photoAltN: '{name} photo {n}',
+        typeHistoric: 'Historic Site',
+        typeVacation: 'Vacation',
+        typeWork: 'Work',
+        typeNature: 'Nature',
+        typePlace: 'Place',
+    },
+    modal: {
+        close: 'Close',
+        fullscreen: 'Fullscreen',
+        loadingImage: 'Loading full-size image...',
+        loadingError: 'Error loading image',
+        loading360: 'Loading 360° view...',
+        loading360Error: 'Error loading 360° viewer',
+        dragHint: 'Drag to look around • Scroll to zoom',
+        prev: 'Previous photo',
+        next: 'Next photo',
+        view360: '{name} - 360° View',
+        gallery: '{name} - Photo Gallery',
+    },
+    app: {
+        webglMissing: 'The interactive 3D Earth needs WebGL, which is not available in this browser.',
+    },
+    eggs: {
+        astronaut: 'Astronaut speed boost!',
+        stars: 'Shooting star shower!',
+        oceansGone: 'The oceans are gone.',
+        oceansReturn: 'The oceans return.',
+        timeWarp: 'Time warp!',
+        colorMode: 'Color mode: {mode}',
+        fireworks: 'Fireworks!',
+        helpTitle: 'Easter Egg Controls',
+        helpAstronaut: 'Astronaut speed boost',
+        helpStars: 'Shooting star shower',
+        helpTime: 'Time warp',
+        helpColor: 'Change color mode',
+        helpFireworks: 'Fireworks show',
+        helpHelp: 'Show this help',
+        morphTitle: 'Earth morph style',
+        morphCubeZoom: 'Cube unfold + zoom (default)',
+        morphCubeFade: 'Cube unfold + fade',
+        morphClassic: 'Classic peel',
+        clickSurprises: 'Click anywhere for surprises!',
+    },
+};
 
 const en: Dict = {
-    meta: {
-        title: 'Matthias Findeisen - Full Stack Developer & Creative Technologist',
-        description:
-            'Portfolio of Matthias Findeisen, a full stack developer and former archaeologist building WebGL, 3D and geospatial web applications, including an open-source RTI toolset for cultural heritage.',
-    },
-    loader: {
-        text: 'Loading Earth ',
-    },
-    hero: {
-        role: 'Full stack developer building 3D, map and research data applications for the web',
-        tagline: 'WebGL · Geospatial · Cultural Heritage · Based in Germany',
-    },
-    nav: {
-        quick: 'Quick navigation',
-        showcase: 'Showcase →',
-        portfolio: 'Portfolio →',
-        back: '↑ Back to Beginning',
-        backAria: 'Back to beginning',
-        lang: 'Language',
-    },
-    scroll: {
-        explore: 'Scroll to explore',
-        exploreAria: 'Scroll to explore',
-        unwrapping: 'Unwrapping Earth...',
-    },
     portfolio: {
+        lang: 'Language',
         toc: 'Contents',
         aboutNav: 'About Me',
         skillsNav: 'Skills',
@@ -95,133 +127,11 @@ Explored Semantic Web technologies (Linked Open Data, JSON-LD, RDF, XML) for arc
             'Outside of work I build experimental 3D visualisations, explore geospatial data, contribute to open source, and keep learning new interactive web technologies. When away from the terminal, I enjoy indie game development (Godot, pixel art), linocut printmaking, and playing blues and jazz guitar.',
         interestsP2: `<strong>Personal research &amp; reading:</strong> theories of power, post-colonial thought, and the history, languages (Kurmanji, Sorani, Persian), culture, and geopolitics of Kurdistan and West Asia.`,
     },
-    showcase: {
-        close: 'Close showcase',
-        title: 'Showcase',
-        overviewNav: 'RTI Toolset',
-        moreNav: 'More Projects',
-        portfolioNav: 'This Portfolio',
-        overviewTitle: 'Reflectance Transformation Imaging (RTI) Toolset',
-        overviewBody:
-            'An open-source toolset for Reflectance Transformation Imaging, a technique used in cultural heritage to capture and reveal fine surface detail. It covers the full pipeline, from preparing raw captures to rendering them interactively in the browser. The four tools below make up the toolset; further projects follow after them.',
-        modernRtiBody:
-            'A modern, WebGL-based viewer for RTI data. Renders image-pyramid folders, tiled pyramidal TIFFs (Cloud Optimized GeoTIFF / COG) and Neural RTI decoders directly in the browser, with pan/zoom, interactive lighting and annotations.',
-        rtiDbCompany: 'Database & Web Interface',
-        rtiDbBody:
-            'A database management system and web interface for cataloguing, uploading and managing RTI records and assets, with an embedded modernRtiViewer, role-based access and scholarly annotations.',
-        rtiprepCompany: 'Command-line Utility · Go',
-        rtiprepBody:
-            'A fast command-line utility for converting PTM, HSH and standard images into hierarchical image-pyramid folders or tiled pyramidal TIFFs (COG) for web visualisation.',
-        neuralCompany: 'Experimental ML Pipeline · PyTorch',
-        neuralBody:
-            'An experimental PyTorch pipeline to train and evaluate Neural RTI models, compressing spatial reflectance data into 4-channel latent maps and lightweight MLP decoders.',
-        moreTitle: 'More Projects',
-        moreBody:
-            'Independent projects outside the RTI toolset: offline-first field data collection, a cross-platform map app, and the site you are looking at.',
-        humanityCompany: 'Offline-First Field Data Platform · Vue 3 · Node.js · CouchDB',
-        humanityBody:
-            'An open-source, offline-first low-code data collection platform designed for humanitarian field operations in infrastructure-challenged environments. Features bidirectional CouchDB/PouchDB synchronization, conflict resolution, client-side encryption for sensitive field data, and multilingual LTR/RTL interfaces.',
-        kurdiCompany: 'Cross-Platform Geospatial & Events App · Kotlin Multiplatform · OpenStreetMap',
-        kurdiBody:
-            'A Kotlin Multiplatform app for discovering and mapping Kurdish cultural events across Android, iOS and Desktop. Features interactive OpenStreetMap cartography with dark map styles, GPS/location filtering, Material 3 UI, and a Ktor backend with SQLite and an admin CMS.',
-        portfolioTitle: 'This Portfolio',
-        portfolioCardTitle: 'Interactive Earth Portfolio',
-        portfolioCardBody:
-            'The site you are looking at: a scroll-driven morph from a 3D globe into a flat plane, handed off seamlessly to a vector map that flies to Erbil, with places, photo galleries and 360° panoramas.',
-        liveDemo: 'Live Demo ↗︎',
-        github: 'GitHub ↗︎',
-        videoAria: 'Orbiting light source revealing surface detail in modernRtiViewer',
-        rtidbAlt: 'rtiDb gallery listing RTI records',
-        portfolioAlt: 'Start screen of the portfolio with the rotating 3D Earth',
-    },
-    footer: {
-        secrets: "PRESS 'H' FOR SECRETS",
-    },
-    legal: {
-        back: '← Back to portfolio',
-    },
-    places: {
-        myPlaces: 'My Places',
-        placesToVisit: 'Places to Visit',
-        toggleList: 'Toggle places list',
-        visitDate: 'Visit Date: {date}',
-        viewAllOne: 'View All {count} Photo',
-        viewAllMany: 'View All {count} Photos',
-        showAll: 'Show all photos',
-        photoAlt: '{name} photo',
-        photoAltN: '{name} photo {n}',
-        typeHistoric: 'Historic Site',
-        typeVacation: 'Vacation',
-        typeWork: 'Work',
-        typeNature: 'Nature',
-        typePlace: 'Place',
-    },
-    modal: {
-        close: 'Close',
-        fullscreen: 'Fullscreen',
-        loadingImage: 'Loading full-size image...',
-        loadingError: 'Error loading image',
-        loading360: 'Loading 360° view...',
-        loading360Error: 'Error loading 360° viewer',
-        dragHint: 'Drag to look around • Scroll to zoom',
-        prev: 'Previous photo',
-        next: 'Next photo',
-        view360: '{name} - 360° View',
-        gallery: '{name} - Photo Gallery',
-    },
-    app: {
-        webglMissing: 'The interactive 3D Earth needs WebGL, which is not available in this browser.',
-    },
-    eggs: {
-        astronaut: 'Astronaut speed boost!',
-        stars: 'Shooting star shower!',
-        oceansGone: 'The oceans are gone.',
-        oceansReturn: 'The oceans return.',
-        timeWarp: 'Time warp!',
-        colorMode: 'Color mode: {mode}',
-        fireworks: 'Fireworks!',
-        helpTitle: 'Easter Egg Controls',
-        helpAstronaut: 'Astronaut speed boost',
-        helpStars: 'Shooting star shower',
-        helpTime: 'Time warp',
-        helpColor: 'Change color mode',
-        helpFireworks: 'Fireworks show',
-        helpHelp: 'Show this help',
-        morphTitle: 'Earth morph style',
-        morphCubeZoom: 'Cube unfold + zoom (default)',
-        morphCubeFade: 'Cube unfold + fade',
-        morphClassic: 'Classic peel',
-        clickSurprises: 'Click anywhere for surprises!',
-    },
 };
 
 const de: Dict = {
-    meta: {
-        title: 'Matthias Findeisen - Full-Stack-Entwickler & Creative Technologist',
-        description:
-            'Portfolio von Matthias Findeisen, Full-Stack-Entwickler und ehemaliger Archäologe: WebGL-, 3D- und Geodaten-Anwendungen sowie ein Open-Source-RTI-Toolset für das Kulturerbe.',
-    },
-    loader: {
-        text: 'Erde wird geladen ',
-    },
-    hero: {
-        role: 'Full-Stack-Entwickler für 3D-, Karten- und Forschungsdaten-Anwendungen im Web',
-        tagline: 'WebGL · Geospatial · Kulturerbe · Deutschland',
-    },
-    nav: {
-        quick: 'Schnellnavigation',
-        showcase: 'Showcase →',
-        portfolio: 'Portfolio →',
-        back: '↑ Zum Anfang',
-        backAria: 'Zum Anfang zurück',
-        lang: 'Sprache',
-    },
-    scroll: {
-        explore: 'Scrollen zum Erkunden',
-        exploreAria: 'Scrollen zum Erkunden',
-        unwrapping: 'Erde wird entfaltet...',
-    },
     portfolio: {
+        lang: 'Sprache',
         toc: 'Inhalt',
         aboutNav: 'Über mich',
         skillsNav: 'Skills',
@@ -288,105 +198,6 @@ Untersuchung von Semantic-Web-Technologien (Linked Open Data, JSON-LD, RDF, XML)
             'Neben der Arbeit baue ich experimentelle 3D-Visualisierungen, erkunde Geodaten, trage zu Open Source bei und lerne weiter neue interaktive Webtechnologien. Abseits des Terminals: Indie-Game-Entwicklung (Godot, Pixel Art), Linolschnitt und Blues- sowie Jazzgitarre.',
         interestsP2: `<strong>Persönliche Forschung &amp; Lektüre:</strong> Theorien der Macht, postkoloniales Denken sowie Geschichte, Sprachen (Kurmandschi, Sorani, Persisch), Kultur und Geopolitik Kurdistans und Westasiens.`,
     },
-    showcase: {
-        close: 'Showcase schließen',
-        title: 'Showcase',
-        overviewNav: 'RTI-Toolset',
-        moreNav: 'Weitere Projekte',
-        portfolioNav: 'Dieses Portfolio',
-        overviewTitle: 'Reflectance Transformation Imaging (RTI) Toolset',
-        overviewBody:
-            'Ein Open-Source-Toolset für Reflectance Transformation Imaging – eine Technik im Kulturerbe, um feinste Oberflächenstrukturen zu erfassen und sichtbar zu machen. Es deckt die gesamte Pipeline ab: von der Aufbereitung Rohdaten bis zur interaktiven Darstellung im Browser. Die vier Werkzeuge unten bilden das Toolset; weitere Projekte folgen danach.',
-        modernRtiBody:
-            'Ein moderner WebGL-Viewer für RTI-Daten. Stellt Bildpyramiden-Ordner, gekachelte pyramidale TIFFs (Cloud Optimized GeoTIFF / COG) und Neural-RTI-Decoder direkt im Browser dar – mit Pan/Zoom, interaktiver Beleuchtung und Annotationen.',
-        rtiDbCompany: 'Datenbank & Weboberfläche',
-        rtiDbBody:
-            'Ein Datenbankmanagementsystem mit Weboberfläche zum Katalogisieren, Hochladen und Verwalten von RTI-Datensätzen und Assets, mit eingebettetem modernRtiViewer, rollenbasierter Zugriffskontrolle und wissenschaftlichen Annotationen.',
-        rtiprepCompany: 'Kommandozeilen-Werkzeug · Go',
-        rtiprepBody:
-            'Ein schnelles CLI-Werkzeug zur Konvertierung von PTM-, HSH- und Standardbildern in hierarchische Bildpyramiden-Ordner oder gekachelte pyramidale TIFFs (COG) für die Webvisualisierung.',
-        neuralCompany: 'Experimentelle ML-Pipeline · PyTorch',
-        neuralBody:
-            'Eine experimentelle PyTorch-Pipeline zum Trainieren und Evaluieren von Neural-RTI-Modellen: räumliche Reflexionsdaten werden in 4-Kanal-Latent-Maps und leichte MLP-Decoder komprimiert.',
-        moreTitle: 'Weitere Projekte',
-        moreBody:
-            'Eigenständige Projekte außerhalb des RTI-Toolsets: Offline-First-Felddatenerfassung, eine plattformübergreifende Karten-App und die Seite, die du gerade siehst.',
-        humanityCompany: 'Offline-First-Felddatenplattform · Vue 3 · Node.js · CouchDB',
-        humanityBody:
-            'Eine Open-Source-, Offline-First-Low-Code-Plattform zur Datenerfassung für humanitäre Feldeinsätze in infrastrukturschwachen Umgebungen. Mit bidirektionaler CouchDB/PouchDB-Synchronisation, Konfliktlösung, clientseitiger Verschlüsselung sensibler Felddaten und mehrsprachigen LTR/RTL-Oberflächen.',
-        kurdiCompany: 'Plattformübergreifende Geo- & Event-App · Kotlin Multiplatform · OpenStreetMap',
-        kurdiBody:
-            'Eine Kotlin-Multiplatform-App zum Entdecken und Kartieren kurdischer Kulturveranstaltungen auf Android, iOS und Desktop. Mit interaktiver OpenStreetMap-Kartographie inkl. dunkler Kartenstile, GPS-/Standortfiltern, Material-3-UI sowie einem Ktor-Backend mit SQLite und Admin-CMS.',
-        portfolioTitle: 'Dieses Portfolio',
-        portfolioCardTitle: 'Interaktives Erde-Portfolio',
-        portfolioCardBody:
-            'Die Seite, die du gerade siehst: ein scrollgesteuerter Morph von einem 3D-Globus in eine flache Ebene, nahtlos übergeben an eine Vektorkarte mit Flug nach Erbil – inklusive Orte, Fotogalerien und 360°-Panoramen.',
-        liveDemo: 'Live-Demo ↗︎',
-        github: 'GitHub ↗︎',
-        videoAria: 'Orbitierende Lichtquelle zeigt Oberflächendetails in modernRtiViewer',
-        rtidbAlt: 'rtiDb-Galerie mit RTI-Einträgen',
-        portfolioAlt: 'Startbildschirm des Portfolios mit rotierender 3D-Erde',
-    },
-    footer: {
-        secrets: "DRÜCKE 'H' FÜR GEHEIMNISSE",
-    },
-    legal: {
-        back: '← Zurück zum Portfolio',
-    },
-    places: {
-        myPlaces: 'Meine Orte',
-        placesToVisit: 'Orte zum Besuchen',
-        toggleList: 'Ortliste ein-/ausblenden',
-        visitDate: 'Besuchszeitraum: {date}',
-        viewAllOne: 'Alle {count} Foto anzeigen',
-        viewAllMany: 'Alle {count} Fotos anzeigen',
-        showAll: 'Alle Fotos anzeigen',
-        photoAlt: 'Foto von {name}',
-        photoAltN: 'Foto {n} von {name}',
-        typeHistoric: 'Historische Stätte',
-        typeVacation: 'Reise',
-        typeWork: 'Arbeit',
-        typeNature: 'Natur',
-        typePlace: 'Ort',
-    },
-    modal: {
-        close: 'Schließen',
-        fullscreen: 'Vollbild',
-        loadingImage: 'Vollbild wird geladen...',
-        loadingError: 'Fehler beim Laden des Bildes',
-        loading360: '360°-Ansicht wird geladen...',
-        loading360Error: 'Fehler beim Laden des 360°-Viewers',
-        dragHint: 'Ziehen zum Umschauen • Scrollen zum Zoomen',
-        prev: 'Vorheriges Foto',
-        next: 'Nächstes Foto',
-        view360: '{name} - 360°-Ansicht',
-        gallery: '{name} - Fotogalerie',
-    },
-    app: {
-        webglMissing:
-            'Die interaktive 3D-Erde benötigt WebGL, das in diesem Browser nicht verfügbar ist.',
-    },
-    eggs: {
-        astronaut: 'Astronauten-Tempo!',
-        stars: 'Sternschnuppen-Regen!',
-        oceansGone: 'Die Ozeane sind verschwunden.',
-        oceansReturn: 'Die Ozeane kehren zurück.',
-        timeWarp: 'Zeitverzerrung!',
-        colorMode: 'Farbmodus: {mode}',
-        fireworks: 'Feuerwerk!',
-        helpTitle: 'Easter-Egg-Steuerung',
-        helpAstronaut: 'Astronauten-Tempo',
-        helpStars: 'Sternschnuppen-Regen',
-        helpTime: 'Zeitverzerrung',
-        helpColor: 'Farbmodus wechseln',
-        helpFireworks: 'Feuerwerk',
-        helpHelp: 'Diese Hilfe anzeigen',
-        morphTitle: 'Erde-Morph-Stil',
-        morphCubeZoom: 'Würfel entfalten + Zoom (Standard)',
-        morphCubeFade: 'Würfel entfalten + Fade',
-        morphClassic: 'Klassisches Abschälen',
-        clickSurprises: 'Irgendwo klicken für Überraschungen!',
-    },
 };
 
-export const dictionaries: Record<Locale, Dict> = { en, de };
+export const portfolioStrings: Record<Locale, Dict> = { en, de };

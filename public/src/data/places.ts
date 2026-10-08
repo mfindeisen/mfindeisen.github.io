@@ -1,17 +1,15 @@
-import type { Localized } from '../i18n/i18n.js';
-
 export interface Photo {
     src: string;
     isPhotosphere: boolean;
-    caption: Localized | string;
+    caption: string;
 }
 
 export interface Place {
     id: string;
-    name: Localized;
+    name: string;
     coordinates: [number, number];
-    description: Localized;
-    visitDate: Localized;
+    description: string;
+    visitDate: string;
     type: string;
     importance: string;
     photos: Photo[];
@@ -21,16 +19,10 @@ export interface Place {
 export const places: Place[] = [
     {
         id: 'erbil-citadel',
-        name: { en: 'Erbil Citadel', de: 'Zitadelle von Erbil' },
+        name: 'Erbil Citadel',
         coordinates: [44.0092, 36.1911],
-        description: {
-            en: 'One of the oldest continuously inhabited places in the world, dating back over 6,000 years.',
-            de: 'Einer der ältesten durchgehend besiedelten Orte der Welt – über 6.000 Jahre Geschichte.',
-        },
-        visitDate: {
-            en: 'October 2022 - November 2024',
-            de: 'Oktober 2022 – November 2024',
-        },
+        description: 'One of the oldest continuously inhabited places in the world, dating back over 6,000 years.',
+        visitDate: 'October 2022 - November 2024',
         type: 'historic_site',
         importance: 'high',
         photos: [
@@ -45,28 +37,22 @@ export const places: Place[] = [
     },
     {
         id: 'erbil-arab_quater',
-        name: { en: 'Erbil Arab Quarter', de: 'Arabisches Viertel von Erbil' },
+        name: 'Erbil Arab Quarter',
         coordinates: [44.0122778, 36.1893889],
-        description: { en: '', de: '' },
-        visitDate: { en: 'October 2023', de: 'Oktober 2023' },
+        description: '',
+        visitDate: 'October 2023',
         type: 'historic_site',
         importance: 'high',
         photos: [
             {
                 src: 'textures/photos/erbil_arab_quarter_360_1.webp',
                 isPhotosphere: true,
-                caption: {
-                    en: '360° view of Erbil Arab Quarter',
-                    de: '360°-Ansicht des arabischen Viertels von Erbil',
-                },
+                caption: '360° view of Erbil Arab Quarter',
             },
             {
                 src: 'textures/photos/erbil_arab_quarter_360_2.webp',
                 isPhotosphere: true,
-                caption: {
-                    en: '360° view of Erbil Arab Quarter',
-                    de: '360°-Ansicht des arabischen Viertels von Erbil',
-                },
+                caption: '360° view of Erbil Arab Quarter',
             },
             { src: 'textures/photos/erbil_arab_quarter_3.webp', isPhotosphere: false, caption: '' },
             { src: 'textures/photos/erbil_arab_quarter_4.webp', isPhotosphere: false, caption: '' },
@@ -87,16 +73,10 @@ export const places: Place[] = [
     },
     {
         id: 'erbil-jalil-khayat-mosque',
-        name: { en: 'Erbil Jalil Khayat Mosque', de: 'Jalil-Khayat-Moschee in Erbil' },
+        name: 'Erbil Jalil Khayat Mosque',
         coordinates: [44.018547, 36.201065],
-        description: {
-            en: 'A beautiful mosque in Erbil, Iraq.',
-            de: 'Eine beeindruckende Moschee in Erbil, Irak.',
-        },
-        visitDate: {
-            en: 'October 2022 - November 2024',
-            de: 'Oktober 2022 – November 2024',
-        },
+        description: 'A beautiful mosque in Erbil, Iraq.',
+        visitDate: 'October 2022 - November 2024',
         type: 'historic_site',
         importance: 'high',
         photos: [

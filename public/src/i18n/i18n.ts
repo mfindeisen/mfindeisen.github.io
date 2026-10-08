@@ -1,157 +1,108 @@
+import { portfolioStrings, uiStrings, type Dict } from './strings.js';
+
 export type Locale = 'en' | 'de';
-
-export type Localized<T = string> = { en: T; de: T };
-
-type Dict = { [key: string]: string | Dict };
 
 const STORAGE_KEY = 'portfolio-locale';
 const DEFAULT_LOCALE: Locale = 'en';
 
 let currentLocale: Locale = DEFAULT_LOCALE;
-const listeners = new Set<(locale: Locale) => void>();
-let dictionary: Record<Locale, Dict> = { en: {}, de: {} };
-
-export function registerDictionaries(dicts: Record<Locale, Dict>) {
-    dictionary = dicts;
-}
-
-export function getLocale(): Locale {
-    return currentLocale;
-}
+let scope: HTMLElement | null = null;
 
 export function isLocale(value: unknown): value is Locale {
     return value === 'en' || value === 'de';
 }
 
-export function readStoredLocale(): Locale {
+function detectLocale(): Locale {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (isLocale(stored)) return stored;
     } catch {
         // ignore private-mode / blocked storage
     }
-    return DEFAULT_LOCALE;
+    const preferred = navigator.languages?.[0] ?? navigator.language ?? '';
+    return preferred.toLowerCase().startsWith('de') ? 'de' : DEFAULT_LOCALE;
 }
 
-function lookup(locale: Locale, key: string): string | undefined {
-    const parts = key.split('.');
-    let cur: string | Dict | undefined = dictionary[locale];
-    for (const part of parts) {
+function lookup(dict: Dict, key: string): string | undefined {
+    let cur: string | Dict | undefined = dict;
+    for (const part of key.split('.')) {
         if (!cur || typeof cur === 'string') return undefined;
         cur = cur[part];
     }
     return typeof cur === 'string' ? cur : undefined;
 }
 
-export function t(key: string, params?: Record<string, string | number>): string {
-    let value = lookup(currentLocale, key) ?? lookup(DEFAULT_LOCALE, key) ?? key;
-    if (params) {
-        for (const [name, param] of Object.entries(params)) {
-            value = value.replaceAll(`{${name}}`, String(param));
-        }
+function format(value: string, params?: Record<string, string | number>): string {
+    if (!params) return value;
+    for (const [name, param] of Object.entries(params)) {
+        value = value.replaceAll(`{${name}}`, String(param));
     }
     return value;
 }
 
-export function loc<T>(value: Localized<T> | T): T {
-    if (value && typeof value === 'object' && 'en' in (value as object) && 'de' in (value as object)) {
-        return (value as Localized<T>)[currentLocale] ?? (value as Localized<T>).en;
-    }
-    return value as T;
+/** UI strings outside the portfolio; English only. */
+export function t(key: string, params?: Record<string, string | number>): string {
+    return format(lookup(uiStrings, key) ?? key, params);
 }
 
-export function onLocaleChange(listener: (locale: Locale) => void): () => void {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
+function portfolioText(key: string): string {
+    return lookup(portfolioStrings[currentLocale], key) ?? lookup(portfolioStrings[DEFAULT_LOCALE], key) ?? key;
 }
 
-export function applyTranslations(root: ParentNode = document): void {
+function applyTranslations(root: HTMLElement): void {
     root.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
         const key = el.dataset.i18n;
-        if (key) el.textContent = t(key);
+        if (key) el.textContent = portfolioText(key);
     });
 
     root.querySelectorAll<HTMLElement>('[data-i18n-html]').forEach((el) => {
         const key = el.dataset.i18nHtml;
-        if (key) el.innerHTML = t(key);
+        if (key) el.innerHTML = portfolioText(key);
     });
 
     root.querySelectorAll<HTMLElement>('[data-i18n-aria]').forEach((el) => {
         const key = el.dataset.i18nAria;
-        if (key) el.setAttribute('aria-label', t(key));
+        if (key) el.setAttribute('aria-label', portfolioText(key));
     });
-
-    root.querySelectorAll<HTMLElement>('[data-i18n-title]').forEach((el) => {
-        // Never put a title attribute on <html>/<body> — browsers show it as a
-        // page-wide native tooltip on hover.
-        if (el === document.documentElement || el === document.body) return;
-        const key = el.dataset.i18nTitle;
-        if (key) el.setAttribute('title', t(key));
-    });
-
-    root.querySelectorAll<HTMLElement>('[data-i18n-alt]').forEach((el) => {
-        const key = el.dataset.i18nAlt;
-        if (key) el.setAttribute('alt', t(key));
-    });
-
-    document.documentElement.removeAttribute('title');
-    document.body?.removeAttribute('title');
-
-    const docTitleKey = document.documentElement.dataset.i18nDocTitle;
-    if (docTitleKey) document.title = t(docTitleKey);
-
-    const desc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    const descKey = desc?.dataset.i18n;
-    if (desc && descKey) desc.setAttribute('content', t(descKey));
 }
 
-function syncSwitcher(): void {
-    document.querySelectorAll<HTMLElement>('[data-locale-option]').forEach((btn) => {
-        const option = btn.dataset.localeOption;
-        const active = option === currentLocale;
+function syncSwitcher(root: HTMLElement): void {
+    root.querySelectorAll<HTMLElement>('[data-locale-option]').forEach((btn) => {
+        const active = btn.dataset.localeOption === currentLocale;
         btn.setAttribute('aria-pressed', active ? 'true' : 'false');
         btn.classList.toggle('is-active', active);
     });
 }
 
-export function setLocale(
-    locale: Locale,
-    { persist = true, updateDocumentLang = true }: { persist?: boolean; updateDocumentLang?: boolean } = {},
-): void {
-    if (!isLocale(locale)) return;
-    currentLocale = locale;
-    if (updateDocumentLang) document.documentElement.lang = locale;
-
-    if (persist) {
-        try {
-            localStorage.setItem(STORAGE_KEY, locale);
-        } catch {
-            // ignore
-        }
-    }
-
-    applyTranslations();
-    syncSwitcher();
-    listeners.forEach((listener) => listener(locale));
+function render(): void {
+    if (!scope) return;
+    scope.lang = currentLocale;
+    applyTranslations(scope);
+    syncSwitcher(scope);
 }
 
-export function initI18n(
-    dicts: Record<Locale, Dict>,
-    { updateDocumentLang = true }: { updateDocumentLang?: boolean } = {},
-): Locale {
-    registerDictionaries(dicts);
-    const locale = readStoredLocale();
+export function setLocale(locale: Locale): void {
+    if (!isLocale(locale)) return;
     currentLocale = locale;
-    if (updateDocumentLang) document.documentElement.lang = locale;
-    applyTranslations();
-    syncSwitcher();
+    try {
+        localStorage.setItem(STORAGE_KEY, locale);
+    } catch {
+        // ignore
+    }
+    render();
+}
 
-    document.querySelectorAll<HTMLElement>('[data-locale-option]').forEach((btn) => {
+/** Makes `root` (the portfolio overlay) bilingual; the rest of the page stays English. */
+export function initPortfolioI18n(root: HTMLElement | null): void {
+    if (!root) return;
+    scope = root;
+    currentLocale = detectLocale();
+    render();
+
+    root.querySelectorAll<HTMLElement>('[data-locale-option]').forEach((btn) => {
         btn.addEventListener('click', () => {
             const next = btn.dataset.localeOption;
-            if (isLocale(next)) setLocale(next, { updateDocumentLang });
+            if (isLocale(next)) setLocale(next);
         });
     });
-
-    return locale;
 }

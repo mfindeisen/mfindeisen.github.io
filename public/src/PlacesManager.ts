@@ -2,7 +2,7 @@ import maplibregl from 'maplibre-gl';
 import { getIcon } from './utils/Icons.js';
 import { Modal } from './ui/Modal.js';
 import { places } from './data/places.js';
-import { loc, onLocaleChange, t } from './i18n/i18n.js';
+import { t } from './i18n/i18n.js';
 
 /**
  * PlacesManager - Handles all travel location markers and information
@@ -41,60 +41,6 @@ export class PlacesManager {
 
         // Initialize the places list UI
         this.createPlacesList();
-
-        onLocaleChange(() => this.refreshLocalizedUi());
-    }
-
-    placeName(place: any): string {
-        return loc(place.name);
-    }
-
-    placeDescription(place: any): string {
-        return loc(place.description);
-    }
-
-    placeVisitDate(place: any): string {
-        return loc(place.visitDate);
-    }
-
-    photoCaption(photo: any): string {
-        if (!photo || typeof photo === 'string') return '';
-        return loc(photo.caption || '');
-    }
-
-    refreshLocalizedUi() {
-        if (this.placesListElement) {
-            const title = this.placesListElement.querySelector('.places-list-title');
-            if (title) {
-                title.innerHTML = `${getIcon('MapPin')} ${this.isMobile ? t('places.placesToVisit') : t('places.myPlaces')}`;
-            }
-            const toggle = this.placesListElement.querySelector('.places-list-toggle');
-            if (toggle) {
-                toggle.setAttribute('title', t('places.toggleList'));
-                toggle.setAttribute('aria-label', t('places.toggleList'));
-            }
-
-            const listContainer = this.placesListElement.querySelector('.places-list');
-            if (listContainer) {
-                listContainer.innerHTML = '';
-                this.places.forEach((place) => {
-                    listContainer.appendChild(this.createPlaceListItem(place));
-                });
-            }
-        }
-
-        if (this.activePopup) {
-            const placeId = this.activePopup._placeId;
-            const place = this.places.find((p) => p.id === placeId);
-            if (place) {
-                const coords = place.coordinates;
-                this.activePopup.remove();
-                const popup = this.createNativePopup(place);
-                popup.setLngLat(coords).addTo(this.mapTilerMap);
-                this.activePopup = popup;
-                setTimeout(() => this.addPhotoClickHandlers(place, popup.getElement()), 100);
-            }
-        }
     }
 
     /**
@@ -120,7 +66,7 @@ export class PlacesManager {
             return this.markers.get(placeId);
         }
 
-        console.log(`Adding marker for ${this.placeName(place)}`);
+        console.log(`Adding marker for ${place.name}`);
 
         const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim();
         const marker = new maplibregl.Marker({ color: accent || '#2f8cf5' })
@@ -132,7 +78,7 @@ export class PlacesManager {
         
         // Use MapTiler's native event handling
         marker.getElement().addEventListener('click', () => {
-            console.log('Marker clicked!', this.placeName(place));
+            console.log('Marker clicked!', place.name);
             
             // Close any previously opened popup
             if (this.activePopup) {
@@ -155,7 +101,7 @@ export class PlacesManager {
         // Store marker reference
         this.markers.set(placeId, marker);
         
-        console.log(`Marker for ${this.placeName(place)} added successfully using native MapTiler functionality`);
+        console.log(`Marker for ${place.name} added successfully using native MapTiler functionality`);
         
         return marker;
     }
@@ -165,15 +111,15 @@ export class PlacesManager {
      * Create popup using MapTiler's native popup functionality
      */
     createNativePopup(place) {
-        const name = this.placeName(place);
+        const name = place.name;
         const count = place.photos.length;
         const viewAllKey = count === 1 ? 'places.viewAllOne' : 'places.viewAllMany';
         const previewCount = count > 3 ? 2 : 3;
         const popupContent = `
             <div class="place-popup">
                 <h3 class="popup-title">${name}</h3>
-                <p class="popup-description">${this.placeDescription(place)}</p>
-                <p class="popup-date">${t('places.visitDate', { date: this.placeVisitDate(place) })}</p>
+                <p class="popup-description">${place.description}</p>
+                <p class="popup-date">${t('places.visitDate', { date: place.visitDate })}</p>
                 ${count > 0 ? `
                     <div class="popup-photos">
                         <div class="photo-preview-grid">
@@ -296,7 +242,7 @@ export class PlacesManager {
                     const photoSrc = typeof photo === 'string' ? photo : photo.src;
                     return photoSrc === fullSrc;
                 });
-                this.modal.showPhotoModal(fullSrc, this.placeName(place), isPhotosphere, place, photoIndex >= 0 ? photoIndex : 0, {
+                this.modal.showPhotoModal(fullSrc, place.name, isPhotosphere, place, photoIndex >= 0 ? photoIndex : 0, {
                     onOpen: () => this.disableMapInteractions(),
                     onClose: () => this.enableMapInteractions()
                 });
@@ -384,7 +330,7 @@ export class PlacesManager {
         header.innerHTML = `
             <span class="places-list-title">${getIcon('MapPin')} ${this.isMobile ? t('places.placesToVisit') : t('places.myPlaces')}</span>
             <button class="places-list-toggle icon-btn" title="${t('places.toggleList')}" aria-label="${t('places.toggleList')}">
-                <span class="toggle-icon">${this.isMobile ? getIcon('ChevronUp') : getIcon('ChevronDown')}</span>
+                <span class="toggle-icon">${getIcon('ChevronUp')}</span>
                 <span class="hamburger-icon" style="display: none;">${getIcon('Menu')}</span>
             </button>
         `;
@@ -652,8 +598,8 @@ export class PlacesManager {
         placeItem.className = `place-item ${place.id}`;
         placeItem.innerHTML = `
             <div class="place-item-content">
-                <div class="place-name">${this.placeName(place)}</div>
-                <div class="place-date">${this.placeVisitDate(place)}</div>
+                <div class="place-name">${place.name}</div>
+                <div class="place-date">${place.visitDate}</div>
                 <div class="place-type">${this.formatPlaceType(place.type)}</div>
             </div>
             <div class="place-fly-button">${getIcon('Plane')}</div>
@@ -685,7 +631,7 @@ export class PlacesManager {
      * Fly to a specific place using MapTiler's native flyTo
      */
     flyToPlace(place) {
-        console.log(`Flying to ${this.placeName(place)} at coordinates:`, place.coordinates);
+        console.log(`Flying to ${place.name} at coordinates:`, place.coordinates);
         
         // Use MapTiler's native flyTo method
         this.mapTilerMap.flyTo({
@@ -731,9 +677,9 @@ export class PlacesManager {
                 this.addPhotoClickHandlers(place, popup.getElement());
             }, 100);
             
-            console.log(`Opened popup for ${this.placeName(place)}`);
+            console.log(`Opened popup for ${place.name}`);
         } else {
-            console.warn(`Marker not found for place: ${this.placeName(place)}`);
+            console.warn(`Marker not found for place: ${place.name}`);
         }
     }
 

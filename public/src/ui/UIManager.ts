@@ -48,6 +48,7 @@ export class UIManager {
         this.setupOverlayListeners();
         this.setupOverlayToc(this.getElement('showcaseOverlay'));
         this.setupOverlayToc(this.getElement('portfolioOverlay'));
+        this.trackFooterClearance();
 
         this.autoScrollAnimation = null;
         this.scrollPosition = 0;
@@ -188,6 +189,26 @@ export class UIManager {
             sync();
         }, { passive: true });
         sync();
+    }
+
+    /**
+     * Publishes the space the fixed footer takes at the bottom as --footer-clearance,
+     * so the scroll indicator can sit above it (the footer wraps onto several lines on mobile)
+     */
+    trackFooterClearance() {
+        const footer = this.getElement('footer');
+        if (!footer) return;
+
+        const update = () => {
+            const bottom = parseFloat(getComputedStyle(footer).bottom) || 0;
+            document.documentElement.style.setProperty('--footer-clearance', `${footer.offsetHeight + bottom}px`);
+        };
+
+        update();
+        window.addEventListener('resize', update, { passive: true });
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(update).observe(footer);
+        }
     }
 
     getActiveOverlayElement(): HTMLElement | null {

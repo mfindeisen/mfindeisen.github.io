@@ -119,11 +119,6 @@ body {
                 font-size: 12px !important;
             }
 
-            #top-toolbar .lang-option {
-                padding: 7px 10px !important;
-                font-size: 0.68rem !important;
-            }
-
             #skip-button, #skip-showcase-btn {
                 padding: 12px 20px !important;
             }
@@ -168,7 +163,7 @@ body {
             color: inherit;
             padding: 0;
             position: fixed;
-            bottom: 64px;
+            bottom: max(64px, calc(var(--footer-clearance, 0px) + 16px));
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -214,7 +209,7 @@ body {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             transition: all var(--transition-base);
-            animation: bounce 2s infinite;
+            animation: bounce 5s infinite;
         }
 
         .scroll-arrow:hover {
@@ -240,22 +235,31 @@ body {
             margin-top: 8px;
         }
 
+        /* Two quick hops, then a long rest */
         @keyframes bounce {
+            0% {
+                translate: 0 0;
+                animation-timing-function: ease-out;
+            }
 
-            0%,
-            20%,
-            50%,
-            80%,
+            6% {
+                translate: 0 -10px;
+                animation-timing-function: ease-in;
+            }
+
+            11.5% {
+                translate: 0 0;
+                animation-timing-function: ease-out;
+            }
+
+            15.5% {
+                translate: 0 -4px;
+                animation-timing-function: ease-in;
+            }
+
+            19%,
             100% {
-                transform: translateY(0);
-            }
-
-            40% {
-                transform: translateY(-8px);
-            }
-
-            60% {
-                transform: translateY(-4px);
+                translate: 0 0;
             }
         }
 

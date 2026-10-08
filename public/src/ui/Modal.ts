@@ -1,5 +1,5 @@
 import { getIcon } from '../utils/Icons.js';
-import { loc, t } from '../i18n/i18n.js';
+import { t } from '../i18n/i18n.js';
 
 /**
  * Modal - Handles photo, photosphere, and photo gallery modal functionality
@@ -400,7 +400,7 @@ export class Modal {
 
         const modal = document.createElement('div');
         modal.className = 'photo-gallery-modal-overlay';
-        const placeName = loc(place.name);
+        const placeName = place.name;
         modal.innerHTML = `
             <div class="photo-gallery-modal">
                 <div class="photo-gallery-header">
@@ -412,7 +412,7 @@ export class Modal {
                         ${place.photos.map((photo, index) => {
                             const photoSrc = typeof photo === 'string' ? photo : photo.src;
                             const thumbnailSrc = this.getThumbnailPath(photoSrc, 'gallery');
-                            const photoCaption = typeof photo === 'object' && photo.caption ? loc(photo.caption) : '';
+                            const photoCaption = (typeof photo === 'object' && photo.caption) || '';
                             const isPhotosphere = typeof photo === 'object' && photo.isPhotosphere;
                             const icon = isPhotosphere ? getIcon('Globe') : getIcon('Camera');
                             return `

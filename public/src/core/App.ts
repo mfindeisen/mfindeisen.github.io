@@ -307,7 +307,7 @@ export class App {
         if (!ui.portfolioIntroDone) {
             this.portfolioTimer = setTimeout(() => {
                 if (token === this.journeyToken) ui.setActiveOverlay('portfolio');
-            }, 2000);
+            }, 600);
         }
     }
 
