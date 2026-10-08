@@ -6,10 +6,25 @@ import { getIcon } from '../utils/Icons.js';
 export class Modal {
     activeModal: HTMLDivElement | null;
     photosphereViewer: any;
+    keyHandler: ((e: KeyboardEvent) => void) | null;
 
     constructor() {
         this.activeModal = null;
         this.photosphereViewer = null;
+        this.keyHandler = null;
+    }
+
+    /**
+     * Only one modal is visible at a time, so only one keydown handler may be active
+     */
+    setKeyHandler(handler: ((e: KeyboardEvent) => void) | null) {
+        if (this.keyHandler) {
+            document.removeEventListener('keydown', this.keyHandler);
+        }
+        this.keyHandler = handler;
+        if (handler) {
+            document.addEventListener('keydown', handler);
+        }
     }
 
     /**
@@ -127,12 +142,13 @@ export class Modal {
         const nextBtn = modal.querySelector('.photo-nav-next');
 
         const closeModal = () => {
-            if (options.onClose) {
-                options.onClose();
-            }
+            this.setKeyHandler(null);
             modal.remove();
             if (this.activeModal === modal) {
                 this.activeModal = null;
+            }
+            if (options.onClose) {
+                options.onClose();
             }
         };
 
@@ -162,7 +178,6 @@ export class Modal {
         const handleKeydown = (e) => {
             if (e.key === 'Escape') {
                 closeModal();
-                document.removeEventListener('keydown', handleKeydown);
             } else if (e.key === 'ArrowLeft' && totalPhotos > 1) {
                 const idx = parseInt(modal.dataset.currentIndex || '0');
                 navigateToPhoto(idx - 1);
@@ -173,7 +188,7 @@ export class Modal {
         };
 
         modal.dataset.currentIndex = currentIndex.toString();
-        document.addEventListener('keydown', handleKeydown);
+        this.setKeyHandler(handleKeydown);
     }
 
     /**
@@ -298,13 +313,14 @@ export class Modal {
 
         const closeModal = () => {
             console.log('Closing photosphere modal');
+            this.setKeyHandler(null);
             this.destroyPhotosphere();
-            if (options.onClose) {
-                options.onClose();
-            }
             modal.remove();
             if (this.activeModal === modal) {
                 this.activeModal = null;
+            }
+            if (options.onClose) {
+                options.onClose();
             }
         };
 
@@ -358,7 +374,6 @@ export class Modal {
         const handleKeydown = (e) => {
             if (e.key === 'Escape') {
                 closeModal();
-                document.removeEventListener('keydown', handleKeydown);
             } else if (e.key === 'ArrowLeft' && totalPhotos > 1) {
                 const idx = parseInt(modal.dataset.currentIndex || '0');
                 navigateToPhoto(idx - 1);
@@ -369,13 +384,13 @@ export class Modal {
         };
 
         modal.dataset.currentIndex = currentIndex.toString();
-        document.addEventListener('keydown', handleKeydown);
+        this.setKeyHandler(handleKeydown);
     }
 
     /**
      * Show a gallery modal with all photos for a place
      */
-    showPhotoGalleryModal(place: any, options: any = {}) {
+    showPhotoGalleryModal(place: any, options: any = {}, scrollTop = 0) {
         this.closeActiveModal(false);
 
         if (options.onOpen) {
@@ -416,13 +431,19 @@ export class Modal {
         document.body.appendChild(modal);
         this.activeModal = modal;
 
+        const content = modal.querySelector('.photo-gallery-content') as HTMLDivElement;
+        if (content && scrollTop) {
+            content.scrollTop = scrollTop;
+        }
+
         const closeModal = () => {
-            if (options.onClose) {
-                options.onClose();
-            }
+            this.setKeyHandler(null);
             modal.remove();
             if (this.activeModal === modal) {
                 this.activeModal = null;
+            }
+            if (options.onClose) {
+                options.onClose();
             }
         };
 
@@ -442,19 +463,21 @@ export class Modal {
                 const fullSrc = photoItem.getAttribute('data-full-src');
                 const isPhotosphere = photoItem.getAttribute('data-photosphere') === 'true';
                 const index = parseInt(photoItem.getAttribute('data-index') ?? '0');
-                
-                // Transition to photo modal
-                this.showPhotoModal(fullSrc, place.name, isPhotosphere, place, index, options);
+                const galleryScrollTop = content ? content.scrollTop : 0;
+                // Map interactions stay disabled while switching between gallery and photo
+                const returnOptions = { ...options, onOpen: undefined };
+
+                this.showPhotoModal(fullSrc, place.name, isPhotosphere, place, index, {
+                    onClose: () => this.showPhotoGalleryModal(place, returnOptions, galleryScrollTop)
+                });
             });
         });
 
-        const handleEscape = (e) => {
+        this.setKeyHandler((e) => {
             if (e.key === 'Escape') {
                 closeModal();
-                document.removeEventListener('keydown', handleEscape);
             }
-        };
-        document.addEventListener('keydown', handleEscape);
+        });
     }
 
     /**
@@ -534,6 +557,7 @@ export class Modal {
      */
     closeActiveModal(runOnClose = true, options: any = {}) {
         if (this.activeModal) {
+            this.setKeyHandler(null);
             this.destroyPhotosphere();
             if (runOnClose && options.onClose) {
                 options.onClose();
