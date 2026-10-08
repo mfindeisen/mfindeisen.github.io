@@ -408,7 +408,7 @@ export class EasterEggs {
      * Start astronaut journey
      */
     startAstronautJourney() {
-        console.log('🚀 Astronaut appearing for journey!');
+        console.log('Astronaut appearing for journey');
         
         const direction = Math.random() < 0.5 ? -1 : 1;
         const earthRadius = 2.5;
@@ -539,7 +539,7 @@ export class EasterEggs {
      * End astronaut journey
      */
     endAstronautJourney() {
-        console.log('🌌 Astronaut journey complete, hiding for next appearance');
+        console.log('Astronaut journey complete, hiding for next appearance');
         
         this.astronaut.visible = false;
         this.astronautVisible = false;
