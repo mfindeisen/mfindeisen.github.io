@@ -228,17 +228,11 @@ export class MapManager {
 
         this.cancelPrefetch();
 
-        // Reset map to original position and zoom
-        this.mapTilerMap.setCenter(this.originalCenter);
-        this.mapTilerMap.setZoom(this.originalZoom);
+        // Stopping fires moveend, so a pending flyTo() promise resolves here
+        this.mapTilerMap.stop();
+        this.mapTilerMap.jumpTo({ center: this.originalCenter, zoom: this.originalZoom });
 
-        // Disable map interactions to match original state
         this.setInteractions(false);
-
-        // Reset any ongoing animations
-        if (this.mapTilerMap.isMoving()) {
-            this.mapTilerMap.stop();
-        }
 
         console.log('Map reset to center:', this.originalCenter, 'zoom:', this.originalZoom);
     }

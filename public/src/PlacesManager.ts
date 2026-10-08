@@ -20,6 +20,8 @@ export class PlacesManager {
     backdropElement: HTMLDivElement | null;
     originalMapCursor: string;
     isInitialized: boolean;
+    listVisibilityTimer: ReturnType<typeof setTimeout> | undefined;
+    popupTimer: ReturnType<typeof setTimeout> | undefined;
 
     constructor(mapTilerMap: any) {
         this.mapTilerMap = mapTilerMap;
@@ -274,9 +276,6 @@ export class PlacesManager {
             
             console.log('Map interactions disabled');
         }
-        
-        // Prevent body scrolling
-        document.body.style.overflow = 'hidden';
     }
 
     /**
@@ -300,9 +299,6 @@ export class PlacesManager {
             
             console.log('Map interactions enabled');
         }
-        
-        // Re-enable body scrolling
-        document.body.style.overflow = '';
     }
 
 
@@ -646,7 +642,8 @@ export class PlacesManager {
         }
         
         // Open the marker popup after the flyTo animation completes
-        setTimeout(() => {
+        clearTimeout(this.popupTimer);
+        this.popupTimer = setTimeout(() => {
             this.openMarkerPopup(place);
         }, 2100); // Wait slightly longer than the flyTo duration
         
@@ -722,10 +719,11 @@ export class PlacesManager {
         const popups = document.querySelectorAll('.maplibregl-popup');
         popups.forEach(popup => popup.remove());
 
-        // Clean up active modal
-        if (this.modal) {
-            this.modal.closeActiveModal(true, { onClose: () => this.enableMapInteractions() });
-        }
+        this.activePopup = null;
+        clearTimeout(this.popupTimer);
+
+        // The map is being reset, so its interactions have to stay off
+        this.modal?.closeActiveModal(false);
     }
 
     /**
@@ -759,33 +757,31 @@ export class PlacesManager {
     /**
      * Show/hide the places list
      */
-    setPlacesListVisibility(visible) {
-        if (this.placesListElement) {
-            if (visible) {
-                this.placesListElement.style.display = '';
-                // On mobile, add a small delay to ensure smooth animation
-                if (this.isMobile) {
-                    setTimeout(() => {
-                        this.placesListElement?.classList.add('visible');
-                        if (this.backdropElement) {
-                            this.backdropElement.classList.add('visible');
-                        }
-                    }, 50);
-                }
-            } else {
-                if (this.isMobile) {
-                    this.placesListElement.classList.remove('visible');
-                    if (this.backdropElement) {
-                        this.backdropElement.classList.remove('visible');
-                    }
-                    // Hide after animation completes
-                    setTimeout(() => {
-                        if (this.placesListElement) this.placesListElement.style.display = 'none';
-                    }, 300);
-                } else {
-                    this.placesListElement.style.display = 'none';
-                }
+    setPlacesListVisibility(visible: boolean) {
+        const list = this.placesListElement;
+        if (!list || visible === this.isListVisible) return;
+        this.isListVisible = visible;
+
+        // A pending step of the opposite transition must not overrule this one
+        clearTimeout(this.listVisibilityTimer);
+
+        if (visible) {
+            list.style.display = '';
+            if (this.isMobile) {
+                // The sheet needs one rendered frame with display set before it can slide in
+                this.listVisibilityTimer = setTimeout(() => {
+                    list.classList.add('visible');
+                    this.backdropElement?.classList.add('visible');
+                }, 50);
             }
+        } else if (this.isMobile) {
+            list.classList.remove('visible');
+            this.backdropElement?.classList.remove('visible');
+            this.listVisibilityTimer = setTimeout(() => {
+                list.style.display = 'none';
+            }, 300);
+        } else {
+            list.style.display = 'none';
         }
     }
 

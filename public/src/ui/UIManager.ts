@@ -1,22 +1,34 @@
 import { prefersReducedMotion } from '../utils/motion.js';
 
 /**
- * UIManager - Handles general UI state and interactions
+ * globe:     start screen and the scroll-driven unwrap, nothing has been flown yet
+ * flying:    camera flight to Erbil, the page is locked
+ * map:       arrived on the map, the page stays locked until "Back to Beginning"
+ * returning: smooth scroll back to the top after "Back to Beginning"
+ */
+export type Phase = 'globe' | 'flying' | 'map' | 'returning';
+export type OverlayName = 'none' | 'portfolio' | 'showcase';
+export type ScrollLockReason = 'journey' | 'overlay';
+
+/**
+ * UIManager - Owns the UI state and derives the visibility of all chrome from it in syncUI()
  */
 export class UIManager {
     elements: { [key: string]: HTMLElement | null };
-    state: { [key: string]: any };
+    phase: Phase = 'globe';
+    overlay: OverlayName = 'none';
+    portfolioIntroDone = false;
+    atTop = true;
+    isAutoScrolling = false;
     lastOverlayToggleTime: number;
-    beginningTimer: any;
-    autoScrollAnimation: any;
+    autoScrollAnimation: number | null;
+    scrollLocks = new Set<ScrollLockReason>();
     scrollPosition: number;
-    preventScrollKeys: any;
+    preventScrollKeys: ((e: KeyboardEvent) => void) | null;
     placesManager: any;
-    lastTouchY: number;
     focusBeforeOverlay: HTMLElement | null = null;
 
     constructor(placesManager: any = null) {
-        this.lastTouchY = 0;
         this.elements = {
             container: document.getElementById('canvas-container'),
             mapContainer: document.getElementById('map-container'),
@@ -31,70 +43,16 @@ export class UIManager {
             footer: document.getElementById('footer'),
             hero: document.getElementById('hero')
         };
-        
-        this.state = {
-            hasCompletedMapJourney: false,
-            portfolioHasBeenShown: false,
-            portfolioManuallyDismissed: false,
-            hasZoomedToErbil: false,
-            isScrollLocked: false,
-            isAutoScrolling: false,
-            activeOverlay: 'none', // 'none' | 'portfolio' | 'showcase'
-            journeyState: 'idle' // 'idle' | 'scrolling' | 'flying' | 'arrived'
-        };
 
         this.lastOverlayToggleTime = 0;
         this.setupOverlayListeners();
         this.setupOverlayToc(this.getElement('showcaseOverlay'));
         this.setupOverlayToc(this.getElement('portfolioOverlay'));
-        
-        this.beginningTimer = null;
+
         this.autoScrollAnimation = null;
         this.scrollPosition = 0;
         this.preventScrollKeys = null;
         this.placesManager = placesManager;
-
-        // Global scroll interceptor to prevent UI overlays from scrolling the document in map view
-        const preventOverlayScroll = (e) => {
-            // Only apply if map view is active (heuristic: check if scroll is near bottom)
-            const documentHeight = document.documentElement.scrollHeight;
-            const windowHeight = window.innerHeight;
-            const maxScroll = documentHeight - windowHeight;
-            if (maxScroll <= 0) return;
-            
-            const currentScroll = window.pageYOffset;
-            const scrollProgress = currentScroll / maxScroll;
-            
-            if (scrollProgress > 0.5) {
-                // If it's a UI element (not the actual map canvas and not the earth canvas)
-                const isMapCanvas = e.target.closest('.maplibregl-canvas');
-                const isEarthCanvas = e.target.closest('#canvas-container');
-                
-                if (!isMapCanvas && !isEarthCanvas) {
-                    // Check if it's inside a scrollable container
-                    const scrollable = e.target.closest('.portfolio-content, .showcase-toc, .places-list, .photo-modal-content, .maplibregl-popup-content');
-                    if (scrollable) {
-                        const deltaY = e.type === 'wheel' ? e.deltaY : (this.lastTouchY ? this.lastTouchY - e.touches[0].clientY : 0);
-                        const isAtTop = scrollable.scrollTop <= 0;
-                        const isAtBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
-                        
-                        if ((isAtTop && deltaY < 0) || (isAtBottom && deltaY > 0)) {
-                            if (e.cancelable) e.preventDefault();
-                        }
-                    } else {
-                        // Not a scrollable container, prevent document scrolling
-                        if (e.cancelable) e.preventDefault();
-                    }
-                }
-            }
-        };
-
-        window.addEventListener('wheel', preventOverlayScroll, { passive: false });
-        window.addEventListener('touchmove', preventOverlayScroll, { passive: false });
-        
-        window.addEventListener('touchstart', (e) => {
-            this.lastTouchY = e.touches[0].clientY;
-        }, { passive: true });
     }
 
     setupOverlayListeners() {
@@ -233,8 +191,7 @@ export class UIManager {
     }
 
     getActiveOverlayElement(): HTMLElement | null {
-        const name = this.state.activeOverlay;
-        return name === 'none' ? null : this.getElement(`${name}Overlay`);
+        return this.overlay === 'none' ? null : this.getElement(`${this.overlay}Overlay`);
     }
 
     trapFocus(container: HTMLElement, e: KeyboardEvent) {
@@ -264,18 +221,55 @@ export class UIManager {
         return this.elements[name];
     }
 
-    // State management
-    setState(key, value) {
-        this.state[key] = value;
+    setPhase(phase: Phase) {
+        if (this.phase === phase) return;
+        this.phase = phase;
+        if (phase !== 'globe') this.stopAutoScroll();
+        this.syncUI();
     }
 
-    getState(key) {
-        return this.state[key];
+    /**
+     * Called for every scroll position change while the page is not locked
+     */
+    updateScrollPosition(scrollY: number) {
+        // Hysteresis keeps the start chrome from flickering around the threshold
+        if (scrollY <= 10) this.atTop = true;
+        else if (scrollY > 50) this.atTop = false;
+        this.syncUI();
+    }
+
+    /**
+     * Single source of truth for the visibility of all buttons, the start chrome and the places list
+     */
+    syncUI() {
+        const noOverlay = this.overlay === 'none';
+        const onGlobe = this.phase === 'globe' && noOverlay;
+        const onMap = this.phase === 'map' && noOverlay;
+        const startChrome = onGlobe && this.atTop && !this.isAutoScrolling;
+        const mapChrome = onMap && this.portfolioIntroDone;
+
+        this.setVisible('skipButton', startChrome);
+        this.setVisible('skipShowcaseBtn', startChrome);
+        this.setVisible('footer', startChrome);
+        this.setVisible('scrollIndicator', startChrome || (onGlobe && this.isAutoScrolling));
+        this.elements.scrollIndicator?.classList.toggle('animating', onGlobe && this.isAutoScrolling);
+
+        this.setVisible('reopenPortfolioBtn', mapChrome);
+        this.setVisible('reopenShowcaseBtn', mapChrome);
+        this.setVisible('backToBeginningBtn', mapChrome);
+
+        this.placesManager?.setPlacesListVisibility(onMap);
+    }
+
+    setVisible(elementName: string, visible: boolean) {
+        if (visible) this.showElement(elementName);
+        else this.hideElement(elementName);
     }
 
     // Set places manager reference
     setPlacesManager(placesManager) {
         this.placesManager = placesManager;
+        this.syncUI();
     }
 
     // UI visibility controls
@@ -302,27 +296,20 @@ export class UIManager {
         }
     }
 
-    toggleElement(elementName, showClass = 'visible', hideClass = 'hidden') {
-        const element = this.elements[elementName];
-        if (element) {
-            if (element.classList.contains(showClass)) {
-                this.hideElement(elementName, hideClass);
-            } else {
-                this.showElement(elementName, showClass);
-            }
-        }
+    get isScrollLocked() {
+        return this.scrollLocks.size > 0;
     }
 
-    // Scroll management
-    lockScroll() {
-        if (this.state.isScrollLocked) {
-            console.log('Scroll is already locked, ignoring lockScroll() to prevent losing scrollPosition.');
-            return;
-        }
+    /**
+     * The page stays locked as long as at least one reason holds the lock
+     */
+    lockScroll(reason: ScrollLockReason) {
+        const wasLocked = this.isScrollLocked;
+        this.scrollLocks.add(reason);
+        if (wasLocked) return;
 
-        this.setState('isScrollLocked', true);
         this.scrollPosition = window.pageYOffset;
-        
+
         document.body.style.position = 'fixed';
         document.body.style.top = `-${this.scrollPosition}px`;
         document.body.style.width = '100%';
@@ -337,52 +324,36 @@ export class UIManager {
         };
         
         document.addEventListener('keydown', this.preventScrollKeys, { passive: false });
-        console.log('Background scroll locked');
     }
 
-    unlockScroll() {
-        this.setState('isScrollLocked', false);
+    /**
+     * Releases one lock reason. The page only becomes scrollable again, at the position it was
+     * locked at, once no reason is left.
+     */
+    unlockScroll(reason: ScrollLockReason) {
+        if (!this.scrollLocks.delete(reason) || this.isScrollLocked) return;
+
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.width = '';
         document.body.style.overflow = '';
-        
+
         if (this.preventScrollKeys) {
             document.removeEventListener('keydown', this.preventScrollKeys);
             this.preventScrollKeys = null;
         }
-        
-        // Only restore scroll position if we're not in the MapTiler view
-        // If we're in the MapTiler view (scroll progress > 0.5), stay at current position
-        const currentScroll = window.pageYOffset;
-        
-        // We need to calculate scroll progress, but we don't have access to scrollController
-        // So we'll use a simple heuristic: if we're near the bottom of the page, don't restore
-        const documentHeight = document.documentElement.scrollHeight;
-        const windowHeight = window.innerHeight;
-        const maxScroll = documentHeight - windowHeight;
-        const scrollProgress = maxScroll > 0 ? currentScroll / maxScroll : 0;
-        
-        if (scrollProgress <= 0.5) {
-            // Restore scroll position only if we're not in the MapTiler view
-            // If stored scroll position is undefined, use current position
-            const targetScroll = this.scrollPosition !== undefined ? this.scrollPosition : currentScroll;
-            window.scrollTo(0, targetScroll);
-        }
+
+        // While the body is fixed the document has no scroll offset, so it has to be put back
+        window.scrollTo({ top: this.scrollPosition, behavior: 'instant' });
     }
 
     // Auto-scroll functionality
     startAutoScroll() {
-        if (this.state.isAutoScrolling) return;
-        
-        console.log('Starting auto-scroll animation');
-        this.setState('isAutoScrolling', true);
-        
-        this.showElement('scrollIndicator', 'animating');
-        this.hideElement('skipButton');
-        this.hideElement('skipShowcaseBtn');
-        this.hideElement('footer');
-        
+        if (this.isAutoScrolling || this.phase !== 'globe' || this.overlay !== 'none') return;
+
+        this.isAutoScrolling = true;
+        this.syncUI();
+
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
         const duration = prefersReducedMotion() ? 0 : 12000;
         const startTime = Date.now();
@@ -405,102 +376,55 @@ export class UIManager {
             if (progress < 1) {
                 this.autoScrollAnimation = requestAnimationFrame(animateScroll);
             } else {
-                this.completeAutoScroll();
+                this.stopAutoScroll();
             }
         };
         
         this.autoScrollAnimation = requestAnimationFrame(animateScroll);
     }
- 
-    completeAutoScroll() {
-        console.log('Auto-scroll animation completed');
-        this.setState('isAutoScrolling', false);
-        
-        this.hideElement('scrollIndicator');
-        this.showElement('scrollIndicator', 'animating');
-        
+
+    stopAutoScroll() {
+        if (this.autoScrollAnimation !== null) {
+            cancelAnimationFrame(this.autoScrollAnimation);
+            this.autoScrollAnimation = null;
+        }
+        if (!this.isAutoScrolling) return;
+
+        this.isAutoScrolling = false;
         const progressFill = document.querySelector('.progress-fill') as HTMLDivElement;
         if (progressFill) {
             progressFill.style.width = '0%';
         }
-        
-        if (this.autoScrollAnimation) {
-            cancelAnimationFrame(this.autoScrollAnimation);
-            this.autoScrollAnimation = null;
-        }
+        this.syncUI();
     }
 
-    // State Machine Overlay Controller
-    setActiveOverlay(overlayName) {
+    setActiveOverlay(overlayName: OverlayName) {
+        if (overlayName === this.overlay) return;
+        // Overlays only open on the start screen or the map, never mid-flight or while returning
+        if (overlayName !== 'none' && (this.phase === 'flying' || this.phase === 'returning')) return;
+
         const previousOverlay = this.getActiveOverlayElement();
-
-        // Hide currently active overlay if any
-        if (this.state.activeOverlay === 'portfolio') {
-            this.hideElement('portfolioOverlay');
-            this.setState('portfolioManuallyDismissed', true);
-        } else if (this.state.activeOverlay === 'showcase') {
-            this.hideElement('showcaseOverlay');
-        }
-        previousOverlay?.setAttribute('aria-hidden', 'true');
-
-        if (!previousOverlay && overlayName !== 'none') {
+        if (previousOverlay) {
+            this.hideElement(`${this.overlay}Overlay`);
+            previousOverlay.setAttribute('aria-hidden', 'true');
+        } else {
             this.focusBeforeOverlay = document.activeElement as HTMLElement | null;
         }
 
         this.lastOverlayToggleTime = Date.now();
-        this.setState('activeOverlay', overlayName);
+        this.overlay = overlayName;
 
         if (overlayName === 'none') {
-            this.unlockScroll();
+            this.unlockScroll('overlay');
 
             if (this.focusBeforeOverlay?.isConnected) {
                 this.focusBeforeOverlay.focus({ preventScroll: true });
             }
             this.focusBeforeOverlay = null;
-            
-            // Restore UI based on journey state
-            if (this.getState('journeyState') === 'arrived') {
-                
-                // Show Reopen Portfolio & Showcase buttons if manually dismissed
-                if (this.getState('portfolioHasBeenShown') && this.getState('portfolioManuallyDismissed')) {
-                    this.showElement('reopenPortfolioBtn');
-                    this.showElement('reopenShowcaseBtn');
-                }
-                // We are at the map (arrived), so unconditionally restore MapTiler map
-                const mapContainer = this.getElement('mapContainer');
-                if (mapContainer) {
-                    mapContainer.style.opacity = '1';
-                    mapContainer.style.zIndex = '2';
-                    mapContainer.classList.add('visible');
-                }
-                
-                if (this.placesManager) {
-                    this.placesManager.setPlacesListVisibility(true);
-                    if (this.placesManager.markers.size > 0) {
-                        this.showElement('backToBeginningBtn');
-                    }
-                }
-            } else {
-                // If we are not arrived (e.g. at the top of the page), restore the top buttons
-                // Only if we haven't scrolled down
-                if (window.pageYOffset <= 50) {
-                    this.showElement('scrollIndicator');
-                    this.showElement('skipButton');
-                    this.showElement('skipShowcaseBtn');
-                    this.showElement('footer');
-                }
-            }
         } else {
-            // An overlay is active, lock the UI
-            this.lockScroll();
-            this.hideElement('reopenPortfolioBtn');
-            this.hideElement('backToBeginningBtn');
-            this.hideElement('skipShowcaseBtn');
-            this.hideElement('reopenShowcaseBtn');
-            
-            if (this.placesManager) {
-                this.placesManager.setPlacesListVisibility(false);
-            }
+            this.stopAutoScroll();
+            this.lockScroll('overlay');
+            if (overlayName === 'portfolio') this.portfolioIntroDone = true;
 
             const overlay = this.getElement(`${overlayName}Overlay`);
             if (overlay) {
@@ -515,32 +439,8 @@ export class UIManager {
                 });
             }
         }
-    }
 
-    // Beginning state management
-    checkBeginningState(progress) {
-        if (this.getState('portfolioIsVisible') || this.getState('showcaseIsVisible')) {
-            return;
-        }
-
-        if (progress < 0.005) {
-            if (!this.state.isAtBeginning) {
-                this.setState('isAtBeginning', true);
-                this.beginningTimer = setTimeout(() => {
-                    if (this.state.isAtBeginning && progress < 0.005) {
-                        this.setState('portfolioHasBeenShown', false);
-                        this.setState('portfolioManuallyDismissed', false);
-                        console.log('Reset portfolio flags - user wants fresh start');
-                    }
-                }, 3000);
-            }
-        } else if (progress >= 0.01) {
-            this.setState('isAtBeginning', false);
-            if (this.beginningTimer) {
-                clearTimeout(this.beginningTimer);
-                this.beginningTimer = null;
-            }
-        }
+        this.syncUI();
     }
 
     // Utility functions
@@ -550,14 +450,8 @@ export class UIManager {
 
     // Cleanup
     destroy() {
-        if (this.autoScrollAnimation) {
-            cancelAnimationFrame(this.autoScrollAnimation);
-        }
-        
-        if (this.beginningTimer) {
-            clearTimeout(this.beginningTimer);
-        }
-        
+        this.stopAutoScroll();
+
         if (this.preventScrollKeys) {
             document.removeEventListener('keydown', this.preventScrollKeys);
         }

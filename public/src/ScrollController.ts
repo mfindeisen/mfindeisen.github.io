@@ -19,10 +19,14 @@ export class ScrollController {
     }
 
     updateMaxScroll() {
+        // A fixed body collapses the document to the viewport, which says nothing about the real scroll range
+        if (document.body.style.position === 'fixed') return;
         this.maxScroll = this.calculateMaxScroll();
     }
 
     getScrollProgress() {
+        // Mobile browser bars change the viewport height without a reliable resize event
+        this.updateMaxScroll();
         if (this.maxScroll <= 0) {
             return 0;
         }
@@ -62,6 +66,7 @@ export class ScrollController {
     }
 
     getMaxScroll() {
+        this.updateMaxScroll();
         return this.maxScroll;
     }
 }

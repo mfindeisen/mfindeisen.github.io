@@ -25,13 +25,12 @@ export class App {
     placesManager?: PlacesManager;
     mobileTouchHandler!: MobileTouchHandler;
     easterEggManager!: EasterEggManager;
-    scrollIndicator: any;
-    skipButton: any;
-    skipShowcaseBtn: any;
-    backToBeginningBtn: any;
     lastScrollProgress: number;
     isSceneHidden = false;
     texturesReady!: Promise<void>;
+    // Bumped on every journey start and reset, so callbacks of an abandoned journey can tell they are stale
+    journeyToken = 0;
+    portfolioTimer: ReturnType<typeof setTimeout> | undefined;
 
     constructor() {
         this.lastScrollProgress = 0;
@@ -100,7 +99,7 @@ export class App {
         // Waiting for the first scroll spares the MapTiler quota for visitors who never start the journey,
         // and waiting for the globe textures keeps both from competing for bandwidth.
         Promise.all([this.texturesReady, this.firstScroll()]).then(() => {
-            if (this.mapManager.isMapInitialized() && this.uiManager.getState('journeyState') === 'idle') {
+            if (this.mapManager.isMapInitialized() && this.uiManager.phase === 'globe') {
                 this.mapManager.prefetchArea(ERBIL_CENTER, [6, 8, 10, 12, ERBIL_ZOOM]);
             }
         });
@@ -198,7 +197,7 @@ export class App {
             );
 
             // Start with interactions disabled
-            this.enableMapInteractions(false);
+            this.mapManager.setInteractions(false);
 
             // Initialize places manager
             this.placesManager = new PlacesManager(this.mapTilerMap);
@@ -231,50 +230,13 @@ export class App {
      * Setup UI event listeners
      */
     setupUIEvents() {
-        const scrollIndicator = this.uiManager.getElement('scrollIndicator');
-        const skipButton = this.uiManager.getElement('skipButton');
-        const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
-        const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
-
-        // Store element references as class properties
-        this.scrollIndicator = scrollIndicator;
-        this.skipButton = skipButton;
-        this.skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
-        this.backToBeginningBtn = backToBeginningBtn;
-
-        if (scrollIndicator) {
-            scrollIndicator.addEventListener('click', this.uiManager.startAutoScroll.bind(this.uiManager));
-        }
-
-        if (skipButton) {
-            skipButton.addEventListener('click', () => this.skipToOverlay('portfolio'));
-        }
-
-        if (reopenPortfolioBtn) {
-            reopenPortfolioBtn.addEventListener('click', () => {
-                this.uiManager.setActiveOverlay('portfolio');
-            });
-        }
-
-        if (backToBeginningBtn) {
-            backToBeginningBtn.addEventListener('click', this.backToBeginning.bind(this));
-        }
-
-        // Overlay close events are now handled centrally by UIManager.setupOverlayListeners
-
-        const skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
-        if (skipShowcaseBtn) {
-            skipShowcaseBtn.addEventListener('click', () => {
-                this.skipToOverlay('showcase');
-            });
-        }
-
-        const reopenShowcaseBtn = this.uiManager.getElement('reopenShowcaseBtn');
-        if (reopenShowcaseBtn) {
-            reopenShowcaseBtn.addEventListener('click', () => {
-                this.uiManager.setActiveOverlay('showcase');
-            });
-        }
+        const ui = this.uiManager;
+        ui.getElement('scrollIndicator')?.addEventListener('click', () => ui.startAutoScroll());
+        ui.getElement('skipButton')?.addEventListener('click', () => ui.setActiveOverlay('portfolio'));
+        ui.getElement('skipShowcaseBtn')?.addEventListener('click', () => ui.setActiveOverlay('showcase'));
+        ui.getElement('reopenPortfolioBtn')?.addEventListener('click', () => ui.setActiveOverlay('portfolio'));
+        ui.getElement('reopenShowcaseBtn')?.addEventListener('click', () => ui.setActiveOverlay('showcase'));
+        ui.getElement('backToBeginningBtn')?.addEventListener('click', () => this.backToBeginning());
     }
 
     showTooltip(message, duration = 2000) {
@@ -292,106 +254,67 @@ export class App {
     }
 
     onScroll() {
-        // Prevent fake scroll events caused by CSS position: fixed from ruining the state
-        if (this.uiManager && this.uiManager.getState('isScrollLocked')) {
-            return;
-        }
+        // A fixed body reports a scroll offset of 0, which says nothing about the real position
+        if (this.uiManager.isScrollLocked) return;
 
         const scrollProgress = this.scrollController.getScrollProgress();
-
-        // Determine scroll direction
-        const scrollingDown = scrollProgress > (this.lastScrollProgress || 0);
+        const scrollingDown = scrollProgress > this.lastScrollProgress;
         this.lastScrollProgress = scrollProgress;
 
-        // Update earth transformation
         this.earthScene.updateTransformation(scrollProgress);
-
-        // Fade the map in over the globe
         this.updateMapVisibility(scrollProgress, scrollingDown);
-
-        // Update UI based on scroll progress
-        this.updateUIOnScroll(scrollProgress);
+        this.uiManager.updateScrollPosition(window.pageYOffset);
     }
 
-    async zoomToErbil() {
-        // Wait for map to be initialized
-        let attempts = 0;
-        while (!this.mapManager.isMapInitialized() && attempts < 50) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
+    /**
+     * Fly from the unwrapped Earth to Erbil and open the map
+     */
+    async startJourney() {
+        const ui = this.uiManager;
+        if (ui.phase !== 'globe' || ui.overlay !== 'none') return;
+        const token = ++this.journeyToken;
 
-        if (!this.mapManager.isMapInitialized()) {
+        // Finish the fade instantly and freeze the page, so scrolling up cannot interrupt the flight
+        window.scrollTo({ top: this.scrollController.getMaxScroll(), behavior: 'instant' });
+        this.lastScrollProgress = 1;
+        ui.lockScroll('journey');
+        ui.setPhase('flying');
+        this.updateMapVisibility(1);
+
+        const mapReady = await this.waitForMap();
+        if (token !== this.journeyToken) return;
+        if (!mapReady) {
             console.error('MapTiler map not initialized after waiting');
+            ui.setPhase('globe');
+            ui.unlockScroll('journey');
             return;
         }
-
-        if (this.uiManager.getState('journeyState') === 'arrived') {
-            console.log('FlyTo animation already completed, skipping');
-            return;
-        }
-
-        console.log('Starting smooth flyTo animation to Erbil, Iraq');
-
-        // Force hide all scroll-related UI during the flight animation
-        this.uiManager.hideElement('scrollIndicator');
-        this.uiManager.hideElement('skipButton');
-        this.uiManager.hideElement('skipShowcaseBtn');
-        this.uiManager.hideElement('footer');
 
         try {
-            // Lock scrolling immediately so the user is physically prevented from
-            // scrolling up during the flight animation and ruining the map experience
-            window.scrollTo(0, this.scrollController.getMaxScroll());
-            this.uiManager.lockScroll();
-
-            this.uiManager.setState('journeyState', 'flying');
-            this.updateMapVisibility(1);
-
             await this.mapManager.flyTo(ERBIL_CENTER, ERBIL_ZOOM, prefersReducedMotion() ? 0 : 4000);
-
-            this.uiManager.setState('journeyState', 'arrived');
-            this.mapManager.setInteractions(true);
-
-            const willAutoOpenPortfolio = !this.isPortfolioIntroDone();
-
-            setTimeout(() => {
-                if (this.placesManager) {
-                    this.mapManager.ensureContainerInteractions(this.uiManager.getElement('mapContainer'));
-                    this.placesManager.addAllMarkers();
-                    this.placesManager.setPlacesListVisibility(true);
-                }
-                if (!willAutoOpenPortfolio && this.uiManager.getState('activeOverlay') === 'none') {
-                    this.uiManager.showElement('backToBeginningBtn');
-                }
-            }, 100);
-
-            if (willAutoOpenPortfolio) {
-                setTimeout(() => {
-                    this.uiManager.setActiveOverlay('portfolio');
-                    this.uiManager.setState('portfolioHasBeenShown', true);
-                }, 2000);
-            } else {
-                setTimeout(() => {
-                    this.uiManager.showElement('reopenPortfolioBtn');
-                    this.uiManager.showElement('reopenShowcaseBtn');
-                }, 500);
-            }
         } catch (error) {
             console.error('Error during flyTo animation:', error);
         }
+        // reset() stops the camera, which also resolves the flight of an abandoned journey
+        if (token !== this.journeyToken) return;
+
+        this.mapManager.setInteractions(true);
+        this.mapManager.ensureContainerInteractions(ui.getElement('mapContainer'));
+        this.placesManager?.addAllMarkers();
+        ui.setPhase('map');
+
+        if (!ui.portfolioIntroDone) {
+            this.portfolioTimer = setTimeout(() => {
+                if (token === this.journeyToken) ui.setActiveOverlay('portfolio');
+            }, 2000);
+        }
     }
 
-    isPortfolioIntroDone() {
-        return this.uiManager.getState('portfolioHasBeenShown') || this.uiManager.getState('portfolioManuallyDismissed');
-    }
-
-    enableMapInteractions(enable) {
-        this.mapManager.setInteractions(enable);
-    }
-
-    ensureMapContainerInteractions() {
-        this.mapManager.ensureContainerInteractions(this.uiManager.getElement('mapContainer'));
+    async waitForMap() {
+        for (let attempt = 0; attempt < 50 && !this.mapManager.isMapInitialized(); attempt++) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return this.mapManager.isMapInitialized();
     }
 
     animate() {
@@ -406,125 +329,45 @@ export class App {
         this.renderer.render(this.earthScene.scene, this.earthScene.camera);
     }
 
-    updateUIOnScroll(progress) {
-        const journeyState = this.uiManager.getState('journeyState');
-
-        // Never show UI elements while flying or after arrived
-        if (journeyState === 'flying' || journeyState === 'arrived') {
-            this.uiManager.hideElement('scrollIndicator');
-            this.uiManager.hideElement('skipButton');
-            this.uiManager.hideElement('skipShowcaseBtn');
-            this.uiManager.hideElement('footer');
-        } else {
-            if (window.pageYOffset > 50) {
-                this.uiManager.hideElement('scrollIndicator');
-                this.uiManager.hideElement('skipButton');
-                this.uiManager.hideElement('skipShowcaseBtn');
-                this.uiManager.hideElement('footer');
-            } else if (window.pageYOffset <= 10) {
-                // Only show them if we are not currently auto-scrolling (e.g. smooth scrolling to top)
-                if (!this.uiManager.getState('isAutoScrolling')) {
-                    this.uiManager.showElement('scrollIndicator');
-                    this.uiManager.showElement('skipButton');
-                    this.uiManager.showElement('skipShowcaseBtn');
-                    this.uiManager.showElement('footer');
-                    this.uiManager.hideElement('backToBeginningBtn');
-                }
-            }
-        }
-
-        // Show back to beginning button when at the end
-        if (progress > 0.95 && this.uiManager.getState('journeyState') === 'arrived' &&
-            this.uiManager.getState('activeOverlay') === 'none' &&
-            this.isPortfolioIntroDone() &&
-            (this.placesManager?.markers.size ?? 0) > 0) {
-            this.uiManager.showElement('backToBeginningBtn');
-        } else if (progress <= 0.95 && this.uiManager.getState('journeyState') === 'arrived') {
-            this.uiManager.hideElement('backToBeginningBtn');
-        }
-
-        // Check beginning state
-        this.uiManager.checkBeginningState(progress);
-    }
-
-
     updateMapVisibility(progress, scrollingDown = true) {
         const mapContainer = this.uiManager.getElement('mapContainer');
         const footer = this.uiManager.getElement('footer');
         if (!mapContainer) return;
 
-        if (progress > 0.5) {
-            // Force hide scroll indicator and skip button on the map view
-            this.uiManager.hideElement('scrollIndicator');
-            this.uiManager.hideElement('skipButton');
+        const phase = this.uiManager.phase;
+        const activationThreshold = mapHandoffProgress();
 
-            mapContainer.style.zIndex = '0';
-            mapContainer.style.opacity = '0';
-
-            const activationThreshold = mapHandoffProgress();
-            const fadeRange = 1 - activationThreshold;
-
-            if (progress > activationThreshold) {
-                this.mapManager.cancelPrefetch();
-
-                // Once the flight has started the scroll position can be frozen mid-fade by the scroll lock
-                const fadeProgress = this.uiManager.getState('journeyState') === 'idle'
-                    ? Math.min((progress - activationThreshold) / fadeRange, 1.0)
-                    : 1.0;
-
-                mapContainer.style.zIndex = '2';
-                mapContainer.style.opacity = fadeProgress.toString();
-                mapContainer.classList.add('visible');
-
-                this.hideBackgroundElements(fadeProgress);
-
-                if (fadeProgress >= 0.5 && footer) {
-                    footer.style.marginBottom = window.innerWidth <= 768 ? '45px' : '25px';
-                }
-
-                // Map UI visibility check - ensure places list and buttons are shown if we arrived
-                if (this.uiManager.getState('journeyState') === 'arrived' && this.uiManager.getState('activeOverlay') === 'none') {
-                    if (this.placesManager) {
-                        this.placesManager.setPlacesListVisibility(true);
-                    }
-                    if (this.uiManager.getState('portfolioHasBeenShown') && this.uiManager.getState('portfolioManuallyDismissed')) {
-                        this.uiManager.showElement('reopenPortfolioBtn');
-                        this.uiManager.showElement('reopenShowcaseBtn');
-                    }
-                }
-
-                // Only trigger the final flyTo animation if we are actively scrolling DOWN
-                // This prevents re-triggering it during the "Back to beginning" smooth scroll UP
-                if (scrollingDown && fadeProgress >= 0.5 && this.uiManager.getState('journeyState') === 'idle') {
-                    this.zoomToErbil();
-                }
-            }
-        } else {
+        if (progress <= activationThreshold) {
             mapContainer.style.zIndex = '0';
             mapContainer.style.opacity = '0';
             mapContainer.classList.remove('visible');
-
             this.showBackgroundElements();
             if (footer) footer.style.marginBottom = '';
+            return;
+        }
 
-            // Force hide all map-specific UI when map is not visible
-            this.uiManager.hideElement('reopenPortfolioBtn');
-            this.uiManager.hideElement('reopenShowcaseBtn');
-            if (this.placesManager) {
-                this.placesManager.setPlacesListVisibility(false);
-            }
+        this.mapManager.cancelPrefetch();
 
-            if (this.uiManager.getState('journeyState') !== 'idle' && progress < 0.3 && this.uiManager.getState('activeOverlay') === 'none') {
-                this.resetMapTileMap();
-                if (this.placesManager) {
-                    this.placesManager.removeAllMarkers();
-                    this.placesManager.resetAllStates();
-                }
-                this.uiManager.setState('journeyState', 'idle');
-            }
+        // Once the flight has started the map stays fully visible, wherever the frozen scroll position is
+        const followsScroll = phase === 'globe' || phase === 'returning';
+        const fadeProgress = followsScroll
+            ? Math.min((progress - activationThreshold) / (1 - activationThreshold), 1.0)
+            : 1.0;
+
+        mapContainer.style.zIndex = '2';
+        mapContainer.style.opacity = fadeProgress.toString();
+        mapContainer.classList.add('visible');
+        this.hideBackgroundElements(fadeProgress);
+
+        if (fadeProgress >= 0.5 && footer) {
+            footer.style.marginBottom = window.innerWidth <= 768 ? '45px' : '25px';
+        }
+
+        // Only moving forward starts the journey, never the scroll back up after "Back to Beginning"
+        if (phase === 'globe' && scrollingDown && fadeProgress >= 0.5) {
+            this.startJourney();
         }
     }
-
 
     hideBackgroundElements(fadeProgress) {
         const container = this.uiManager.getElement('container');
@@ -533,18 +376,7 @@ export class App {
             container.style.pointerEvents = 'none';
         }
         this.isSceneHidden = fadeProgress >= 0.5;
-
-        this.uiManager.hideElement('scrollIndicator');
-        this.uiManager.hideElement('skipButton');
-        this.uiManager.hideElement('footer');
-
-        // Do not show any top-level overlay buttons during the unwrap animation
-        if (this.uiManager.getState('journeyState') !== 'arrived') {
-            this.uiManager.hideElement('reopenPortfolioBtn');
-            this.uiManager.hideElement('reopenShowcaseBtn');
-        }
     }
-
 
     showBackgroundElements() {
         const container = this.uiManager.getElement('container');
@@ -555,127 +387,64 @@ export class App {
         this.isSceneHidden = false;
     }
 
-
-
-
-
-    resetMapTileMap() {
-        this.mapManager.reset();
-        this.uiManager.setState('journeyState', 'idle');
-    }
-
-
-    skipToOverlay(overlayName) {
-        // Reset the maptile map to its original state since user is skipping the journey
-        this.resetMapTileMap();
-
-        // Hide the skip button, showcase button, scroll indicator, and footer natively via UIManager
-        this.uiManager.hideElement('skipButton');
-        this.uiManager.hideElement('scrollIndicator');
-        this.uiManager.hideElement('skipShowcaseBtn');
-        this.uiManager.hideElement('footer');
-
-        // Special state tracking for portfolio
-        if (overlayName === 'portfolio') {
-            this.uiManager.setState('portfolioHasBeenShown', true);
-        }
-
-        // Show requested overlay immediately
-        this.uiManager.setActiveOverlay(overlayName);
-    }
-
-
     backToBeginning() {
-        // Hide the back to beginning button immediately
-        const backToBeginningBtn = this.uiManager.getElement('backToBeginningBtn');
-        if (backToBeginningBtn) {
-            backToBeginningBtn.classList.add('hidden');
-        }
+        const ui = this.uiManager;
+        if (ui.phase !== 'map') return;
 
-        // Hide any open overlays
-        this.uiManager.setActiveOverlay('none');
+        const token = ++this.journeyToken;
+        clearTimeout(this.portfolioTimer);
 
-        // Reset the scroll indicator
-        const scrollIndicator = this.uiManager.getElement('scrollIndicator');
-        if (scrollIndicator) {
-            scrollIndicator.classList.remove('animating');
-        }
+        // Leaving the map phase first hides all map chrome before anything else changes
+        ui.setPhase('returning');
+        ui.setActiveOverlay('none');
+        ui.portfolioIntroDone = false;
 
-        // Hide places list immediately, remove all markers, and clear any open popups/modals
         if (this.placesManager) {
-            this.placesManager.setPlacesListVisibility(false);
             this.placesManager.removeAllMarkers();
             this.placesManager.resetAllStates();
         }
-
-        // Reset Earth to complete sphere (0% morphing)
+        this.mapManager.reset();
+        const mapContainer = ui.getElement('mapContainer');
+        if (mapContainer) mapContainer.style.pointerEvents = '';
         this.earthScene.reset();
-        this.earthScene.updateTransformation(0); // Force update to sphere state
 
-        // Reset the maptile map to original state
-        this.resetMapTileMap();
+        // Unlocking puts the page back at the bottom, from where the Earth wraps up again on the way to the top
+        ui.unlockScroll('journey');
+        this.lastScrollProgress = 1;
+        this.onScroll();
 
-        // Unlock the scroll so the user can smoothly slide back to the top
-        this.uiManager.unlockScroll();
+        this.scrollBackToTop(token);
+    }
 
-        // Smooth scroll to top
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+    /**
+     * Animated by hand, because browsers silently drop or cut short a native smooth scroll.
+     * The return ends at the top, or wherever the visitor takes over by touching or wheeling.
+     */
+    scrollBackToTop(token: number) {
+        const startY = window.pageYOffset;
+        const duration = prefersReducedMotion() ? 0 : 1800;
+        const startTime = performance.now();
+        let frame = 0;
 
-        // Reset all journey flags for a fresh start
-        this.uiManager.setState('journeyState', 'idle');
-        this.uiManager.setState('portfolioHasBeenShown', false);
-        this.uiManager.setState('portfolioManuallyDismissed', false);
-        this.uiManager.setState('activeOverlay', 'none');
-
-        // Protect the scroll up with isAutoScrolling
-        this.uiManager.setState('isAutoScrolling', true);
-
-        let scrollTimeout;
-        const finishAutoScroll = () => {
-            this.uiManager.setState('isAutoScrolling', false);
-            window.removeEventListener('scroll', checkScrollComplete);
-            clearTimeout(scrollTimeout);
+        const finish = () => {
+            cancelAnimationFrame(frame);
+            window.removeEventListener('touchstart', finish);
+            window.removeEventListener('wheel', finish);
+            if (token !== this.journeyToken) return;
+            this.uiManager.setPhase('globe');
+            this.onScroll();
         };
 
-        const checkScrollComplete = () => {
-            if (window.pageYOffset <= 5) {
-                finishAutoScroll();
-            }
+        const step = (now: number) => {
+            if (token !== this.journeyToken) return finish();
+            const t = duration ? Math.min((now - startTime) / duration, 1) : 1;
+            window.scrollTo({ top: startY * (1 - this.uiManager.easeInOutQuart(t)), behavior: 'instant' });
+            if (t < 1) frame = requestAnimationFrame(step);
+            else finish();
         };
 
-        window.addEventListener('scroll', checkScrollComplete);
-        scrollTimeout = setTimeout(finishAutoScroll, 2000); // Fallback
-
-        // Hide the showcase button and reopen portfolio button
-        const reopenPortfolioBtn = this.uiManager.getElement('reopenPortfolioBtn');
-        if (reopenPortfolioBtn) {
-            reopenPortfolioBtn.classList.remove('visible');
-        }
-        const skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
-        if (skipShowcaseBtn) {
-            skipShowcaseBtn.classList.remove('visible');
-        }
-
-        const reopenShowcaseBtn = this.uiManager.getElement('reopenShowcaseBtn');
-        if (reopenShowcaseBtn) {
-            reopenShowcaseBtn.classList.remove('visible');
-        }
-
-        // Show the initial UI elements after a delay ONLY IF we are still at the top and not locked
-        setTimeout(() => {
-            if (window.pageYOffset <= 50 && !this.uiManager.getState('isScrollLocked')) {
-                const scrollIndicator = this.uiManager.getElement('scrollIndicator');
-                const skipButton = this.uiManager.getElement('skipButton');
-                const skipShowcaseBtn = this.uiManager.getElement('skipShowcaseBtn');
-
-                if (scrollIndicator) scrollIndicator.classList.remove('hidden');
-                if (skipButton) skipButton.classList.remove('hidden');
-                if (skipShowcaseBtn) skipShowcaseBtn.classList.remove('hidden');
-                this.uiManager.showElement('footer');
-            }
-        }, 1000); // Give time for scroll animation to complete
+        window.addEventListener('touchstart', finish, { passive: true });
+        window.addEventListener('wheel', finish, { passive: true });
+        frame = requestAnimationFrame(step);
     }
 }

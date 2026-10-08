@@ -24,7 +24,7 @@ export class MobileTouchHandler {
         document.addEventListener('touchmove', (e) => {
             // Overlays lock the body and stop scroll chaining via overscroll-behavior,
             // so their content must scroll natively in both directions.
-            const activeOverlay = this.app.uiManager?.getState('activeOverlay');
+            const activeOverlay = this.app.uiManager?.overlay;
             if (activeOverlay && activeOverlay !== 'none') {
                 return;
             }
