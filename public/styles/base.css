@@ -115,8 +115,13 @@ body {
                 max-width: calc(100% - 20px);
             }
 
-            #top-toolbar button {
+            #top-toolbar > button {
                 font-size: 12px !important;
+            }
+
+            #top-toolbar .lang-option {
+                padding: 7px 10px !important;
+                font-size: 0.68rem !important;
             }
 
             #skip-button, #skip-showcase-btn {

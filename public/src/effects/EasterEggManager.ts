@@ -1,5 +1,6 @@
 import { getIcon } from '../utils/Icons.js';
 import { getMorphStyle, type MorphStyle } from '../earth/CubeUnfold.js';
+import { t } from '../i18n/i18n.js';
 
 type ColorOp =
     | { op: 'sepia'; amount: number }
@@ -201,7 +202,7 @@ export class EasterEggManager {
         this.astronautBoostTimer = setTimeout(() => {
             eggs.astronautBoost = 1;
         }, 5000);
-        this.app.showTooltip(`${getIcon('Rocket')} Astronaut speed boost!`, 2000);
+        this.app.showTooltip(`${getIcon('Rocket')} ${t('eggs.astronaut')}`, 2000);
     }
 
     triggerShootingStarShower() {
@@ -211,7 +212,7 @@ export class EasterEggManager {
         for (let i = 0; i < 8; i++) {
             setTimeout(() => eggs.createShootingStar(), i * 200);
         }
-        this.app.showTooltip(`${getIcon('Star')} Shooting star shower!`, 3000);
+        this.app.showTooltip(`${getIcon('Star')} ${t('eggs.stars')}`, 3000);
     }
 
     triggerTimeWarp(intentional = false) {
@@ -220,17 +221,17 @@ export class EasterEggManager {
 
         const result = scene.noteTimeWarp(intentional);
         if (result === 'death') {
-            this.app.showTooltip(`${getIcon('Zap')} The oceans are gone.`, 3200);
+            this.app.showTooltip(`${getIcon('Zap')} ${t('eggs.oceansGone')}`, 3200);
             return;
         }
         if (result === 'revive') {
-            this.app.showTooltip(`${getIcon('Zap')} The oceans return.`, 2600);
+            this.app.showTooltip(`${getIcon('Zap')} ${t('eggs.oceansReturn')}`, 2600);
             return;
         }
         if (result !== 'warp') return;
 
         this.easterEggs?.summonAstronaut();
-        this.app.showTooltip(`${getIcon('Zap')} Time warp!`, 2000);
+        this.app.showTooltip(`${getIcon('Zap')} ${t('eggs.timeWarp')}`, 2000);
     }
 
     toggleColorMode() {
@@ -240,7 +241,7 @@ export class EasterEggManager {
 
         this.app.renderer.domElement.style.filter = '';
         this.app.earthScene?.geometry?.setColorGrade(grade.m, grade.o);
-        this.app.showTooltip(`${getIcon('Palette')} Color mode: ${mode.name}`, 2000);
+        this.app.showTooltip(`${getIcon('Palette')} ${t('eggs.colorMode', { mode: mode.name })}`, 2000);
     }
 
     triggerFireworks() {
@@ -252,7 +253,7 @@ export class EasterEggManager {
                 this.createFirework(x, y);
             }, i * 500);
         }
-        this.app.showTooltip(`${getIcon('Fire')} Fireworks!`, 3000);
+        this.app.showTooltip(`${getIcon('Fire')} ${t('eggs.fireworks')}`, 3000);
     }
 
     createFirework(x, y) {
@@ -292,9 +293,9 @@ export class EasterEggManager {
     renderMorphStyleLinks() {
         const current = getMorphStyle();
         const styles: { id: MorphStyle; label: string }[] = [
-            { id: 'cube-zoom', label: 'Cube unfold + zoom (default)' },
-            { id: 'cube-fade', label: 'Cube unfold + fade' },
-            { id: 'classic', label: 'Classic peel' }
+            { id: 'cube-zoom', label: t('eggs.morphCubeZoom') },
+            { id: 'cube-fade', label: t('eggs.morphCubeFade') },
+            { id: 'classic', label: t('eggs.morphClassic') }
         ];
 
         return styles.map(({ id, label }) => {
@@ -339,50 +340,50 @@ export class EasterEggManager {
         
         helpDiv.innerHTML = `
             <div style="font-weight: 600; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                ${getIcon('Gamepad')} <span>Easter Egg Controls</span>
+                ${getIcon('Gamepad')} <span>${t('eggs.helpTitle')}</span>
             </div>
             <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left; display: flex; flex-direction: column; gap: 10px;">
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">A</kbd>
-                    <span>Astronaut speed boost</span>
+                    <span>${t('eggs.helpAstronaut')}</span>
                     <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Rocket')}</span>
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">S</kbd>
-                    <span>Shooting star shower</span>
+                    <span>${t('eggs.helpStars')}</span>
                     <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Star')}</span>
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">T</kbd>
-                    <span>Time warp</span>
+                    <span>${t('eggs.helpTime')}</span>
                     <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Zap')}</span>
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">C</kbd>
-                    <span>Change color mode</span>
+                    <span>${t('eggs.helpColor')}</span>
                     <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Palette')}</span>
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">F</kbd>
-                    <span>Fireworks show</span>
+                    <span>${t('eggs.helpFireworks')}</span>
                     <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Fire')}</span>
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">H</kbd>
-                    <span>Show this help</span>
+                    <span>${t('eggs.helpHelp')}</span>
                     <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Help')}</span>
                 </li>
             </ul>
             <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; margin-bottom: 12px; text-align: left;">
                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px;">
-                    ${getIcon('Globe')} <span>Earth morph style</span>
+                    ${getIcon('Globe')} <span>${t('eggs.morphTitle')}</span>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
                     ${this.renderMorphStyleLinks()}
                 </div>
             </div>
             <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;">
-                ${getIcon('Mouse')} <span>Click anywhere for surprises!</span>
+                ${getIcon('Mouse')} <span>${t('eggs.clickSurprises')}</span>
             </div>
         `;
 

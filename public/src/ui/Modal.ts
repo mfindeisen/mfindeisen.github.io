@@ -1,4 +1,5 @@
 import { getIcon } from '../utils/Icons.js';
+import { loc, t } from '../i18n/i18n.js';
 
 /**
  * Modal - Handles photo, photosphere, and photo gallery modal functionality
@@ -63,14 +64,14 @@ export class Modal {
                 <div class="photo-modal-header">
                     <h3>${placeName}</h3>
                     <div class="photo-counter">${currentIndex + 1} / ${totalPhotos}</div>
-                    <button class="photo-modal-close icon-btn" aria-label="Close">${getIcon('XMark')}</button>
+                    <button class="photo-modal-close icon-btn" aria-label="${t('modal.close')}">${getIcon('XMark')}</button>
                 </div>
                 <div class="photo-modal-content">
                     <div class="photo-loading">
                         <div class="loading-spinner"></div>
-                        <p>Loading full-size image...</p>
+                        <p>${t('modal.loadingImage')}</p>
                     </div>
-                    <img src="${currentPhotoSrc}" alt="${placeName} photo" class="photo-modal-image" style="display: none;" />
+                    <img src="${currentPhotoSrc}" alt="${t('places.photoAlt', { name: placeName })}" class="photo-modal-image" style="display: none;" />
                     ${totalPhotos > 1 ? this.navButtonsHtml(currentIndex, totalPhotos) : ''}
                 </div>
             </div>
@@ -92,7 +93,7 @@ export class Modal {
         } else if (img) {
             img.addEventListener('load', handleImageLoad);
             img.addEventListener('error', () => {
-                if (loadingDiv) loadingDiv.innerHTML = '<p class="is-error">Error loading image</p>';
+                if (loadingDiv) loadingDiv.innerHTML = `<p class="is-error">${t('modal.loadingError')}</p>`;
             });
         }
 
@@ -117,7 +118,7 @@ export class Modal {
 
             if (img) {
                 img.src = newPhotoSrc;
-                img.alt = `${placeName} photo ${newIndex + 1}`;
+                img.alt = t('places.photoAltN', { name: placeName, n: newIndex + 1 });
 
                 if (img.complete) {
                     if (loadingDiv) loadingDiv.style.display = 'none';
@@ -214,18 +215,18 @@ export class Modal {
         modal.innerHTML = `
             <div class="photosphere-modal">
                 <div class="photosphere-modal-header">
-                    <h3>${placeName} - 360° View</h3>
+                    <h3>${t('modal.view360', { name: placeName })}</h3>
                     <div class="photosphere-controls">
                         ${totalPhotos > 1 ? `<div class="photo-counter">${currentIndex + 1} / ${totalPhotos}</div>` : ''}
-                        <button class="photosphere-fullscreen icon-btn" title="Fullscreen" aria-label="Fullscreen">${getIcon('Maximize')}</button>
-                        <button class="photosphere-close icon-btn" aria-label="Close">${getIcon('XMark')}</button>
+                        <button class="photosphere-fullscreen icon-btn" title="${t('modal.fullscreen')}" aria-label="${t('modal.fullscreen')}">${getIcon('Maximize')}</button>
+                        <button class="photosphere-close icon-btn" aria-label="${t('modal.close')}">${getIcon('XMark')}</button>
                     </div>
                 </div>
                 <div class="photosphere-container">
                     <div id="photosphere-canvas"></div>
-                    <div class="photosphere-loading">Loading 360° view...</div>
+                    <div class="photosphere-loading">${t('modal.loading360')}</div>
                     <div class="photosphere-instructions">
-                        <p>${getIcon('Mouse')} Drag to look around • ${getIcon('Search')} Scroll to zoom • Use controls for more options</p>
+                        <p>${getIcon('Mouse')} ${t('modal.dragHint')}</p>
                     </div>
                     ${totalPhotos > 1 ? this.navButtonsHtml(currentIndex, totalPhotos) : ''}
                 </div>
@@ -239,7 +240,7 @@ export class Modal {
             console.error('Error initializing photosphere viewer:', error);
             const loading = modal.querySelector('.photosphere-loading') as HTMLDivElement;
             if (loading) {
-                loading.textContent = 'Error loading 360° viewer';
+                loading.textContent = t('modal.loading360Error');
                 loading.classList.add('is-error');
             }
         });
@@ -275,7 +276,7 @@ export class Modal {
             const loading = modal.querySelector('.photosphere-loading') as HTMLDivElement;
             if (loading) {
                 loading.style.display = 'block';
-                loading.textContent = 'Loading 360° view...';
+                loading.textContent = t('modal.loading360');
                 loading.classList.remove('is-error');
             }
 
@@ -295,7 +296,7 @@ export class Modal {
                     this.initPhotosphereViewer(newPhotoSrc, placeName).catch(err => {
                         console.error('Error initializing photosphere viewer:', err);
                         if (loading) {
-                            loading.textContent = 'Error loading 360° viewer';
+                            loading.textContent = t('modal.loading360Error');
                             loading.classList.add('is-error');
                         }
                     });
@@ -304,7 +305,7 @@ export class Modal {
                 this.initPhotosphereViewer(newPhotoSrc, placeName).catch(err => {
                     console.error('Error initializing photosphere viewer:', err);
                     if (loading) {
-                        loading.textContent = 'Error loading 360° viewer';
+                        loading.textContent = t('modal.loading360Error');
                         loading.classList.add('is-error');
                     }
                 });
@@ -399,23 +400,24 @@ export class Modal {
 
         const modal = document.createElement('div');
         modal.className = 'photo-gallery-modal-overlay';
+        const placeName = loc(place.name);
         modal.innerHTML = `
             <div class="photo-gallery-modal">
                 <div class="photo-gallery-header">
-                    <h3>${place.name} - Photo Gallery</h3>
-                    <button class="photo-gallery-close icon-btn" aria-label="Close">${getIcon('XMark')}</button>
+                    <h3>${t('modal.gallery', { name: placeName })}</h3>
+                    <button class="photo-gallery-close icon-btn" aria-label="${t('modal.close')}">${getIcon('XMark')}</button>
                 </div>
                 <div class="photo-gallery-content">
                     <div class="photo-grid">
                         ${place.photos.map((photo, index) => {
                             const photoSrc = typeof photo === 'string' ? photo : photo.src;
                             const thumbnailSrc = this.getThumbnailPath(photoSrc, 'gallery');
-                            const photoCaption = typeof photo === 'object' && photo.caption ? photo.caption : '';
+                            const photoCaption = typeof photo === 'object' && photo.caption ? loc(photo.caption) : '';
                             const isPhotosphere = typeof photo === 'object' && photo.isPhotosphere;
                             const icon = isPhotosphere ? getIcon('Globe') : getIcon('Camera');
                             return `
                                 <div class="gallery-photo-item" data-index="${index}" data-full-src="${photoSrc}" data-photosphere="${isPhotosphere}">
-                                    <img src="${thumbnailSrc}" alt="${place.name} photo ${index + 1}" class="gallery-thumbnail" loading="lazy" />
+                                    <img src="${thumbnailSrc}" alt="${t('places.photoAltN', { name: placeName, n: index + 1 })}" class="gallery-thumbnail" loading="lazy" />
                                     <div class="gallery-photo-overlay">
                                         <span class="gallery-photo-icon">${icon}</span>
                                         ${photoCaption ? `<span class="gallery-photo-caption">${photoCaption}</span>` : ''}
@@ -467,7 +469,7 @@ export class Modal {
                 // Map interactions stay disabled while switching between gallery and photo
                 const returnOptions = { ...options, onOpen: undefined };
 
-                this.showPhotoModal(fullSrc, place.name, isPhotosphere, place, index, {
+                this.showPhotoModal(fullSrc, placeName, isPhotosphere, place, index, {
                     onClose: () => this.showPhotoGalleryModal(place, returnOptions, galleryScrollTop)
                 });
             });
@@ -485,10 +487,10 @@ export class Modal {
      */
     navButtonsHtml(currentIndex: number, totalPhotos: number) {
         return `
-            <button class="icon-btn icon-btn-lg photo-nav-btn photo-nav-prev" ${currentIndex === 0 ? 'disabled' : ''} aria-label="Previous photo">
+            <button class="icon-btn icon-btn-lg photo-nav-btn photo-nav-prev" ${currentIndex === 0 ? 'disabled' : ''} aria-label="${t('modal.prev')}">
                 ${getIcon('ChevronLeft')}
             </button>
-            <button class="icon-btn icon-btn-lg photo-nav-btn photo-nav-next" ${currentIndex === totalPhotos - 1 ? 'disabled' : ''} aria-label="Next photo">
+            <button class="icon-btn icon-btn-lg photo-nav-btn photo-nav-next" ${currentIndex === totalPhotos - 1 ? 'disabled' : ''} aria-label="${t('modal.next')}">
                 ${getIcon('ChevronRight')}
             </button>
         `;

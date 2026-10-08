@@ -9,6 +9,7 @@ import { MobileTouchHandler } from '../ui/MobileTouchHandler.js';
 import { prefersReducedMotion } from '../utils/motion.js';
 
 import { EasterEggManager } from '../effects/EasterEggManager.js';
+import { t } from '../i18n/i18n.js';
 
 // 36.1892566,44.0100967
 const ERBIL_CENTER: [number, number] = [44.0100967, 36.1892566];
@@ -145,7 +146,7 @@ export class App {
         this.uiManager.getElement('skipShowcaseBtn')?.addEventListener('click', () => this.uiManager.setActiveOverlay('showcase'));
 
         this.uiManager.setActiveOverlay('portfolio');
-        this.tooltip.show('The interactive 3D Earth needs WebGL, which is not available in this browser.', 6000);
+        this.tooltip.show(t('app.webglMissing'), 6000);
     }
 
     /**

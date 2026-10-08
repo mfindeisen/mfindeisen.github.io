@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-i18n-title="meta.title">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matthias Findeisen - Full Stack Developer & Creative Technologist</title>
-    <meta name="description" content="Portfolio of Matthias Findeisen, a full stack developer and former archaeologist building WebGL, 3D and geospatial web applications, including an open-source RTI toolset for cultural heritage.">
+    <meta name="description" data-i18n="meta.description" content="Portfolio of Matthias Findeisen, a full stack developer and former archaeologist building WebGL, 3D and geospatial web applications, including an open-source RTI toolset for cultural heritage.">
     <meta name="author" content="Matthias Findeisen">
     <link rel="canonical" href="https://mfindeisen.github.io/">
 
@@ -96,23 +96,27 @@
 
     <div id="loader" role="status" aria-live="polite">
         <div class="loader-orb" aria-hidden="true"></div>
-        <div class="loader-text">Loading Earth <span id="loader-progress">0%</span></div>
+        <div class="loader-text"><span data-i18n="loader.text">Loading Earth </span><span id="loader-progress">0%</span></div>
     </div>
 
     <header id="hero">
         <h1 class="hero-name">Matthias Findeisen</h1>
-        <p class="hero-role">Full stack developer building 3D, map and research data applications for the web</p>
-        <p class="hero-tagline">WebGL &middot; Geospatial &middot; Cultural Heritage &middot; Based in Germany</p>
+        <p class="hero-role" data-i18n="hero.role">Full stack developer building 3D, map and research data applications for the web</p>
+        <p class="hero-tagline" data-i18n="hero.tagline">WebGL &middot; Geospatial &middot; Cultural Heritage &middot; Based in Germany</p>
     </header>
 
-    <nav id="top-toolbar" aria-label="Quick navigation">
-        <button id="skip-showcase-btn" class="btn btn-ghost">Showcase →</button>
-        <button id="skip-button" class="btn btn-primary">Portfolio →</button>
-        <button id="reopen-showcase-btn" class="btn btn-ghost">Showcase →</button>
-        <button id="reopen-portfolio-btn" class="btn btn-primary">Portfolio →</button>
+    <nav id="top-toolbar" data-i18n-aria="nav.quick" aria-label="Quick navigation">
+        <div class="lang-switcher" role="group" data-i18n-aria="nav.lang" aria-label="Language">
+            <button type="button" class="lang-option" data-locale-option="en" aria-pressed="true">EN</button>
+            <button type="button" class="lang-option" data-locale-option="de" aria-pressed="false">DE</button>
+        </div>
+        <button id="skip-showcase-btn" class="btn btn-ghost" data-i18n="nav.showcase">Showcase →</button>
+        <button id="skip-button" class="btn btn-primary" data-i18n="nav.portfolio">Portfolio →</button>
+        <button id="reopen-showcase-btn" class="btn btn-ghost" data-i18n="nav.showcase">Showcase →</button>
+        <button id="reopen-portfolio-btn" class="btn btn-primary" data-i18n="nav.portfolio">Portfolio →</button>
     </nav>
 
-    <button id="back-to-beginning-btn" class="btn btn-ghost hidden" aria-label="Back to beginning">↑ Back to Beginning</button>
+    <button id="back-to-beginning-btn" class="btn btn-ghost hidden" data-i18n="nav.back" data-i18n-aria="nav.backAria" aria-label="Back to beginning">↑ Back to Beginning</button>
 
     <div id="map-container">
         <div id="maptiler-map"></div>
@@ -124,14 +128,14 @@
         <!-- Empty scrollable content - no overlay text -->
     </div>
 
-    <button id="scroll-indicator" type="button" aria-label="Scroll to explore">
-        <span class="scroll-text">Scroll to explore</span>
+    <button id="scroll-indicator" type="button" data-i18n-aria="scroll.exploreAria" aria-label="Scroll to explore">
+        <span class="scroll-text" data-i18n="scroll.explore">Scroll to explore</span>
         <span class="scroll-arrow">
             <span class="arrow-icon"></span>
         </span>
 
         <span class="progress-indicator">
-            <span>Unwrapping Earth...</span>
+            <span data-i18n="scroll.unwrapping">Unwrapping Earth...</span>
             <span class="progress-bar">
                 <span class="progress-fill"></span>
             </span>
@@ -140,15 +144,15 @@
 
     <div id="portfolio-overlay" role="dialog" aria-modal="true" aria-labelledby="portfolio-title" aria-hidden="true">
         <div class="portfolio-wrapper showcase-shell">
-            <nav class="showcase-toc" aria-label="Contents">
-                <a href="#portfolio-about" aria-current="true">About Me</a>
-                <a href="#portfolio-skills">Skills</a>
-                <a href="#portfolio-experience">Experience</a>
-                <a href="#portfolio-education">Education</a>
-                <a href="#portfolio-interests">Interests</a>
+            <nav class="showcase-toc" data-i18n-aria="portfolio.toc" aria-label="Contents">
+                <a href="#portfolio-about" aria-current="true" data-i18n="portfolio.aboutNav">About Me</a>
+                <a href="#portfolio-skills" data-i18n="portfolio.skillsNav">Skills</a>
+                <a href="#portfolio-experience" data-i18n="portfolio.experienceNav">Experience</a>
+                <a href="#portfolio-education" data-i18n="portfolio.educationNav">Education</a>
+                <a href="#portfolio-interests" data-i18n="portfolio.interestsNav">Interests</a>
             </nav>
             <div class="portfolio-content">
-                <button class="close-portfolio icon-btn" aria-label="Close portfolio">
+                <button class="close-portfolio icon-btn" data-i18n-aria="portfolio.close" aria-label="Close portfolio">
                     <svg class="h-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -159,7 +163,7 @@
                     <img src="profile-photo.jpg" alt="Matthias Findeisen" class="profile-photo" width="120" height="120">
                     <div class="header-text">
                         <h1 id="portfolio-title" class="portfolio-title">Matthias Findeisen</h1>
-                        <p class="portfolio-subtitle">Full Stack Developer &middot; WebGL, Geospatial &amp; Research Data &middot; Based in Germany</p>
+                        <p class="portfolio-subtitle" data-i18n="portfolio.subtitle">Full Stack Developer &middot; WebGL, Geospatial &amp; Research Data &middot; Based in Germany</p>
                         <div class="contact-links">
                             <a href="mailto:findeisen.matthias@gmail.com" class="btn btn-primary contact-link">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -197,12 +201,12 @@
                 </header>
 
                 <section class="portfolio-section" id="portfolio-about">
-                    <h2 class="section-title">About Me</h2>
-                    <p>
+                    <h2 class="section-title" data-i18n="portfolio.aboutTitle">About Me</h2>
+                    <p data-i18n="portfolio.aboutP1">
                         I build interactive web applications where data, maps and 3D come together: WebGL viewers,
                         geospatial interfaces and the maintainable backends behind them.
                     </p>
-                    <p>
+                    <p data-i18n="portfolio.aboutP2">
                         Before moving into software engineering, I spent years as an archaeologist on excavations
                         across West Asia and Europe, where I designed the research databases and digital tools those
                         projects relied on. That background still shapes how I work: careful with sensitive data, at
@@ -212,9 +216,9 @@
                 </section>
 
                 <section class="portfolio-section" id="portfolio-skills">
-                    <h2 class="section-title">Skills</h2>
+                    <h2 class="section-title" data-i18n="portfolio.skillsTitle">Skills</h2>
                     <div class="skill-group">
-                        <h3 class="skill-group-title">Frontend &amp; 3D</h3>
+                        <h3 class="skill-group-title" data-i18n="portfolio.skillFrontend">Frontend &amp; 3D</h3>
                         <ul class="skills-grid">
                             <li class="skill-tag">TypeScript / JavaScript</li>
                             <li class="skill-tag">Three.js / WebGL / GLSL</li>
@@ -223,7 +227,7 @@
                         </ul>
                     </div>
                     <div class="skill-group">
-                        <h3 class="skill-group-title">Geospatial</h3>
+                        <h3 class="skill-group-title" data-i18n="portfolio.skillGeo">Geospatial</h3>
                         <ul class="skills-grid">
                             <li class="skill-tag">MapLibre GL / Leaflet / OpenLayers</li>
                             <li class="skill-tag">QGIS / ArcGIS</li>
@@ -231,7 +235,7 @@
                         </ul>
                     </div>
                     <div class="skill-group">
-                        <h3 class="skill-group-title">Backend &amp; Data</h3>
+                        <h3 class="skill-group-title" data-i18n="portfolio.skillBackend">Backend &amp; Data</h3>
                         <ul class="skills-grid">
                             <li class="skill-tag">Java</li>
                             <li class="skill-tag">Node.js / Express</li>
@@ -243,7 +247,7 @@
                         </ul>
                     </div>
                     <div class="skill-group">
-                        <h3 class="skill-group-title">Process &amp; Operations</h3>
+                        <h3 class="skill-group-title" data-i18n="portfolio.skillOps">Process &amp; Operations</h3>
                         <ul class="skills-grid">
                             <li class="skill-tag">UML / BPMN 2.0</li>
                             <li class="skill-tag">Docker / Linux / Tomcat</li>
@@ -252,13 +256,13 @@
                 </section>
 
                 <section class="portfolio-section" id="portfolio-experience">
-                    <h2 class="section-title">Experience</h2>
+                    <h2 class="section-title" data-i18n="portfolio.experienceTitle">Experience</h2>
 
                     <article class="experience-item">
-                        <h3 class="experience-title">System Engineer</h3>
-                        <p class="experience-company">ESCRIBA AG &middot; Apr 2021 – Present &middot; Berlin / Wuppertal
+                        <h3 class="experience-title" data-i18n="portfolio.job1Title">System Engineer</h3>
+                        <p class="experience-company" data-i18n="portfolio.job1Company">ESCRIBA AG &middot; Apr 2021 – Present &middot; Berlin / Wuppertal
                             (Remote), Germany</p>
-                        <div class="experience-description">
+                        <div class="experience-description" data-i18n-html="portfolio.job1Body">
                             <ul>
                                 <li>Architect, develop, and maintain custom enterprise applications across the full
                                     lifecycle—from requirements analysis and technical design through deployment and
@@ -276,11 +280,11 @@
                     </article>
 
                     <article class="experience-item">
-                        <h3 class="experience-title">Graduate Student Assistant (Web Developer &amp; Repository
+                        <h3 class="experience-title" data-i18n="portfolio.job2Title">Graduate Student Assistant (Web Developer &amp; Repository
                             Architect)</h3>
-                        <p class="experience-company">Topoi Excellence Cluster &middot; Dec 2016 – Dec 2018 &middot; Berlin,
+                        <p class="experience-company" data-i18n="portfolio.job2Company">Topoi Excellence Cluster &middot; Dec 2016 – Dec 2018 &middot; Berlin,
                             Germany</p>
-                        <div class="experience-description">
+                        <div class="experience-description" data-i18n-html="portfolio.job2Body">
                             <ul>
                                 <li>Designed, developed, and maintained a research data repository for archaeological
                                     and spatial datasets using Python, Django, JavaScript, CSS, and Shell scripting</li>
@@ -293,10 +297,10 @@
                     </article>
 
                     <article class="experience-item">
-                        <h3 class="experience-title">Graduate Student Assistant (Surveyor &amp; Data Specialist)</h3>
-                        <p class="experience-company">University of Tübingen / Freie Universität Berlin / German
+                        <h3 class="experience-title" data-i18n="portfolio.job3Title">Graduate Student Assistant (Surveyor &amp; Data Specialist)</h3>
+                        <p class="experience-company" data-i18n="portfolio.job3Company">University of Tübingen / Freie Universität Berlin / German
                             Archaeological Institute &middot; 2012 – 2019 &middot; West Asia &amp; Europe</p>
-                        <div class="experience-description">
+                        <div class="experience-description" data-i18n-html="portfolio.job3Body">
                             Worked on international archaeological projects in Iraqi Kurdistan, Iran, Jordan, and Saudi
                             Arabia, and on contemporary archaeology excavations in Germany.
                             <ul>
@@ -317,12 +321,12 @@
                 </section>
 
                 <section class="portfolio-section" id="portfolio-education">
-                    <h2 class="section-title">Education</h2>
+                    <h2 class="section-title" data-i18n="portfolio.educationTitle">Education</h2>
                     <article class="experience-item">
-                        <h3 class="experience-title">History and Cultures of Ancient Western Asia (Master's Programme)</h3>
-                        <p class="experience-company">Freie Universität Berlin &middot; 2017 – 2021 &middot; Coursework
+                        <h3 class="experience-title" data-i18n="portfolio.edu1Title">History and Cultures of Ancient Western Asia (Master's Programme)</h3>
+                        <p class="experience-company" data-i18n="portfolio.edu1Company">Freie Universität Berlin &middot; 2017 – 2021 &middot; Coursework
                             completed; moved into software engineering in 2021</p>
-                        <div class="experience-description">
+                        <div class="experience-description" data-i18n-html="portfolio.edu1Body">
                             <ul>
                                 <li><strong>Spatial &amp; computational methods:</strong> remote sensing and digital
                                     image processing, quantitative landscape modelling with R, GIS cartography and
@@ -333,10 +337,10 @@
                         </div>
                     </article>
                     <article class="experience-item">
-                        <h3 class="experience-title">Studies in Ancient Civilisations (Bachelor of Arts)</h3>
-                        <p class="experience-company">Freie Universität Berlin &middot; 2015 &middot; Concentration: Ancient
+                        <h3 class="experience-title" data-i18n="portfolio.edu2Title">Studies in Ancient Civilisations (Bachelor of Arts)</h3>
+                        <p class="experience-company" data-i18n="portfolio.edu2Company">Freie Universität Berlin &middot; 2015 &middot; Concentration: Ancient
                             Near Eastern Archaeology</p>
-                        <div class="experience-description">
+                        <div class="experience-description" data-i18n-html="portfolio.edu2Body">
                             Foundational studies in Ancient Western Asian archaeology, material culture, and field
                             methods.
                             <p class="experience-note">
@@ -352,14 +356,14 @@
                 </section>
 
                 <section class="portfolio-section" id="portfolio-interests">
-                    <h2 class="section-title">Interests &amp; Side Projects</h2>
-                    <p>
+                    <h2 class="section-title" data-i18n="portfolio.interestsTitle">Interests &amp; Side Projects</h2>
+                    <p data-i18n="portfolio.interestsP1">
                         Outside of work I build experimental 3D visualisations, explore geospatial data, contribute to
                         open source, and keep learning new interactive web technologies. When away from the terminal, I
                         enjoy indie game development (Godot, pixel art), linocut printmaking, and playing blues and jazz
                         guitar.
                     </p>
-                    <p>
+                    <p data-i18n-html="portfolio.interestsP2">
                         <strong>Personal research &amp; reading:</strong> theories of power, post-colonial thought, and
                         the history, languages (Kurmanji, Sorani, Persian), culture, and geopolitics of Kurdistan and
                         West Asia.
@@ -373,19 +377,19 @@
 
     <div id="showcase-overlay" role="dialog" aria-modal="true" aria-labelledby="showcase-title" aria-hidden="true">
         <div class="portfolio-wrapper showcase-shell">
-            <nav class="showcase-toc" aria-label="Contents">
-                <a href="#showcase-overview" aria-current="true">RTI Toolset</a>
+            <nav class="showcase-toc" data-i18n-aria="portfolio.toc" aria-label="Contents">
+                <a href="#showcase-overview" aria-current="true" data-i18n="showcase.overviewNav">RTI Toolset</a>
                 <a href="#showcase-modernrtiviewer">modernRtiViewer</a>
                 <a href="#showcase-rtidb">rtiDb</a>
                 <a href="#showcase-rtiprep">rtiprep</a>
                 <a href="#showcase-neural-rti">neural_rti</a>
-                <a href="#showcase-more">More Projects</a>
+                <a href="#showcase-more" data-i18n="showcase.moreNav">More Projects</a>
                 <a href="#showcase-humanitysync">HumanitySync</a>
                 <a href="#showcase-kurdihub">KurdîHub</a>
-                <a href="#showcase-portfolio">This Portfolio</a>
+                <a href="#showcase-portfolio" data-i18n="showcase.portfolioNav">This Portfolio</a>
             </nav>
             <div class="portfolio-content">
-                <button class="close-portfolio icon-btn" id="close-showcase" aria-label="Close showcase">
+                <button class="close-portfolio icon-btn" id="close-showcase" data-i18n-aria="showcase.close" aria-label="Close showcase">
                     <svg class="h-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -394,7 +398,7 @@
 
                 <header class="portfolio-header">
                     <div class="header-text">
-                        <h1 id="showcase-title" class="portfolio-title">Showcase</h1>
+                        <h1 id="showcase-title" class="portfolio-title" data-i18n="showcase.title">Showcase</h1>
                         <div class="contact-links">
                             <a href="https://github.com/mfindeisen" class="btn btn-ghost contact-link" target="_blank"
                                 rel="noopener">
@@ -412,8 +416,8 @@
                 </header>
 
                 <section class="portfolio-section" id="showcase-overview">
-                    <h2 class="section-title"><span>Reflectance Transformation Imaging (RTI) Toolset</span></h2>
-                    <p>
+                    <h2 class="section-title"><span data-i18n="showcase.overviewTitle">Reflectance Transformation Imaging (RTI) Toolset</span></h2>
+                    <p data-i18n="showcase.overviewBody">
                         An open-source toolset for Reflectance Transformation Imaging, a technique used in cultural
                         heritage to capture and reveal fine surface detail. It covers the full pipeline, from
                         preparing raw captures to rendering them interactively in the browser. The four tools below
@@ -427,6 +431,7 @@
                         <figure class="project-media">
                             <video autoplay muted loop playsinline preload="none"
                                 poster="showcase/rti-viewer-orbit-poster.jpg"
+                                data-i18n-aria="showcase.videoAria"
                                 aria-label="Orbiting light source revealing surface detail in modernRtiViewer">
                                 <source src="showcase/rti-viewer-orbit.webm" type="video/webm">
                                 <source src="showcase/rti-viewer-orbit.mp4" type="video/mp4">
@@ -435,7 +440,7 @@
                         <div class="project-body">
                             <h3 class="experience-title">modernRtiViewer</h3>
                             <p class="experience-company">WebGL Viewer &middot; Vue &middot; Three.js</p>
-                            <p class="experience-description">
+                            <p class="experience-description" data-i18n="showcase.modernRtiBody">
                                 A modern, WebGL-based viewer for RTI data. Renders image-pyramid folders, tiled
                                 pyramidal TIFFs (Cloud Optimized GeoTIFF / COG) and Neural RTI decoders directly in
                                 the browser, with pan/zoom, interactive lighting and annotations.
@@ -448,9 +453,9 @@
                             </ul>
                             <div class="project-links">
                                 <a class="btn btn-primary btn-sm" href="https://mfindeisen.github.io/modernRtiViewer/"
-                                    target="_blank" rel="noopener">Live Demo ↗&#xFE0E;</a>
+                                    target="_blank" rel="noopener" data-i18n="showcase.liveDemo">Live Demo ↗&#xFE0E;</a>
                                 <a class="btn btn-ghost btn-sm" href="https://github.com/mfindeisen/modernRtiViewer"
-                                    target="_blank" rel="noopener">GitHub ↗&#xFE0E;</a>
+                                    target="_blank" rel="noopener" data-i18n="showcase.github">GitHub ↗&#xFE0E;</a>
                             </div>
                         </div>
                     </article>
@@ -460,13 +465,13 @@
                     <h2 class="section-title">rtiDb</h2>
                     <article class="project-card">
                         <figure class="project-media">
-                            <img src="showcase/rtidb-gallery.webp" alt="rtiDb gallery listing RTI records"
+                            <img src="showcase/rtidb-gallery.webp" data-i18n-alt="showcase.rtidbAlt" alt="rtiDb gallery listing RTI records"
                                 loading="lazy" width="1280" height="607">
                         </figure>
                         <div class="project-body">
                             <h3 class="experience-title">rtiDb</h3>
-                            <p class="experience-company">Database &amp; Web Interface</p>
-                            <p class="experience-description">
+                            <p class="experience-company" data-i18n="showcase.rtiDbCompany">Database &amp; Web Interface</p>
+                            <p class="experience-description" data-i18n="showcase.rtiDbBody">
                                 A database management system and web interface for cataloguing, uploading and
                                 managing RTI records and assets, with an embedded modernRtiViewer, role-based access
                                 and scholarly annotations.
@@ -479,7 +484,7 @@
                             </ul>
                             <div class="project-links">
                                 <a class="btn btn-ghost btn-sm" href="https://github.com/mfindeisen/rtiDb"
-                                    target="_blank" rel="noopener">GitHub ↗&#xFE0E;</a>
+                                    target="_blank" rel="noopener" data-i18n="showcase.github">GitHub ↗&#xFE0E;</a>
                             </div>
                         </div>
                     </article>
@@ -495,8 +500,8 @@
                         </figure>
                         <div class="project-body">
                             <h3 class="experience-title">rtiprep</h3>
-                            <p class="experience-company">Command-line Utility &middot; Go</p>
-                            <p class="experience-description">
+                            <p class="experience-company" data-i18n="showcase.rtiprepCompany">Command-line Utility &middot; Go</p>
+                            <p class="experience-description" data-i18n="showcase.rtiprepBody">
                                 A fast command-line utility for converting PTM, HSH and standard images into
                                 hierarchical image-pyramid folders or tiled pyramidal TIFFs (COG) for web
                                 visualisation.
@@ -508,7 +513,7 @@
                             </ul>
                             <div class="project-links">
                                 <a class="btn btn-ghost btn-sm" href="https://github.com/mfindeisen/rtiprep"
-                                    target="_blank" rel="noopener">GitHub ↗&#xFE0E;</a>
+                                    target="_blank" rel="noopener" data-i18n="showcase.github">GitHub ↗&#xFE0E;</a>
                             </div>
                         </div>
                     </article>
@@ -524,8 +529,8 @@
                         </figure>
                         <div class="project-body">
                             <h3 class="experience-title">neural_rti</h3>
-                            <p class="experience-company">Experimental ML Pipeline &middot; PyTorch</p>
-                            <p class="experience-description">
+                            <p class="experience-company" data-i18n="showcase.neuralCompany">Experimental ML Pipeline &middot; PyTorch</p>
+                            <p class="experience-description" data-i18n="showcase.neuralBody">
                                 An experimental PyTorch pipeline to train and evaluate Neural RTI models, compressing
                                 spatial reflectance data into 4-channel latent maps and lightweight MLP decoders.
                             </p>
@@ -536,15 +541,15 @@
                             </ul>
                             <div class="project-links">
                                 <a class="btn btn-ghost btn-sm" href="https://github.com/mfindeisen/neural_rti"
-                                    target="_blank" rel="noopener">GitHub ↗&#xFE0E;</a>
+                                    target="_blank" rel="noopener" data-i18n="showcase.github">GitHub ↗&#xFE0E;</a>
                             </div>
                         </div>
                     </article>
                 </section>
 
                 <section class="portfolio-section" id="showcase-more">
-                    <h2 class="section-title"><span>More Projects</span></h2>
-                    <p>
+                    <h2 class="section-title"><span data-i18n="showcase.moreTitle">More Projects</span></h2>
+                    <p data-i18n="showcase.moreBody">
                         Independent projects outside the RTI toolset: offline-first field data collection, a
                         cross-platform map app, and the site you are looking at.
                     </p>
@@ -561,9 +566,9 @@
                         </figure>
                         <div class="project-body">
                             <h3 class="experience-title">HumanitySync</h3>
-                            <p class="experience-company">Offline-First Field Data Platform &middot; Vue 3 &middot; Node.js
+                            <p class="experience-company" data-i18n="showcase.humanityCompany">Offline-First Field Data Platform &middot; Vue 3 &middot; Node.js
                                 &middot; CouchDB</p>
-                            <p class="experience-description">
+                            <p class="experience-description" data-i18n="showcase.humanityBody">
                                 An open-source, offline-first low-code data collection platform designed for
                                 humanitarian field operations in infrastructure-challenged environments. Features
                                 bidirectional CouchDB/PouchDB synchronization, conflict resolution, client-side
@@ -578,7 +583,7 @@
                             </ul>
                             <div class="project-links">
                                 <a class="btn btn-ghost btn-sm" href="https://github.com/mfindeisen/HumanitySync"
-                                    target="_blank" rel="noopener">GitHub ↗&#xFE0E;</a>
+                                    target="_blank" rel="noopener" data-i18n="showcase.github">GitHub ↗&#xFE0E;</a>
                             </div>
                         </div>
                     </article>
@@ -595,9 +600,9 @@
                         </figure>
                         <div class="project-body">
                             <h3 class="experience-title">KurdîHub</h3>
-                            <p class="experience-company">Cross-Platform Geospatial &amp; Events App &middot; Kotlin Multiplatform
+                            <p class="experience-company" data-i18n="showcase.kurdiCompany">Cross-Platform Geospatial &amp; Events App &middot; Kotlin Multiplatform
                                 &middot; OpenStreetMap</p>
-                            <p class="experience-description">
+                            <p class="experience-description" data-i18n="showcase.kurdiBody">
                                 A Kotlin Multiplatform app for discovering and mapping Kurdish cultural events across
                                 Android, iOS and Desktop. Features interactive OpenStreetMap cartography with dark map
                                 styles, GPS/location filtering, Material 3 UI, and a Ktor backend with SQLite and an
@@ -611,23 +616,23 @@
                             </ul>
                             <div class="project-links">
                                 <a class="btn btn-ghost btn-sm" href="https://github.com/mfindeisen/KurdiHub"
-                                    target="_blank" rel="noopener">GitHub ↗&#xFE0E;</a>
+                                    target="_blank" rel="noopener" data-i18n="showcase.github">GitHub ↗&#xFE0E;</a>
                             </div>
                         </div>
                     </article>
                 </section>
 
                 <section class="portfolio-section" id="showcase-portfolio">
-                    <h2 class="section-title">This Portfolio</h2>
+                    <h2 class="section-title" data-i18n="showcase.portfolioTitle">This Portfolio</h2>
                     <article class="project-card">
                         <figure class="project-media">
-                            <img src="showcase/portfolio-start.webp" alt="Start screen of the portfolio with the rotating 3D Earth"
+                            <img src="showcase/portfolio-start.webp" data-i18n-alt="showcase.portfolioAlt" alt="Start screen of the portfolio with the rotating 3D Earth"
                                 loading="lazy" width="1280" height="720">
                         </figure>
                         <div class="project-body">
-                            <h3 class="experience-title">Interactive Earth Portfolio</h3>
+                            <h3 class="experience-title" data-i18n="showcase.portfolioCardTitle">Interactive Earth Portfolio</h3>
                             <p class="experience-company">Three.js &middot; MapLibre GL &middot; TypeScript</p>
-                            <p class="experience-description">
+                            <p class="experience-description" data-i18n="showcase.portfolioCardBody">
                                 The site you are looking at: a scroll-driven morph from a 3D globe into a flat plane,
                                 handed off seamlessly to a vector map that flies to Erbil, with places, photo
                                 galleries and 360° panoramas.
@@ -640,7 +645,7 @@
                             </ul>
                             <div class="project-links">
                                 <a class="btn btn-ghost btn-sm" href="https://github.com/mfindeisen/mfindeisen.github.io"
-                                    target="_blank" rel="noopener">GitHub ↗&#xFE0E;</a>
+                                    target="_blank" rel="noopener" data-i18n="showcase.github">GitHub ↗&#xFE0E;</a>
                             </div>
                         </div>
                     </article>
@@ -659,7 +664,7 @@
             <span class="footer-divider">/</span>
             <span class="footer-item">MILKY WAY: <a href="https://www.eso.org/public/images/eso0932a/" target="_blank" rel="noopener">ESO/S. BRUNIER</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>)</span>
             <span class="footer-divider">/</span>
-            <span class="footer-item">PRESS 'H' FOR SECRETS</span>
+            <span class="footer-item" data-i18n="footer.secrets">PRESS 'H' FOR SECRETS</span>
             <span class="footer-divider">/</span>
             <span class="footer-item"><a href="/impressum.html">IMPRESSUM</a> &middot; <a href="/datenschutz.html">DATENSCHUTZ</a></span>
         </div>
