@@ -82,6 +82,9 @@ export function applyTranslations(root: ParentNode = document): void {
     });
 
     root.querySelectorAll<HTMLElement>('[data-i18n-title]').forEach((el) => {
+        // Never put a title attribute on <html>/<body> — browsers show it as a
+        // page-wide native tooltip on hover.
+        if (el === document.documentElement || el === document.body) return;
         const key = el.dataset.i18nTitle;
         if (key) el.setAttribute('title', t(key));
     });
@@ -91,8 +94,11 @@ export function applyTranslations(root: ParentNode = document): void {
         if (key) el.setAttribute('alt', t(key));
     });
 
-    const titleKey = document.documentElement.dataset.i18nTitle;
-    if (titleKey) document.title = t(titleKey);
+    document.documentElement.removeAttribute('title');
+    document.body?.removeAttribute('title');
+
+    const docTitleKey = document.documentElement.dataset.i18nDocTitle;
+    if (docTitleKey) document.title = t(docTitleKey);
 
     const desc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     const descKey = desc?.dataset.i18n;
