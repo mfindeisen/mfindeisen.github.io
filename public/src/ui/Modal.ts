@@ -2,6 +2,25 @@ import { getIcon } from '../utils/Icons.js';
 import { t } from '../i18n/i18n.js';
 
 /**
+ * Point the viewer at the middle of a cropped panorama.
+ * Uses yaw/pitch ratios (same mapping as Photo Sphere Viewer's textureCoordsToSphericalCoords)
+ * so the aim stays correct after the WebP resize scales the image.
+ */
+function cropCenter(panoData) {
+    if (!panoData?.fullWidth || !panoData.croppedWidth) return null;
+    const fullHeight = panoData.fullHeight || panoData.fullWidth / 2;
+    const croppedHeight = panoData.croppedHeight || fullHeight;
+    const croppedX = panoData.croppedX || 0;
+    const croppedY = panoData.croppedY || 0;
+    const relativeX = ((croppedX + panoData.croppedWidth / 2) / panoData.fullWidth) * Math.PI * 2;
+    const relativeY = ((croppedY + croppedHeight / 2) / fullHeight) * Math.PI;
+    return {
+        yaw: relativeX >= Math.PI ? relativeX - Math.PI : relativeX + Math.PI,
+        pitch: Math.PI / 2 - relativeY,
+    };
+}
+
+/**
  * Modal - Handles photo, photosphere, and photo gallery modal functionality
  */
 export class Modal {
@@ -209,6 +228,7 @@ export class Modal {
         const totalPhotos = photos.length;
         const currentPhoto = photos[currentIndex];
         const currentPhotoSrc = typeof currentPhoto === 'string' ? currentPhoto : currentPhoto.src;
+        const panoDataOf = (photo) => (photo && typeof photo === 'object' ? photo.panoData : undefined);
 
         console.log('Photosphere modal data:', { place, photos, currentIndex, currentPhoto, currentPhotoSrc });
 
@@ -236,7 +256,7 @@ export class Modal {
         document.body.appendChild(modal);
         this.activeModal = modal;
 
-        this.initPhotosphereViewer(currentPhotoSrc, placeName).catch(error => {
+        this.initPhotosphereViewer(currentPhotoSrc, placeName, panoDataOf(currentPhoto)).catch(error => {
             console.error('Error initializing photosphere viewer:', error);
             const loading = modal.querySelector('.photosphere-loading') as HTMLDivElement;
             if (loading) {
@@ -282,8 +302,11 @@ export class Modal {
 
             if (this.photosphereViewer) {
                 try {
+                    const center = cropCenter(panoDataOf(newPhoto));
                     this.photosphereViewer.setPanorama(newPhotoSrc, {
-                        caption: placeName
+                        caption: placeName,
+                        panoData: panoDataOf(newPhoto),
+                        ...(center ? { position: center } : {}),
                     });
 
                     this.photosphereViewer.addEventListener('panorama-loaded', () => {
@@ -293,7 +316,7 @@ export class Modal {
                 } catch (error) {
                     console.error('Error updating photosphere:', error);
                     this.destroyPhotosphere();
-                    this.initPhotosphereViewer(newPhotoSrc, placeName).catch(err => {
+                    this.initPhotosphereViewer(newPhotoSrc, placeName, panoDataOf(newPhoto)).catch(err => {
                         console.error('Error initializing photosphere viewer:', err);
                         if (loading) {
                             loading.textContent = t('modal.loading360Error');
@@ -302,7 +325,7 @@ export class Modal {
                     });
                 }
             } else {
-                this.initPhotosphereViewer(newPhotoSrc, placeName).catch(err => {
+                this.initPhotosphereViewer(newPhotoSrc, placeName, panoDataOf(newPhoto)).catch(err => {
                     console.error('Error initializing photosphere viewer:', err);
                     if (loading) {
                         loading.textContent = t('modal.loading360Error');
@@ -499,16 +522,19 @@ export class Modal {
     /**
      * Initialize the photosphere viewer
      */
-    async initPhotosphereViewer(photoSrc, placeName) {
+    async initPhotosphereViewer(photoSrc, placeName, panoData) {
         const container = document.getElementById('photosphere-canvas');
         if (!container) return;
 
         try {
             await import('@photo-sphere-viewer/core/index.css');
             const { Viewer } = await import('@photo-sphere-viewer/core');
+            const center = cropCenter(panoData);
             this.photosphereViewer = new Viewer({
                 container: container,
                 panorama: photoSrc,
+                ...(panoData ? { panoData } : {}),
+                ...(center ? { defaultYaw: center.yaw, defaultPitch: center.pitch } : {}),
                 caption: placeName,
                 loadingImg: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTgiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+CjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjE4IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWRhc2hhcnJheT0iMjAgMjAiIHN0cm9rZS1kYXNob2Zmc2V0PSIwIiBzdHJva2Utb3BhY2l0eT0iMC44Ij4KICA8YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSJzdHJva2UtZGFzaG9mZnNldCIgZHVyPSIxcyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiIHZhbHVlcz0iMCAyMCIvPgo8L2NpcmNsZT4KPC9zdmc+',
                 navbar: ['zoom', 'fullscreen', 'caption'],
@@ -518,6 +544,9 @@ export class Modal {
             });
 
             this.photosphereViewer.addEventListener('ready', () => {
+                if (center) {
+                    this.photosphereViewer.rotate(center);
+                }
                 const loading = container.parentElement?.querySelector('.photosphere-loading') as HTMLDivElement;
                 if (loading) loading.style.display = 'none';
             });

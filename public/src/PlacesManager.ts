@@ -8,6 +8,10 @@ import { t } from './i18n/i18n.js';
  * PlacesManager - Handles all travel location markers and information
  * Makes it easy to add, manage, and display places you've visited
  */
+const PLACES_SOURCE = 'places';
+const PLACES_CLUSTERS = 'places-clusters';
+const PLACES_CLUSTER_COUNT = 'places-cluster-count';
+
 export class PlacesManager {
     mapTilerMap: any;
     markers: Map<string, any>;
@@ -21,12 +25,14 @@ export class PlacesManager {
     backdropElement: HTMLDivElement | null;
     originalMapCursor: string;
     isInitialized: boolean;
+    clusterLayersReady: boolean;
     listVisibilityTimer: ReturnType<typeof setTimeout> | undefined;
     popupTimer: ReturnType<typeof setTimeout> | undefined;
+    boundUpdatePinMarkers: (() => void) | null;
 
     constructor(mapTilerMap: any) {
         this.mapTilerMap = mapTilerMap;
-        this.markers = new Map(); // Store all markers for easy cleanup
+        this.markers = new Map(); // HTML pin markers for unclustered places
         this.places = this.initializePlaces();
         this.placesListElement = null; // Reference to the places list sidebar
         this.isListVisible = false;
@@ -38,6 +44,8 @@ export class PlacesManager {
         this.backdropElement = null;
         this.originalMapCursor = '';
         this.isInitialized = false;
+        this.clusterLayersReady = false;
+        this.boundUpdatePinMarkers = null;
 
         // Initialize the places list UI
         this.createPlacesList();
@@ -51,8 +59,29 @@ export class PlacesManager {
         return places;
     }
 
+    placesGeoJson() {
+        return {
+            type: 'FeatureCollection' as const,
+            features: this.places.map(place => ({
+                type: 'Feature' as const,
+                geometry: {
+                    type: 'Point' as const,
+                    coordinates: place.coordinates,
+                },
+                properties: {
+                    id: place.id,
+                    name: place.name,
+                },
+            })),
+        };
+    }
+
+    markerAccent() {
+        return getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim() || '#2f8cf5';
+    }
+
     /**
-     * Add a marker for a specific place using MapTiler's native marker functionality
+     * Ensure a single place is on the clustered GeoJSON source (used when flying from the list).
      */
     addPlaceMarker(placeId) {
         const place = this.places.find(p => p.id === placeId);
@@ -60,50 +89,8 @@ export class PlacesManager {
             console.error(`Place with id "${placeId}" not found`);
             return null;
         }
-
-        if (this.markers.has(placeId)) {
-            console.warn(`Marker for "${placeId}" already exists`);
-            return this.markers.get(placeId);
-        }
-
-        console.log(`Adding marker for ${place.name}`);
-
-        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim();
-        const marker = new maplibregl.Marker({ color: accent || '#2f8cf5' })
-            .setLngLat(place.coordinates)
-            .addTo(this.mapTilerMap);
-
-        // Create popup using MapTiler's native popup
-        const popup = this.createNativePopup(place);
-        
-        // Use MapTiler's native event handling
-        marker.getElement().addEventListener('click', () => {
-            console.log('Marker clicked!', place.name);
-            
-            // Close any previously opened popup
-            if (this.activePopup) {
-                this.activePopup.remove();
-            }
-            
-            popup.setLngLat(place.coordinates).addTo(this.mapTilerMap);
-            this.activePopup = popup;
-            this.keepPopupInView(popup);
-            
-            // Add click handlers for photos after popup is added
-            setTimeout(() => {
-                this.addPhotoClickHandlers(place, popup.getElement());
-            }, 100);
-        });
-
-        // Add cursor pointer effect to the marker
-        marker.getElement().style.cursor = 'pointer';
-
-        // Store marker reference
-        this.markers.set(placeId, marker);
-        
-        console.log(`Marker for ${place.name} added successfully using native MapTiler functionality`);
-        
-        return marker;
+        this.addAllMarkers();
+        return place;
     }
 
 
@@ -632,76 +619,193 @@ export class PlacesManager {
      */
     flyToPlace(place) {
         console.log(`Flying to ${place.name} at coordinates:`, place.coordinates);
-        
-        // Use MapTiler's native flyTo method
+
         this.mapTilerMap.flyTo({
             center: place.coordinates,
-            zoom: 13, // Good zoom level for city/landmark viewing
-            duration: 2000, // 2 second smooth animation
-            essential: true // Animation cannot be interrupted
+            zoom: 13,
+            duration: 2000,
+            essential: true
         });
-        
-        // Add marker if it doesn't exist
-        if (!this.markers.has(place.id)) {
-            this.addPlaceMarker(place.id);
-        }
-        
-        // Open the marker popup after the flyTo animation completes
+
         clearTimeout(this.popupTimer);
         this.popupTimer = setTimeout(() => {
             this.openMarkerPopup(place);
-        }, 2100); // Wait slightly longer than the flyTo duration
-        
-        // Keep the places list open after flying
+        }, 2100);
     }
 
     /**
-     * Open the popup for a specific place's marker
+     * Open the popup for a specific place
      */
     openMarkerPopup(place) {
-        const marker = this.markers.get(place.id);
-        if (marker) {
-            // Close any previously opened popup
-            if (this.activePopup) {
-                this.activePopup.remove();
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        const popup = this.createNativePopup(place);
+        popup.setLngLat(place.coordinates).addTo(this.mapTilerMap);
+        this.activePopup = popup;
+        this.keepPopupInView(popup);
+
+        setTimeout(() => {
+            this.addPhotoClickHandlers(place, popup.getElement());
+        }, 100);
+
+        console.log(`Opened popup for ${place.name}`);
+    }
+
+    /**
+     * Create the classic MapLibre pin for an unclustered place
+     */
+    createPinMarker(place) {
+        const accent = this.markerAccent();
+        const marker = new maplibregl.Marker({ color: accent })
+            .setLngLat(place.coordinates)
+            .addTo(this.mapTilerMap);
+
+        marker.getElement().style.cursor = 'pointer';
+        marker.getElement().addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openMarkerPopup(place);
+        });
+
+        return marker;
+    }
+
+    /**
+     * Keep HTML pins in sync with unclustered GeoJSON features.
+     * Runs on every render so pins appear/disappear while zooming into a cluster.
+     */
+    updatePinMarkers() {
+        const map = this.mapTilerMap;
+        if (!map?.getSource(PLACES_SOURCE) || !map.isSourceLoaded(PLACES_SOURCE)) return;
+
+        const features = map.querySourceFeatures(PLACES_SOURCE, {
+            filter: ['!', ['has', 'point_count']],
+        });
+
+        const visibleIds = new Set<string>();
+        for (const feature of features) {
+            const id = feature.properties?.id;
+            if (!id || visibleIds.has(id)) continue;
+            visibleIds.add(id);
+
+            if (!this.markers.has(id)) {
+                const place = this.places.find(p => p.id === id);
+                if (place) this.markers.set(id, this.createPinMarker(place));
             }
-            
-            // Create and show the popup
-            const popup = this.createNativePopup(place);
-            popup.setLngLat(place.coordinates).addTo(this.mapTilerMap);
-            this.activePopup = popup;
-            this.keepPopupInView(popup);
-            
-            // Add photo click handlers after popup is shown
-            setTimeout(() => {
-                this.addPhotoClickHandlers(place, popup.getElement());
-            }, 100);
-            
-            console.log(`Opened popup for ${place.name}`);
-        } else {
-            console.warn(`Marker not found for place: ${place.name}`);
+        }
+
+        for (const [id, marker] of this.markers) {
+            if (!visibleIds.has(id)) {
+                marker.remove();
+                this.markers.delete(id);
+            }
         }
     }
 
     /**
-     * Add all places as markers
+     * Add all places as clustered GeoJSON (circles when zoomed out, classic pins when unclustered)
      */
     addAllMarkers() {
-        this.places.forEach(place => {
-            this.addPlaceMarker(place.id);
+        const map = this.mapTilerMap;
+        if (!map) return;
+
+        const data = this.placesGeoJson();
+        const accent = this.markerAccent();
+
+        if (map.getSource(PLACES_SOURCE)) {
+            (map.getSource(PLACES_SOURCE) as maplibregl.GeoJSONSource).setData(data);
+            return;
+        }
+
+        map.addSource(PLACES_SOURCE, {
+            type: 'geojson',
+            data,
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 56,
         });
+
+        map.addLayer({
+            id: PLACES_CLUSTERS,
+            type: 'circle',
+            source: PLACES_SOURCE,
+            filter: ['has', 'point_count'],
+            paint: {
+                'circle-color': accent,
+                'circle-radius': [
+                    'step',
+                    ['get', 'point_count'],
+                    16,
+                    5, 20,
+                    15, 26,
+                ],
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#ffffff',
+                'circle-opacity': 0.92,
+            },
+        });
+
+        const textFont = (() => {
+            const layers = map.getStyle()?.layers || [];
+            for (const layer of layers) {
+                const fonts = layer.layout && (layer.layout as Record<string, unknown>)['text-font'];
+                if (Array.isArray(fonts) && fonts.length) return fonts as string[];
+            }
+            return ['Open Sans Regular', 'Arial Unicode MS Regular'];
+        })();
+
+        map.addLayer({
+            id: PLACES_CLUSTER_COUNT,
+            type: 'symbol',
+            source: PLACES_SOURCE,
+            filter: ['has', 'point_count'],
+            layout: {
+                'text-field': ['get', 'point_count_abbreviated'],
+                'text-font': textFont,
+                'text-size': 13,
+                'text-allow-overlap': true,
+            },
+            paint: {
+                'text-color': '#ffffff',
+            },
+        });
+
+        map.on('click', PLACES_CLUSTERS, (e) => {
+            const feature = e.features?.[0];
+            if (!feature) return;
+            const clusterId = feature.properties?.cluster_id;
+            const source = map.getSource(PLACES_SOURCE) as maplibregl.GeoJSONSource;
+            const geometry = feature.geometry as { type: string; coordinates: number[] };
+            const coordinates = geometry.coordinates.slice(0, 2) as [number, number];
+            source.getClusterExpansionZoom(clusterId).then((zoom) => {
+                map.easeTo({ center: coordinates, zoom });
+            }).catch(() => {});
+        });
+
+        const setPointer = () => { map.getCanvas().style.cursor = 'pointer'; };
+        const clearPointer = () => { map.getCanvas().style.cursor = ''; };
+        map.on('mouseenter', PLACES_CLUSTERS, setPointer);
+        map.on('mouseleave', PLACES_CLUSTERS, clearPointer);
+
+        this.boundUpdatePinMarkers = () => this.updatePinMarkers();
+        map.on('render', this.boundUpdatePinMarkers);
+
+        this.clusterLayersReady = true;
+        console.log(`Clustered markers for ${this.places.length} places`);
     }
 
     /**
-     * Remove a specific marker
+     * Remove a specific place from the clustered source
      */
     removeMarker(placeId) {
-        const marker = this.markers.get(placeId);
-        if (marker) {
-            marker.remove();
-            this.markers.delete(placeId);
-            console.log(`Marker for ${placeId} removed`);
+        this.places = this.places.filter(p => p.id !== placeId);
+        this.markers.get(placeId)?.remove();
+        this.markers.delete(placeId);
+        if (this.mapTilerMap?.getSource(PLACES_SOURCE)) {
+            (this.mapTilerMap.getSource(PLACES_SOURCE) as maplibregl.GeoJSONSource).setData(this.placesGeoJson());
         }
+        console.log(`Place ${placeId} removed from map`);
     }
 
     /**
@@ -732,13 +836,24 @@ export class PlacesManager {
     }
 
     /**
-     * Remove all markers
+     * Remove all place markers / cluster layers
      */
     removeAllMarkers() {
-        this.markers.forEach((marker, placeId) => {
-            marker.remove();
-        });
+        this.markers.forEach((marker) => marker.remove());
         this.markers.clear();
+
+        const map = this.mapTilerMap;
+        if (map) {
+            if (this.boundUpdatePinMarkers) {
+                map.off('render', this.boundUpdatePinMarkers);
+                this.boundUpdatePinMarkers = null;
+            }
+            for (const id of [PLACES_CLUSTER_COUNT, PLACES_CLUSTERS]) {
+                if (map.getLayer(id)) map.removeLayer(id);
+            }
+            if (map.getSource(PLACES_SOURCE)) map.removeSource(PLACES_SOURCE);
+        }
+        this.clusterLayersReady = false;
         console.log('All place markers removed');
     }
 
