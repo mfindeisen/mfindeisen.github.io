@@ -229,6 +229,8 @@
             min-height: 0;
             overflow-y: auto;
             overscroll-behavior: contain;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
             padding: 6px;
         }
 
@@ -349,7 +351,6 @@
 
         .places-list-container.mobile .places-list {
             max-height: calc(70vh - 60px);
-            -webkit-overflow-scrolling: touch;
         }
 
         .places-list-container.mobile .place-item {

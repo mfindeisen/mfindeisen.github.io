@@ -1,6 +1,6 @@
 {
-  "generated": "2026-10-09T18:07:24.374Z",
-  "totalPhotos": 62,
+  "generated": "2026-10-10T10:16:51.968684Z",
+  "totalPhotos": 103,
   "display": {
     "maxEdge": 2560,
     "quality": 80,
@@ -25,6 +25,14 @@
     }
   },
   "files": [
+    {
+      "original": "afarmah_pxl_20221020_131242906.webp",
+      "thumbnails": [
+        "afarmah_pxl_20221020_131242906_preview.webp",
+        "afarmah_pxl_20221020_131242906_gallery.webp",
+        "afarmah_pxl_20221020_131242906_medium.webp"
+      ]
+    },
     {
       "original": "asiye_img_20181004_072044.webp",
       "thumbnails": [
@@ -143,6 +151,86 @@
         "batel_area_img_20180909_071152_preview.webp",
         "batel_area_img_20180909_071152_gallery.webp",
         "batel_area_img_20180909_071152_medium.webp"
+      ]
+    },
+    {
+      "original": "birumarah_pxl_20221017_123933298.webp",
+      "thumbnails": [
+        "birumarah_pxl_20221017_123933298_preview.webp",
+        "birumarah_pxl_20221017_123933298_gallery.webp",
+        "birumarah_pxl_20221017_123933298_medium.webp"
+      ]
+    },
+    {
+      "original": "bozan_2_pxl_20221019_121102427.webp",
+      "thumbnails": [
+        "bozan_2_pxl_20221019_121102427_preview.webp",
+        "bozan_2_pxl_20221019_121102427_gallery.webp",
+        "bozan_2_pxl_20221019_121102427_medium.webp"
+      ]
+    },
+    {
+      "original": "bozan_2_pxl_20221019_121425422.webp",
+      "thumbnails": [
+        "bozan_2_pxl_20221019_121425422_preview.webp",
+        "bozan_2_pxl_20221019_121425422_gallery.webp",
+        "bozan_2_pxl_20221019_121425422_medium.webp"
+      ]
+    },
+    {
+      "original": "bozan_3_pxl_20221019_130153310.webp",
+      "thumbnails": [
+        "bozan_3_pxl_20221019_130153310_preview.webp",
+        "bozan_3_pxl_20221019_130153310_gallery.webp",
+        "bozan_3_pxl_20221019_130153310_medium.webp"
+      ]
+    },
+    {
+      "original": "bozan_pxl_20221019_111619716.webp",
+      "thumbnails": [
+        "bozan_pxl_20221019_111619716_preview.webp",
+        "bozan_pxl_20221019_111619716_gallery.webp",
+        "bozan_pxl_20221019_111619716_medium.webp"
+      ]
+    },
+    {
+      "original": "bozan_pxl_20221019_111739616.webp",
+      "thumbnails": [
+        "bozan_pxl_20221019_111739616_preview.webp",
+        "bozan_pxl_20221019_111739616_gallery.webp",
+        "bozan_pxl_20221019_111739616_medium.webp"
+      ]
+    },
+    {
+      "original": "bozan_pxl_20221019_112307344.webp",
+      "thumbnails": [
+        "bozan_pxl_20221019_112307344_preview.webp",
+        "bozan_pxl_20221019_112307344_gallery.webp",
+        "bozan_pxl_20221019_112307344_medium.webp"
+      ]
+    },
+    {
+      "original": "bozan_pxl_20221019_120338616.webp",
+      "thumbnails": [
+        "bozan_pxl_20221019_120338616_preview.webp",
+        "bozan_pxl_20221019_120338616_gallery.webp",
+        "bozan_pxl_20221019_120338616_medium.webp"
+      ]
+    },
+    {
+      "original": "deraluk_2_pxl_20221018_140118114.webp",
+      "thumbnails": [
+        "deraluk_2_pxl_20221018_140118114_preview.webp",
+        "deraluk_2_pxl_20221018_140118114_gallery.webp",
+        "deraluk_2_pxl_20221018_140118114_medium.webp"
+      ]
+    },
+    {
+      "original": "deraluk_pxl_20221018_131550584.webp",
+      "thumbnails": [
+        "deraluk_pxl_20221018_131550584_preview.webp",
+        "deraluk_pxl_20221018_131550584_gallery.webp",
+        "deraluk_pxl_20221018_131550584_medium.webp"
       ]
     },
     {
@@ -322,6 +410,14 @@
       ]
     },
     {
+      "original": "erbil_citadel_pxl_20221015_095330798.webp",
+      "thumbnails": [
+        "erbil_citadel_pxl_20221015_095330798_preview.webp",
+        "erbil_citadel_pxl_20221015_095330798_gallery.webp",
+        "erbil_citadel_pxl_20221015_095330798_medium.webp"
+      ]
+    },
+    {
       "original": "erbil_mosque_1.webp",
       "thumbnails": [
         "erbil_mosque_1_preview.webp",
@@ -343,6 +439,22 @@
         "erbil_unused_1_preview.webp",
         "erbil_unused_1_gallery.webp",
         "erbil_unused_1_medium.webp"
+      ]
+    },
+    {
+      "original": "fidralli_pxl_20221025_124000739.webp",
+      "thumbnails": [
+        "fidralli_pxl_20221025_124000739_preview.webp",
+        "fidralli_pxl_20221025_124000739_gallery.webp",
+        "fidralli_pxl_20221025_124000739_medium.webp"
+      ]
+    },
+    {
+      "original": "fidralli_pxl_20221025_124134374.webp",
+      "thumbnails": [
+        "fidralli_pxl_20221025_124134374_preview.webp",
+        "fidralli_pxl_20221025_124134374_gallery.webp",
+        "fidralli_pxl_20221025_124134374_medium.webp"
       ]
     },
     {
@@ -386,6 +498,22 @@
       ]
     },
     {
+      "original": "kafroshi_pxl_20221025_120331184.webp",
+      "thumbnails": [
+        "kafroshi_pxl_20221025_120331184_preview.webp",
+        "kafroshi_pxl_20221025_120331184_gallery.webp",
+        "kafroshi_pxl_20221025_120331184_medium.webp"
+      ]
+    },
+    {
+      "original": "kalaka_pxl_20221018_130147256.webp",
+      "thumbnails": [
+        "kalaka_pxl_20221018_130147256_preview.webp",
+        "kalaka_pxl_20221018_130147256_gallery.webp",
+        "kalaka_pxl_20221018_130147256_medium.webp"
+      ]
+    },
+    {
       "original": "kawlokan_canyon_360.webp",
       "thumbnails": [
         "kawlokan_canyon_360_preview.webp",
@@ -407,6 +535,14 @@
         "kawlokan_rim_photosphere_preview.webp",
         "kawlokan_rim_photosphere_gallery.webp",
         "kawlokan_rim_photosphere_medium.webp"
+      ]
+    },
+    {
+      "original": "kawlukan_pxl_20221022_123801490.webp",
+      "thumbnails": [
+        "kawlukan_pxl_20221022_123801490_preview.webp",
+        "kawlukan_pxl_20221022_123801490_gallery.webp",
+        "kawlukan_pxl_20221022_123801490_medium.webp"
       ]
     },
     {
@@ -450,6 +586,30 @@
       ]
     },
     {
+      "original": "lalish_2_pxl_20221017_093131384.webp",
+      "thumbnails": [
+        "lalish_2_pxl_20221017_093131384_preview.webp",
+        "lalish_2_pxl_20221017_093131384_gallery.webp",
+        "lalish_2_pxl_20221017_093131384_medium.webp"
+      ]
+    },
+    {
+      "original": "lalish_pxl_20221017_092548117.webp",
+      "thumbnails": [
+        "lalish_pxl_20221017_092548117_preview.webp",
+        "lalish_pxl_20221017_092548117_gallery.webp",
+        "lalish_pxl_20221017_092548117_medium.webp"
+      ]
+    },
+    {
+      "original": "lalish_pxl_20221017_093408169.webp",
+      "thumbnails": [
+        "lalish_pxl_20221017_093408169_preview.webp",
+        "lalish_pxl_20221017_093408169_gallery.webp",
+        "lalish_pxl_20221017_093408169_medium.webp"
+      ]
+    },
+    {
       "original": "mam_shvan_img_20180816_090143.webp",
       "thumbnails": [
         "mam_shvan_img_20180816_090143_preview.webp",
@@ -463,6 +623,142 @@
         "mam_shvan_img_20180826_052720_preview.webp",
         "mam_shvan_img_20180826_052720_gallery.webp",
         "mam_shvan_img_20180826_052720_medium.webp"
+      ]
+    },
+    {
+      "original": "mergi_2_pxl_20221016_134343513.webp",
+      "thumbnails": [
+        "mergi_2_pxl_20221016_134343513_preview.webp",
+        "mergi_2_pxl_20221016_134343513_gallery.webp",
+        "mergi_2_pxl_20221016_134343513_medium.webp"
+      ]
+    },
+    {
+      "original": "mergi_pxl_20221016_132006683.webp",
+      "thumbnails": [
+        "mergi_pxl_20221016_132006683_preview.webp",
+        "mergi_pxl_20221016_132006683_gallery.webp",
+        "mergi_pxl_20221016_132006683_medium.webp"
+      ]
+    },
+    {
+      "original": "mergi_pxl_20221016_135448579.webp",
+      "thumbnails": [
+        "mergi_pxl_20221016_135448579_preview.webp",
+        "mergi_pxl_20221016_135448579_gallery.webp",
+        "mergi_pxl_20221016_135448579_medium.webp"
+      ]
+    },
+    {
+      "original": "place_202210_15_pxl_20221021_102217355.webp",
+      "thumbnails": [
+        "place_202210_15_pxl_20221021_102217355_preview.webp",
+        "place_202210_15_pxl_20221021_102217355_gallery.webp",
+        "place_202210_15_pxl_20221021_102217355_medium.webp"
+      ]
+    },
+    {
+      "original": "place_202210_16_pxl_20221021_102528985.webp",
+      "thumbnails": [
+        "place_202210_16_pxl_20221021_102528985_preview.webp",
+        "place_202210_16_pxl_20221021_102528985_gallery.webp",
+        "place_202210_16_pxl_20221021_102528985_medium.webp"
+      ]
+    },
+    {
+      "original": "place_202210_17_pxl_20221021_110437471.webp",
+      "thumbnails": [
+        "place_202210_17_pxl_20221021_110437471_preview.webp",
+        "place_202210_17_pxl_20221021_110437471_gallery.webp",
+        "place_202210_17_pxl_20221021_110437471_medium.webp"
+      ]
+    },
+    {
+      "original": "place_202210_18_pxl_20221021_111048669.webp",
+      "thumbnails": [
+        "place_202210_18_pxl_20221021_111048669_preview.webp",
+        "place_202210_18_pxl_20221021_111048669_gallery.webp",
+        "place_202210_18_pxl_20221021_111048669_medium.webp"
+      ]
+    },
+    {
+      "original": "place_202210_18_pxl_20221021_111303714.webp",
+      "thumbnails": [
+        "place_202210_18_pxl_20221021_111303714_preview.webp",
+        "place_202210_18_pxl_20221021_111303714_gallery.webp",
+        "place_202210_18_pxl_20221021_111303714_medium.webp"
+      ]
+    },
+    {
+      "original": "place_202210_18_pxl_20221021_115402531.webp",
+      "thumbnails": [
+        "place_202210_18_pxl_20221021_115402531_preview.webp",
+        "place_202210_18_pxl_20221021_115402531_gallery.webp",
+        "place_202210_18_pxl_20221021_115402531_medium.webp"
+      ]
+    },
+    {
+      "original": "place_202210_23_pxl_20221024_084920407.webp",
+      "thumbnails": [
+        "place_202210_23_pxl_20221024_084920407_preview.webp",
+        "place_202210_23_pxl_20221024_084920407_gallery.webp",
+        "place_202210_23_pxl_20221024_084920407_medium.webp"
+      ]
+    },
+    {
+      "original": "sabirawa_2_pxl_20221023_102032513.webp",
+      "thumbnails": [
+        "sabirawa_2_pxl_20221023_102032513_preview.webp",
+        "sabirawa_2_pxl_20221023_102032513_gallery.webp",
+        "sabirawa_2_pxl_20221023_102032513_medium.webp"
+      ]
+    },
+    {
+      "original": "sabirawa_pxl_20221023_100845320.webp",
+      "thumbnails": [
+        "sabirawa_pxl_20221023_100845320_preview.webp",
+        "sabirawa_pxl_20221023_100845320_gallery.webp",
+        "sabirawa_pxl_20221023_100845320_medium.webp"
+      ]
+    },
+    {
+      "original": "sartka_2_pxl_20221025_093913763.webp",
+      "thumbnails": [
+        "sartka_2_pxl_20221025_093913763_preview.webp",
+        "sartka_2_pxl_20221025_093913763_gallery.webp",
+        "sartka_2_pxl_20221025_093913763_medium.webp"
+      ]
+    },
+    {
+      "original": "sartka_2_pxl_20221025_094112742.webp",
+      "thumbnails": [
+        "sartka_2_pxl_20221025_094112742_preview.webp",
+        "sartka_2_pxl_20221025_094112742_gallery.webp",
+        "sartka_2_pxl_20221025_094112742_medium.webp"
+      ]
+    },
+    {
+      "original": "sartka_2_pxl_20221025_095041836.webp",
+      "thumbnails": [
+        "sartka_2_pxl_20221025_095041836_preview.webp",
+        "sartka_2_pxl_20221025_095041836_gallery.webp",
+        "sartka_2_pxl_20221025_095041836_medium.webp"
+      ]
+    },
+    {
+      "original": "sartka_2_pxl_20221025_100733470.webp",
+      "thumbnails": [
+        "sartka_2_pxl_20221025_100733470_preview.webp",
+        "sartka_2_pxl_20221025_100733470_gallery.webp",
+        "sartka_2_pxl_20221025_100733470_medium.webp"
+      ]
+    },
+    {
+      "original": "sartka_pxl_20221025_093120676.webp",
+      "thumbnails": [
+        "sartka_pxl_20221025_093120676_preview.webp",
+        "sartka_pxl_20221025_093120676_gallery.webp",
+        "sartka_pxl_20221025_093120676_medium.webp"
       ]
     },
     {
@@ -482,6 +778,14 @@
       ]
     },
     {
+      "original": "shakhke_quarter_pxl_20221017_141037022.webp",
+      "thumbnails": [
+        "shakhke_quarter_pxl_20221017_141037022_preview.webp",
+        "shakhke_quarter_pxl_20221017_141037022_gallery.webp",
+        "shakhke_quarter_pxl_20221017_141037022_medium.webp"
+      ]
+    },
+    {
       "original": "sham_brikla_img_20180816_085101.webp",
       "thumbnails": [
         "sham_brikla_img_20180816_085101_preview.webp",
@@ -495,6 +799,30 @@
         "shindokha_img_20180813_061945_preview.webp",
         "shindokha_img_20180813_061945_gallery.webp",
         "shindokha_img_20180813_061945_medium.webp"
+      ]
+    },
+    {
+      "original": "topzawa_pxl_20221025_131428889.webp",
+      "thumbnails": [
+        "topzawa_pxl_20221025_131428889_preview.webp",
+        "topzawa_pxl_20221025_131428889_gallery.webp",
+        "topzawa_pxl_20221025_131428889_medium.webp"
+      ]
+    },
+    {
+      "original": "zakho_central_subdistrict_pxl_20221026_154349549.webp",
+      "thumbnails": [
+        "zakho_central_subdistrict_pxl_20221026_154349549_preview.webp",
+        "zakho_central_subdistrict_pxl_20221026_154349549_gallery.webp",
+        "zakho_central_subdistrict_pxl_20221026_154349549_medium.webp"
+      ]
+    },
+    {
+      "original": "zerandol_pxl_20221023_133733961.webp",
+      "thumbnails": [
+        "zerandol_pxl_20221023_133733961_preview.webp",
+        "zerandol_pxl_20221023_133733961_gallery.webp",
+        "zerandol_pxl_20221023_133733961_medium.webp"
       ]
     },
     {

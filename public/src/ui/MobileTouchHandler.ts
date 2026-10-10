@@ -22,17 +22,26 @@ export class MobileTouchHandler {
         }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
-            // Overlays lock the body and stop scroll chaining via overscroll-behavior,
-            // so their content must scroll natively in both directions.
+            // Nested scrollables must keep native touch scrolling. Calling preventDefault
+            // here (especially while body is position:fixed for the map) freezes their scroll.
+            const target = e.target;
+            if (target instanceof Element) {
+                const nestedScroll = target.closest(
+                    '.places-list-container, .places-list, .photo-modal-overlay, .photo-gallery-modal-overlay, .portfolio-content'
+                );
+                if (nestedScroll) {
+                    return;
+                }
+            }
+
             const activeOverlay = this.app.uiManager?.overlay;
             if (activeOverlay && activeOverlay !== 'none') {
                 return;
             }
 
-            // Allow places list sidebar to handle its own scrolling is now handled globally in UIManager.js
-
-            const photoModal = document.querySelector('.photo-modal-overlay, .photo-gallery-modal-overlay');
-            if (photoModal) {
+            // Journey/map scroll lock pins the body; pageYOffset stays 0 and would
+            // otherwise treat every downward finger swipe as overscroll.
+            if (this.app.uiManager?.isScrollLocked) {
                 return;
             }
 
