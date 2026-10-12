@@ -13,7 +13,7 @@ This is the portfolio site of Matthias Findeisen. It opens on a 3D Earth. Scroll
 - Portfolio and showcase overlays covering experience, skills and selected projects, among them the open-source RTI toolset, HumanitySync and KurdîHub.
 - Accessibility basics: keyboard-operable dialogs (Esc closes them, focus stays trapped inside) and support for `prefers-reduced-motion`.
 - Fallbacks: without WebGL the portfolio opens directly, without JavaScript a short contact card is shown.
-- A few hidden extras. Press `H` on the start screen to list them.
+- A few hidden extras. Press `H` on the start screen to list them, or long-press on a phone.
 
 ## Getting started
 

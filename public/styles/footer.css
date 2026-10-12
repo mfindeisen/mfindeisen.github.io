@@ -57,6 +57,26 @@
             font-size: 10px;
         }
 
+        .secrets-hint {
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .secrets-hint-touch {
+            display: none;
+        }
+
+        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+            .secrets-hint-keyboard {
+                display: none;
+            }
+
+            .secrets-hint-touch {
+                display: inline-block;
+            }
+        }
+
         @media (max-width: 768px) {
             #footer {
                 font-size: 9px;

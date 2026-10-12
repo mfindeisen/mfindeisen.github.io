@@ -210,13 +210,24 @@
             font-weight: 600;
         }
 
-        .places-list-container:not(.mobile).collapsed .places-list-title {
+        .places-list-container:not(.mobile).collapsed .places-list-title,
+        .places-list-container:not(.mobile).collapsed .places-list-gallery {
             display: none;
         }
 
+        .places-list-gallery,
         .places-list-toggle {
             width: 38px;
             height: 38px;
+            flex-shrink: 0;
+        }
+
+        .places-list-gallery {
+            color: var(--text-muted);
+        }
+
+        .places-list-gallery:hover {
+            color: var(--accent);
         }
 
         .toggle-icon,

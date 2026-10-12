@@ -311,11 +311,14 @@ export class PlacesManager {
             this.placesListElement.classList.add('mobile');
         }
         
-        // Create header with toggle button
+        // Create header with gallery entry and toggle button
         const header = document.createElement('div');
         header.className = 'places-list-header';
         header.innerHTML = `
             <span class="places-list-title">${getIcon('MapPin')} ${this.isMobile ? t('places.placesToVisit') : t('places.myPlaces')}</span>
+            <button class="places-list-gallery icon-btn" type="button" title="${t('places.openGallery')}" aria-label="${t('places.openGallery')}">
+                ${getIcon('Camera')}
+            </button>
             <button class="places-list-toggle icon-btn" title="${t('places.toggleList')}" aria-label="${t('places.toggleList')}">
                 <span class="toggle-icon">${getIcon('ChevronUp')}</span>
                 <span class="hamburger-icon" style="display: none;">${getIcon('Menu')}</span>
@@ -339,6 +342,12 @@ export class PlacesManager {
         
         // Initially hidden - will be shown when MapTiler view is active
         this.placesListElement.style.display = 'none';
+
+        const galleryBtn = header.querySelector('.places-list-gallery');
+        galleryBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openAllPhotosGallery();
+        });
         
         // Add toggle functionality
         this.setupToggleFunctionality();
@@ -613,6 +622,17 @@ export class PlacesManager {
         return typeMap[type] || `${getIcon('MapPin')} ${t('places.typePlace')}`;
     }
 
+
+    /**
+     * Open the global photo gallery across all places
+     */
+    openAllPhotosGallery() {
+        this.modal.showAllPhotosGalleryModal(this.places, {
+            onOpen: () => this.disableMapInteractions(),
+            onClose: () => this.enableMapInteractions(),
+            onFlyToPlace: (place) => this.flyToPlace(place),
+        });
+    }
 
     /**
      * Fly to a specific place using MapTiler's native flyTo

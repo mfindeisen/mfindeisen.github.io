@@ -84,6 +84,13 @@ function composeColorGrade(ops: ColorOp[]): ColorGrade {
     return ops.reduce((grade, op) => multiplyGrade(colorOpGrade(op), grade), identityGrade());
 }
 
+const LONG_PRESS_MS = 550;
+const LONG_PRESS_MOVE_PX = 14;
+
+function isCoarsePointer(): boolean {
+    return window.matchMedia('(pointer: coarse)').matches;
+}
+
 export class EasterEggManager {
     app: any;
     colorModeIndex: number;
@@ -91,6 +98,7 @@ export class EasterEggManager {
     astronautBoostTimer: ReturnType<typeof setTimeout> | undefined;
     helpAutoCloseTimer: ReturnType<typeof setTimeout> | undefined;
     closeHelp: (() => void) | null;
+    suppressClickUntil: number;
 
     constructor(app: any) {
         this.app = app;
@@ -106,6 +114,7 @@ export class EasterEggManager {
         ];
 
         this.closeHelp = null;
+        this.suppressClickUntil = 0;
     }
 
     setup() {
@@ -136,9 +145,94 @@ export class EasterEggManager {
         this.app.renderer.domElement.addEventListener('click', (e) => {
             this.onCanvasClick(e);
         });
+
+        this.setupLongPress();
+    }
+
+    setupLongPress() {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        let startX = 0;
+        let startY = 0;
+        let pointerId: number | null = null;
+
+        const cancel = () => {
+            if (timer !== undefined) {
+                clearTimeout(timer);
+                timer = undefined;
+            }
+            pointerId = null;
+        };
+
+        const ignorable = (target: EventTarget | null) => {
+            if (!(target instanceof Element)) return false;
+            return Boolean(target.closest('button, a, input, textarea, select, [role="dialog"]'));
+        };
+
+        const canStart = (e: PointerEvent) => {
+            if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return false;
+            if (e.isPrimary === false) return false;
+            if (ignorable(e.target)) return false;
+            const ui = this.app.uiManager;
+            if (!ui || ui.overlay !== 'none' || ui.phase !== 'globe') return false;
+            if (document.querySelector('.photo-modal-overlay, .photo-gallery-modal-overlay, .photosphere-modal-overlay')) {
+                return false;
+            }
+            return true;
+        };
+
+        document.addEventListener('pointerdown', (e) => {
+            cancel();
+            if (!canStart(e)) return;
+            startX = e.clientX;
+            startY = e.clientY;
+            pointerId = e.pointerId;
+            timer = setTimeout(() => {
+                timer = undefined;
+                this.suppressClicks(700);
+                try {
+                    navigator.vibrate?.(12);
+                } catch {
+                    // Vibration is optional and blocked in some browsers
+                }
+                this.showShortcutsHelp();
+            }, LONG_PRESS_MS);
+        }, { passive: true });
+
+        document.addEventListener('pointermove', (e) => {
+            if (pointerId !== e.pointerId || timer === undefined) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            if (dx * dx + dy * dy > LONG_PRESS_MOVE_PX * LONG_PRESS_MOVE_PX) cancel();
+        }, { passive: true });
+
+        document.addEventListener('pointerup', (e) => {
+            if (pointerId === e.pointerId) cancel();
+        }, { passive: true });
+
+        document.addEventListener('pointercancel', (e) => {
+            if (pointerId === e.pointerId) cancel();
+        }, { passive: true });
+
+        document.addEventListener('contextmenu', (e) => {
+            if (Date.now() < this.suppressClickUntil) {
+                e.preventDefault();
+                return;
+            }
+            if (!(e.target instanceof Element) || e.target.closest('a')) return;
+            const ui = this.app.uiManager;
+            if (ui?.phase === 'globe' && ui.overlay === 'none') {
+                e.preventDefault();
+            }
+        });
+    }
+
+    suppressClicks(ms: number) {
+        this.suppressClickUntil = Math.max(this.suppressClickUntil, Date.now() + ms);
     }
 
     onCanvasClick(e) {
+        if (this.closeHelp || Date.now() < this.suppressClickUntil) return;
+
         // Get click position in normalized coordinates
         const rect = this.app.renderer.domElement.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -324,14 +418,18 @@ export class EasterEggManager {
             return;
         }
 
+        const touch = isCoarsePointer();
         const helpDiv = document.createElement('div');
+        helpDiv.className = 'egg-help';
+        helpDiv.setAttribute('role', 'dialog');
+        helpDiv.setAttribute('aria-label', t('eggs.helpTitle'));
         helpDiv.style.position = 'fixed';
         helpDiv.style.top = '50%';
         helpDiv.style.left = '50%';
         helpDiv.style.transform = 'translate(-50%, -50%)';
         helpDiv.style.background = 'rgba(0, 0, 0, 0.95)';
         helpDiv.style.color = 'white';
-        helpDiv.style.padding = '30px';
+        helpDiv.style.padding = touch ? '22px 18px' : '30px';
         helpDiv.style.borderRadius = '15px';
         helpDiv.style.zIndex = '1002';
         helpDiv.style.fontSize = '15px';
@@ -340,43 +438,32 @@ export class EasterEggManager {
         helpDiv.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.6)';
         helpDiv.style.backdropFilter = 'blur(10px)';
         helpDiv.style.border = '1px solid rgba(255, 255, 255, 0.15)';
-        helpDiv.style.minWidth = '280px';
-        
+        helpDiv.style.width = 'min(320px, calc(100vw - 32px))';
+        helpDiv.style.maxHeight = 'calc(100dvh - 32px)';
+        helpDiv.style.overflowY = 'auto';
+
+        const shortcuts: { key: string; label: string; icon: string; run: () => void }[] = [
+            { key: 'A', label: t('eggs.helpAstronaut'), icon: 'Rocket', run: () => this.boostAstronaut() },
+            { key: 'S', label: t('eggs.helpStars'), icon: 'Star', run: () => this.triggerShootingStarShower() },
+            { key: 'T', label: t('eggs.helpTime'), icon: 'Zap', run: () => this.triggerTimeWarp(true) },
+            { key: 'C', label: t('eggs.helpColor'), icon: 'Palette', run: () => this.toggleColorMode() },
+            { key: 'F', label: t('eggs.helpFireworks'), icon: 'Fire', run: () => this.triggerFireworks() },
+            { key: touch ? t('eggs.helpHoldKey') : 'H', label: t('eggs.helpHelp'), icon: 'Help', run: () => this.closeHelp?.() },
+        ];
+
         helpDiv.innerHTML = `
             <div style="font-weight: 600; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 ${getIcon('Gamepad')} <span>${t('eggs.helpTitle')}</span>
             </div>
-            <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left; display: flex; flex-direction: column; gap: 10px;">
-                <li style="display: flex; align-items: center; gap: 10px;">
-                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">A</kbd>
-                    <span>${t('eggs.helpAstronaut')}</span>
-                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Rocket')}</span>
-                </li>
-                <li style="display: flex; align-items: center; gap: 10px;">
-                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">S</kbd>
-                    <span>${t('eggs.helpStars')}</span>
-                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Star')}</span>
-                </li>
-                <li style="display: flex; align-items: center; gap: 10px;">
-                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">T</kbd>
-                    <span>${t('eggs.helpTime')}</span>
-                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Zap')}</span>
-                </li>
-                <li style="display: flex; align-items: center; gap: 10px;">
-                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">C</kbd>
-                    <span>${t('eggs.helpColor')}</span>
-                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Palette')}</span>
-                </li>
-                <li style="display: flex; align-items: center; gap: 10px;">
-                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">F</kbd>
-                    <span>${t('eggs.helpFireworks')}</span>
-                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Fire')}</span>
-                </li>
-                <li style="display: flex; align-items: center; gap: 10px;">
-                    <kbd style="background: rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; border-bottom: 2px solid rgba(255, 255, 255, 0.4);">H</kbd>
-                    <span>${t('eggs.helpHelp')}</span>
-                    <span style="margin-left: auto; display: flex; align-items: center;">${getIcon('Help')}</span>
-                </li>
+            <ul class="egg-shortcut-list" style="list-style: none; padding: 0; margin: 0 0 15px 0; text-align: left; display: flex; flex-direction: column; gap: 4px;">
+                ${shortcuts.map(({ key, label, icon }) => `
+                <li>
+                    <button type="button" class="egg-shortcut">
+                        <kbd>${key}</kbd>
+                        <span>${label}</span>
+                        <span class="egg-shortcut-icon">${getIcon(icon)}</span>
+                    </button>
+                </li>`).join('')}
             </ul>
             <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; margin-bottom: 12px; text-align: left;">
                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px;">
@@ -387,9 +474,16 @@ export class EasterEggManager {
                 </div>
             </div>
             <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;">
-                ${getIcon('Mouse')} <span>${t('eggs.clickSurprises')}</span>
+                ${getIcon('Mouse')} <span>${touch ? t('eggs.tapSurprises') : t('eggs.clickSurprises')}</span>
             </div>
         `;
+
+        helpDiv.querySelectorAll<HTMLButtonElement>('.egg-shortcut').forEach((button, index) => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                shortcuts[index].run();
+            });
+        });
 
         this.closeHelp = () => {
             clearTimeout(this.helpAutoCloseTimer);
@@ -401,7 +495,9 @@ export class EasterEggManager {
             this.closeHelp = null;
         };
 
-        const clickHandler = () => {
+        const clickHandler = (e: MouseEvent) => {
+            if (Date.now() < this.suppressClickUntil) return;
+            if (helpDiv.contains(e.target as Node)) return;
             this.closeHelp?.();
         };
 
@@ -411,13 +507,20 @@ export class EasterEggManager {
             }
         };
 
-        // Delay attaching listeners to prevent immediate triggering
-        setTimeout(() => {
-            if (this.closeHelp) {
-                document.addEventListener('click', clickHandler);
-                document.addEventListener('keydown', keyHandler);
-            }
-        }, 10);
+        const attachDismiss = () => {
+            if (!this.closeHelp) return;
+            document.addEventListener('click', clickHandler);
+            document.addEventListener('keydown', keyHandler);
+        };
+
+        const dismissDelay = Math.max(10, this.suppressClickUntil - Date.now() + 40);
+        if (Date.now() < this.suppressClickUntil) {
+            helpDiv.style.pointerEvents = 'none';
+            setTimeout(() => {
+                helpDiv.style.pointerEvents = 'auto';
+            }, dismissDelay);
+        }
+        setTimeout(attachDismiss, dismissDelay);
 
         document.body.appendChild(helpDiv);
 

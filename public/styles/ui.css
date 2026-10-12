@@ -154,3 +154,51 @@
 #back-to-beginning-btn {
     transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1), opacity 0.8s ease, margin-bottom 0.3s ease !important;
 }
+
+.egg-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0;
+    padding: 8px 6px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.egg-shortcut kbd {
+    flex: 0 0 auto;
+    min-width: 1.75em;
+    width: max-content;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: bold;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.egg-shortcut-icon {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.egg-shortcut:hover,
+.egg-shortcut:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+.egg-shortcut:active {
+    background: rgba(90, 169, 255, 0.22);
+}

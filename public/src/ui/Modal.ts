@@ -175,11 +175,7 @@ export class Modal {
         if (closeBtn) {
             closeBtn.addEventListener('click', closeModal);
         }
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
+        this.bindBackdropClose(modal, closeModal);
 
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
@@ -371,11 +367,7 @@ export class Modal {
             });
         }
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
+        this.bindBackdropClose(modal, closeModal);
 
         if (prevBtn) {
             prevBtn.addEventListener('click', (e) => {
@@ -476,11 +468,7 @@ export class Modal {
         if (closeBtn) {
             closeBtn.addEventListener('click', closeModal);
         }
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
+        this.bindBackdropClose(modal, closeModal);
 
         const galleryPhotos = modal.querySelectorAll('.gallery-photo-item');
         galleryPhotos.forEach((photoItem) => {
@@ -502,6 +490,203 @@ export class Modal {
             if (e.key === 'Escape') {
                 closeModal();
             }
+        });
+    }
+
+    /**
+     * Show a gallery of all photos across every place, optionally filtered
+     */
+    showAllPhotosGalleryModal(
+        places: any[],
+        options: any = {},
+        state: { scrollTop?: number; filter?: 'all' | 'photos' | '360' } = {}
+    ) {
+        this.closeActiveModal(false);
+
+        if (options.onOpen) {
+            options.onOpen();
+        }
+
+        let filter: 'all' | 'photos' | '360' = state.filter ?? 'all';
+        const modal = document.createElement('div');
+        modal.className = 'photo-gallery-modal-overlay';
+        modal.innerHTML = `
+            <div class="photo-gallery-modal photo-gallery-modal--global">
+                <div class="photo-gallery-header">
+                    <h3>${t('modal.allPhotos')}</h3>
+                    <div class="gallery-filter" role="tablist" aria-label="${t('modal.allPhotos')}">
+                        <button type="button" class="gallery-filter-btn" data-filter="all" role="tab">${t('modal.filterAll')}</button>
+                        <button type="button" class="gallery-filter-btn" data-filter="photos" role="tab">${t('modal.filterPhotos')}</button>
+                        <button type="button" class="gallery-filter-btn" data-filter="360" role="tab">${t('modal.filter360')}</button>
+                    </div>
+                    <button class="photo-gallery-close icon-btn" aria-label="${t('modal.close')}">${getIcon('XMark')}</button>
+                </div>
+                <div class="photo-gallery-content"></div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        this.activeModal = modal;
+
+        const content = modal.querySelector('.photo-gallery-content') as HTMLDivElement;
+
+        const closeModal = () => {
+            this.setKeyHandler(null);
+            modal.remove();
+            if (this.activeModal === modal) {
+                this.activeModal = null;
+            }
+            if (options.onClose) {
+                options.onClose();
+            }
+        };
+
+        const matchesFilter = (photo: any) => {
+            const isPhotosphere = typeof photo === 'object' && photo.isPhotosphere === true;
+            if (filter === 'photos') return !isPhotosphere;
+            if (filter === '360') return isPhotosphere;
+            return true;
+        };
+
+        const renderSections = () => {
+            const sections = places
+                .map((place) => {
+                    const photos = (place.photos || [])
+                        .map((photo: any, index: number) => ({ photo, index }))
+                        .filter(({ photo }) => matchesFilter(photo));
+                    if (photos.length === 0) return '';
+
+                    const placeName = place.name;
+                    return `
+                        <section class="gallery-place-section" data-place-id="${place.id}">
+                            <div class="gallery-place-header">
+                                <div class="gallery-place-meta">
+                                    <h4 class="gallery-place-name">${placeName}</h4>
+                                    <p class="gallery-place-date">${place.visitDate}</p>
+                                </div>
+                                <button type="button" class="gallery-go-to-place" data-place-id="${place.id}">
+                                    ${getIcon('MapPin')} ${t('modal.goToPlace')}
+                                </button>
+                            </div>
+                            <div class="photo-grid">
+                                ${photos
+                                    .map(({ photo, index }) => {
+                                        const photoSrc = typeof photo === 'string' ? photo : photo.src;
+                                        const thumbnailSrc = this.getThumbnailPath(photoSrc, 'gallery');
+                                        const photoCaption = (typeof photo === 'object' && photo.caption) || '';
+                                        const isPhotosphere = typeof photo === 'object' && photo.isPhotosphere;
+                                        const icon = isPhotosphere ? getIcon('Globe') : getIcon('Camera');
+                                        return `
+                                            <div class="gallery-photo-item" data-place-id="${place.id}" data-index="${index}" data-full-src="${photoSrc}" data-photosphere="${isPhotosphere}">
+                                                <img src="${thumbnailSrc}" alt="${t('places.photoAltN', { name: placeName, n: index + 1 })}" class="gallery-thumbnail" loading="lazy" />
+                                                <div class="gallery-photo-overlay">
+                                                    <span class="gallery-photo-icon">${icon}</span>
+                                                    ${photoCaption ? `<span class="gallery-photo-caption">${photoCaption}</span>` : ''}
+                                                </div>
+                                            </div>
+                                        `;
+                                    })
+                                    .join('')}
+                            </div>
+                        </section>
+                    `;
+                })
+                .filter(Boolean)
+                .join('');
+
+            content.innerHTML = sections || `<p class="gallery-empty">${t('modal.galleryEmpty')}</p>`;
+
+            content.querySelectorAll('.gallery-photo-item').forEach((photoItem) => {
+                photoItem.addEventListener('click', () => {
+                    const placeId = photoItem.getAttribute('data-place-id');
+                    const place = places.find((p) => p.id === placeId);
+                    if (!place) return;
+
+                    const fullSrc = photoItem.getAttribute('data-full-src');
+                    const isPhotosphere = photoItem.getAttribute('data-photosphere') === 'true';
+                    const index = parseInt(photoItem.getAttribute('data-index') ?? '0');
+                    const galleryScrollTop = content.scrollTop;
+                    const returnOptions = { ...options, onOpen: undefined };
+
+                    this.showPhotoModal(fullSrc, place.name, isPhotosphere, place, index, {
+                        onClose: () =>
+                            this.showAllPhotosGalleryModal(places, returnOptions, {
+                                scrollTop: galleryScrollTop,
+                                filter,
+                            }),
+                    });
+                });
+            });
+
+            content.querySelectorAll('.gallery-go-to-place').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const placeId = btn.getAttribute('data-place-id');
+                    const place = places.find((p) => p.id === placeId);
+                    if (!place) return;
+
+                    closeModal();
+                    if (options.onFlyToPlace) {
+                        options.onFlyToPlace(place);
+                    }
+                });
+            });
+        };
+
+        const syncFilterButtons = () => {
+            modal.querySelectorAll('.gallery-filter-btn').forEach((btn) => {
+                const active = btn.getAttribute('data-filter') === filter;
+                btn.classList.toggle('is-active', active);
+                btn.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+        };
+
+        modal.querySelectorAll('.gallery-filter-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const next = btn.getAttribute('data-filter') as 'all' | 'photos' | '360' | null;
+                if (!next || next === filter) return;
+                filter = next;
+                syncFilterButtons();
+                renderSections();
+                content.scrollTop = 0;
+            });
+        });
+
+        const closeBtn = modal.querySelector('.photo-gallery-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+        this.bindBackdropClose(modal, closeModal);
+
+        syncFilterButtons();
+        renderSections();
+
+        if (state.scrollTop) {
+            content.scrollTop = state.scrollTop;
+        }
+
+        this.setKeyHandler((e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    }
+
+    /**
+     * Close only when the press both starts and ends on the backdrop.
+     * Prevents closing a 360° view when a look-around drag leaves the modal.
+     */
+    bindBackdropClose(overlay: HTMLElement, onClose: () => void) {
+        let pressedOnBackdrop = false;
+
+        overlay.addEventListener('pointerdown', (e) => {
+            pressedOnBackdrop = e.target === overlay;
+        });
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay && pressedOnBackdrop) {
+                onClose();
+            }
+            pressedOnBackdrop = false;
         });
     }
 
