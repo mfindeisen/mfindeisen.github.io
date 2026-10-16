@@ -2,6 +2,9 @@ import maplibregl from 'maplibre-gl';
 
 export const MAP_START_ZOOM = 4.21;
 
+/** Erbil and the ground just outside the 1968 city, matching scripts/build-corona-tiles.py. */
+const CORONA_BOUNDS: [number, number, number, number] = [43.935, 36.125, 44.085, 36.260];
+
 /**
  * Scroll progress at which the map starts fading in over the 3D scene.
  */
@@ -62,6 +65,7 @@ export class MapManager {
                     if (this.mapTilerMap.getLayer('Road')) {
                         this.mapTilerMap.setLayoutProperty('Road', 'visibility', 'none');
                     }
+                    this.addCoronaLayer();
                     this.isInitialized = true;
                     resolve(this.mapTilerMap);
                 });
@@ -285,6 +289,162 @@ export class MapManager {
      */
     isMapInitialized() {
         return this.isInitialized && this.mapTilerMap !== null;
+    }
+
+    coronaCompare = false;
+    /** Fraction of the map width, from the left, that shows August 1968. */
+    coronaSplit = 0.5;
+    private coronaCompareRoot: HTMLElement | null = null;
+
+    /**
+     * August 1968 Corona photograph, drawn under the labels and clipped by the compare slider.
+     */
+    addCoronaLayer() {
+        if (!this.mapTilerMap || this.mapTilerMap.getSource('corona-1968')) return;
+
+        this.mapTilerMap.addSource('corona-1968', {
+            type: 'raster',
+            tiles: ['/textures/corona/{z}/{x}/{y}.webp'],
+            tileSize: 256,
+            minzoom: 12,
+            maxzoom: 16,
+            bounds: CORONA_BOUNDS,
+            attribution: 'Corona 7 Aug 1968: CAST, University of Arkansas / USGS',
+        });
+
+        const beforeId = this.mapTilerMap
+            .getStyle()
+            ?.layers?.find((layer: { type: string }) => layer.type === 'symbol')?.id;
+
+        // The clip layer scissors the photograph to the left of the divider.
+        // The unclip layer turns the scissor off again so labels and markers stay whole.
+        this.mapTilerMap.addLayer(this.coronaUnclipLayer(), beforeId);
+        this.mapTilerMap.addLayer(
+            {
+                id: 'corona-1968',
+                type: 'raster',
+                source: 'corona-1968',
+                layout: { visibility: 'none' },
+                paint: {
+                    'raster-opacity': 1,
+                    'raster-fade-duration': 0,
+                },
+            },
+            'corona-unclip'
+        );
+        this.mapTilerMap.addLayer(this.coronaClipLayer(), 'corona-1968');
+    }
+
+    private coronaClipLayer() {
+        return {
+            id: 'corona-clip',
+            type: 'custom',
+            renderingMode: '2d',
+            render: (gl: WebGLRenderingContext) => {
+                if (!this.coronaCompare) {
+                    gl.disable(gl.SCISSOR_TEST);
+                    return;
+                }
+                const width = Math.round(this.coronaSplit * gl.drawingBufferWidth);
+                gl.enable(gl.SCISSOR_TEST);
+                gl.scissor(0, 0, Math.max(0, width), gl.drawingBufferHeight);
+            },
+        };
+    }
+
+    private coronaUnclipLayer() {
+        return {
+            id: 'corona-unclip',
+            type: 'custom',
+            renderingMode: '2d',
+            render: (gl: WebGLRenderingContext) => {
+                gl.disable(gl.SCISSOR_TEST);
+            },
+        };
+    }
+
+    /**
+     * Wire the draggable divider. The left side is 1968, the right side is the current map.
+     */
+    attachCoronaCompare(root: HTMLElement) {
+        this.coronaCompareRoot = root;
+        const hit = root.querySelector<HTMLElement>('.corona-compare-hit');
+        if (!hit) return;
+
+        const apply = (fraction: number) => {
+            this.coronaSplit = Math.min(1, Math.max(0, fraction));
+            root.style.setProperty('--split', `${this.coronaSplit * 100}%`);
+            this.placeCoronaLabels(root);
+            hit.setAttribute('aria-valuenow', String(Math.round(this.coronaSplit * 100)));
+            hit.setAttribute('aria-valuetext', `${Math.round(this.coronaSplit * 100)}% 1968`);
+            this.mapTilerMap?.triggerRepaint();
+        };
+
+        hit.addEventListener('pointerdown', (event) => {
+            hit.setPointerCapture(event.pointerId);
+            apply(this.fractionAt(root, event.clientX));
+        });
+        hit.addEventListener('pointermove', (event) => {
+            if (!hit.hasPointerCapture(event.pointerId)) return;
+            apply(this.fractionAt(root, event.clientX));
+        });
+        hit.addEventListener('keydown', (event) => {
+            const step = event.shiftKey ? 0.1 : 0.02;
+            if (event.key === 'ArrowLeft') apply(this.coronaSplit - step);
+            else if (event.key === 'ArrowRight') apply(this.coronaSplit + step);
+            else if (event.key === 'Home') apply(0);
+            else if (event.key === 'End') apply(1);
+            else return;
+            event.preventDefault();
+        });
+        window.addEventListener('resize', () => {
+            if (this.coronaCompare) this.placeCoronaLabels(root);
+        });
+
+        apply(this.coronaSplit);
+    }
+
+    /**
+     * Keep the 1968 / Today labels on the divider, and beside the places list when that panel covers them.
+     */
+    private placeCoronaLabels(root: HTMLElement) {
+        const labels = root.querySelector<HTMLElement>('.corona-compare-labels');
+        const rootRect = root.getBoundingClientRect();
+        if (!labels || rootRect.width <= 0) return;
+
+        const list = document.querySelector<HTMLElement>('.places-list-container');
+        let clearLeft = 8;
+        if (list) {
+            const listRect = list.getBoundingClientRect();
+            const labelY = rootRect.top + rootRect.height / 2 - 52;
+            const sidePanel = listRect.width < rootRect.width * 0.9;
+            const coversLabel = labelY >= listRect.top && labelY <= listRect.bottom;
+            if (sidePanel && coversLabel) clearLeft = Math.max(8, listRect.right - rootRect.left + 8);
+        }
+
+        const half = labels.offsetWidth / 2;
+        const splitPx = this.coronaSplit * rootRect.width;
+        const center = Math.min(rootRect.width - 8 - half, Math.max(clearLeft + half, splitPx));
+        root.style.setProperty('--label-x', `${center}px`);
+    }
+
+    private fractionAt(root: HTMLElement, clientX: number) {
+        const rect = root.getBoundingClientRect();
+        if (rect.width <= 0) return this.coronaSplit;
+        return (clientX - rect.left) / rect.width;
+    }
+
+    /**
+     * Open or close the before/after slider. Returns whether it is open afterwards.
+     */
+    setCoronaCompare(active: boolean): boolean {
+        this.coronaCompare = active;
+        if (this.mapTilerMap?.getLayer('corona-1968')) {
+            this.mapTilerMap.setLayoutProperty('corona-1968', 'visibility', active ? 'visible' : 'none');
+            this.mapTilerMap.triggerRepaint();
+        }
+        this.coronaCompareRoot?.classList.toggle('is-open', active);
+        return active;
     }
 
     /**

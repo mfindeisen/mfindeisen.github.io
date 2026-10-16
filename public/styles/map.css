@@ -406,6 +406,119 @@
             }
         }
 
+        #corona-toggle.is-active {
+            background: var(--accent-strong);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #fff;
+        }
+
+        /* Before/after divider. Left of the line is 1968, right of it is the current map. */
+        .corona-compare {
+            --split: 50%;
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            overflow: hidden;
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        .corona-compare.is-open {
+            visibility: visible;
+        }
+
+        .corona-compare-labels {
+            position: absolute;
+            top: calc(50% - 52px);
+            left: var(--label-x, var(--split));
+            display: flex;
+            gap: 6px;
+            transform: translate(-50%, -50%);
+        }
+
+        .corona-compare-label {
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 999px;
+            color: var(--text-strong);
+            background: rgba(24, 30, 44, 0.72);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(14px) saturate(160%);
+            font-family: var(--font-system);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+        }
+
+        .corona-compare-hit {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: var(--split);
+            width: 44px;
+            padding: 0;
+            border: 0;
+            background: none;
+            transform: translateX(-50%);
+            pointer-events: auto;
+            touch-action: none;
+            cursor: ew-resize;
+        }
+
+        .corona-compare-hit:focus-visible {
+            outline: none;
+        }
+
+        .corona-compare-hit:focus-visible .corona-compare-knob {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        .corona-compare-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.45);
+            transform: translateX(-50%);
+        }
+
+        .corona-compare-knob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 46px;
+            height: 46px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 50%;
+            background: rgba(24, 30, 44, 0.78);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(14px) saturate(160%);
+            transform: translate(-50%, -50%);
+        }
+
+        .corona-compare-chevron {
+            width: 7px;
+            height: 7px;
+            border-top: 2px solid #fff;
+            border-right: 2px solid #fff;
+        }
+
+        .corona-compare-chevron.left {
+            transform: rotate(-135deg);
+        }
+
+        .corona-compare-chevron.right {
+            transform: rotate(45deg);
+        }
+
         /* ---------- Map attribution ---------- */
 
         #maptiler-map .maplibregl-ctrl-attrib {

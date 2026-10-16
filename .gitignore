@@ -80,6 +80,9 @@ temp/
 .env.local
 config.local.js
 
+# Corona source frames (~1 GB). The site ships the WebP tiles.
+/ds1104-*.tif
+
 # Package lock files (choose one based on your preference)
 # package-lock.json
 # yarn.lock

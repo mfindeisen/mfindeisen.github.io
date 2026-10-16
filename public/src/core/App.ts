@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { EarthScene } from '../earth/EarthScene.js';
+import { t } from '../i18n/i18n.js';
 import { PlacesManager } from '../PlacesManager.js';
 import { ScrollController } from '../ScrollController.js';
 import { UIManager } from '../ui/UIManager.js';
@@ -9,7 +10,6 @@ import { MobileTouchHandler } from '../ui/MobileTouchHandler.js';
 import { prefersReducedMotion } from '../utils/motion.js';
 
 import { EasterEggManager } from '../effects/EasterEggManager.js';
-import { t } from '../i18n/i18n.js';
 
 // 36.1892566,44.0100967
 const ERBIL_CENTER: [number, number] = [44.0100967, 36.1892566];
@@ -203,6 +203,9 @@ export class App {
             // Initialize places manager
             this.placesManager = new PlacesManager(this.mapTilerMap);
 
+            const coronaCompare = document.getElementById('corona-compare');
+            if (coronaCompare) this.mapManager.attachCoronaCompare(coronaCompare);
+
             // Set places manager reference in UI manager
             this.uiManager.setPlacesManager(this.placesManager);
 
@@ -238,6 +241,20 @@ export class App {
         ui.getElement('reopenPortfolioBtn')?.addEventListener('click', () => ui.setActiveOverlay('portfolio'));
         ui.getElement('reopenShowcaseBtn')?.addEventListener('click', () => ui.setActiveOverlay('showcase'));
         ui.getElement('backToBeginningBtn')?.addEventListener('click', () => this.backToBeginning());
+        ui.getElement('coronaToggle')?.addEventListener('click', () => {
+            this.syncCoronaCompare(!this.mapManager.coronaCompare);
+        });
+    }
+
+    /**
+     * Open or close the 1968/today divider and keep the toolbar button in step with it.
+     */
+    syncCoronaCompare(active: boolean) {
+        const shown = this.mapManager.setCoronaCompare(active);
+        const button = this.uiManager.getElement('coronaToggle');
+        button?.setAttribute('aria-pressed', shown ? 'true' : 'false');
+        button?.setAttribute('aria-label', t(shown ? 'corona.hide' : 'corona.show'));
+        button?.classList.toggle('is-active', shown);
     }
 
     showTooltip(message, duration = 2000) {
@@ -404,6 +421,7 @@ export class App {
             this.placesManager.removeAllMarkers();
             this.placesManager.resetAllStates();
         }
+        this.syncCoronaCompare(false);
         this.mapManager.reset();
         const mapContainer = ui.getElement('mapContainer');
         if (mapContainer) mapContainer.style.pointerEvents = '';

@@ -106,6 +106,7 @@
     </header>
 
     <nav id="top-toolbar" aria-label="Quick navigation">
+        <button id="corona-toggle" class="btn btn-ghost hidden" type="button" aria-pressed="false" aria-label="Compare August 1968 with today">1968</button>
         <button id="skip-showcase-btn" class="btn btn-ghost">Showcase →</button>
         <button id="skip-button" class="btn btn-primary">Portfolio →</button>
         <button id="reopen-showcase-btn" class="btn btn-ghost">Showcase →</button>
@@ -116,6 +117,19 @@
 
     <div id="map-container">
         <div id="maptiler-map"></div>
+        <div id="corona-compare" class="corona-compare">
+            <span class="corona-compare-labels">
+                <span class="corona-compare-label corona-compare-label-old">1968</span>
+                <span class="corona-compare-label corona-compare-label-new">Today</span>
+            </span>
+            <div class="corona-compare-hit" role="slider" tabindex="0" aria-label="Drag to compare 1968 and today" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-orientation="horizontal">
+                <span class="corona-compare-line"></span>
+                <span class="corona-compare-knob" aria-hidden="true">
+                    <span class="corona-compare-chevron left"></span>
+                    <span class="corona-compare-chevron right"></span>
+                </span>
+            </div>
+        </div>
     </div>
 
     <div id="canvas-container"></div>

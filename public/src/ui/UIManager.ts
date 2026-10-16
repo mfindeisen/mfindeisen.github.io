@@ -40,6 +40,7 @@ export class UIManager {
             reopenShowcaseBtn: document.getElementById('reopen-showcase-btn'),
             showcaseOverlay: document.getElementById('showcase-overlay'),
             backToBeginningBtn: document.getElementById('back-to-beginning-btn'),
+            coronaToggle: document.getElementById('corona-toggle'),
             footer: document.getElementById('footer'),
             hero: document.getElementById('hero')
         };
@@ -278,6 +279,7 @@ export class UIManager {
         this.setVisible('reopenPortfolioBtn', mapChrome);
         this.setVisible('reopenShowcaseBtn', mapChrome);
         this.setVisible('backToBeginningBtn', mapChrome);
+        this.setVisible('coronaToggle', mapChrome);
 
         this.placesManager?.setPlacesListVisibility(onMap);
     }

@@ -65,6 +65,10 @@ export const uiStrings: Dict = {
         clickSurprises: 'Click anywhere for surprises!',
         tapSurprises: 'Tap a shortcut or anywhere for surprises!',
     },
+    corona: {
+        show: 'Compare August 1968 with today',
+        hide: 'Hide the 1968 comparison',
+    },
 };
 
 const en: Dict = {

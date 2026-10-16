@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p .",
     "build:sky": "node scripts/build-sky.mjs",
-    "build:photos": "node scripts/build-photos.mjs"
+    "build:photos": "node scripts/build-photos.mjs",
+    "build:corona": "python3 scripts/build-corona-tiles.py"
   },
   "keywords": [
     "threejs",
